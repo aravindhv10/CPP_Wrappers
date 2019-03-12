@@ -1,0 +1,68 @@
+\section{Backpropagation on the gradient:}
+
+We now show that the above procedure can also be used to learn on
+the gradient of the neural network instead of the plain output of
+the network.
+
+\begin{eqnarray*}
+    O_{by}^{K} & = & W_{yx}^{K}I_{bx}^{K}+B_{y}^{K}\\
+    \left(\frac{dO_{by}^{K}}{dI_{bm}^{0}}\right) & = & W_{yx}^{K}\left(\frac{dI_{bx}^{K}}{dI_{bm}^{0}}\right)\\
+    \left(\frac{dO_{by}^{K}}{dI_{bm}^{0}}\right) & = & W_{yx}^{K}\left(\frac{dO_{bx}^{K-1}}{dI_{bm}^{0}}\right)\\
+    \\
+    \mathfrak{D}_{bym}^{K} & \equiv & \left(\frac{dO_{by}^{K}}{dI_{bm}^{0}}\right)\\
+    \mathfrak{D}_{bym}^{K} & = & W_{yx}^{K}\mathfrak{D}_{bxm}^{K-1}\\
+    \\
+    \text{if: }\mathfrak{D}_{bxm}^{K-1} & = & \delta_{xm}\quad\left(\text{first layer}\right)\\
+    \mathfrak{D}_{bym}^{K} & = & W_{yx}^{K}\delta_{xm}\\
+    \mathfrak{D}_{bym}^{K} & = & W_{ym}^{K}\\
+    \\
+    O_{bi}^{K} & = & \sigma\left(I_{bi}^{K}\right)\\
+    \frac{dO_{bi}^{K}}{dI_{bm}^{0}} & = & \sigma^{\prime}\left(I_{bi}^{K}\right)\frac{dI_{bi}^{K}}{dI_{bm}^{0}}\\
+    \left(\frac{dO_{bi}^{K}}{dI_{bm}^{0}}\right) & = & \sigma^{\prime}\left(I_{bi}^{K}\right)\left(\frac{dO_{bi}^{K-1}}{dI_{bm}^{0}}\right)\\
+    \mathfrak{D}_{bim}^{K} & = & \sigma^{\prime}\left(O_{bi}^{K-1}\right)\mathfrak{D}_{bim}^{K-1}\\
+    \left(\mathfrak{D}_{bim}^{K}-{\cal A}_{bim}\right)^{2} & = & \epsilon\\
+    2\left(\mathfrak{D}_{bim}^{K}-{\cal A}_{bim}\right)\partial\mathfrak{D}_{bim}^{K} & = & \partial\epsilon
+\end{eqnarray*}
+
+So:
+
+\begin{eqnarray*}
+    \left(\mathfrak{D}_{bim}^{K}-{\cal A}_{bim}\right) & \equiv & \Delta_{bim}^{K}
+\end{eqnarray*}
+
+\begin{eqnarray*}
+    \mathfrak{D}_{bym}^{K} & = & W_{yx}^{K}\mathfrak{D}_{bxm}^{K-1}\\
+    \Delta_{bym}^{K}\partial\mathfrak{D}_{bym}^{K} & = & W_{yx}^{K}\Delta_{bym}^{K}\partial\mathfrak{D}_{bxm}^{K-1}\\
+    \Rightarrow\Delta_{bxm}^{K-1} & = & W_{yx}^{K}\Delta_{bym}^{K}\\
+    \Rightarrow\left(\Delta_{b}^{K-1}\right)_{xm} & = & \left(W^{K}\right)_{xy}^{T}\left(\Delta_{b}^{K}\right)_{ym}\\
+    \left(\Delta_{b}^{K-1}\right)_{xm} & = & \left[\left(W^{K}\right)^{T}\Delta_{b}^{K}\right]_{xm}
+\end{eqnarray*}
+
+For evaluating $W$:
+\begin{eqnarray*}
+    \Delta_{bym}^{K}\partial\mathfrak{D}_{bym}^{K} & = & \left(\Delta_{bym}^{K}\partial\right)\left[W_{yx}^{K}\mathfrak{D}_{bxm}^{K-1}\right]\\
+    & = & \Delta_{bym}^{K}\mathfrak{D}_{bxm}^{K-1}\left(\partial W_{yx}^{K}\right)\\
+    \delta W_{yx}^{K} & = & \Delta_{bym}^{K}\mathfrak{D}_{bxm}^{K-1}\\
+    \delta W_{yx}^{K} & = & \left(\Delta_{b}^{K}\right)_{ym}\left(\mathfrak{D}_{b}^{K-1}\right)_{xm}\\
+    \delta W_{yx}^{K} & = & \left(\Delta_{b}^{K}\right)_{ym}\left(\mathfrak{D}_{b}^{K-1}\right)_{mx}^{T}\\
+    \delta W_{yx}^{K} & = & \left[\left(\Delta_{b}^{K}\right)\left(\mathfrak{D}_{b}^{K-1}\right)^{T}\right]_{yx}\\
+    \text{if : }\left(\mathfrak{D}_{b}^{K-1}\right)_{xm} & = & \delta_{xm}\\
+    \delta W_{yx}^{K} & = & \left(\Delta_{b}^{K}\right)_{ym}\left(\delta_{xm}\right)\\
+    \delta W_{yx}^{K} & = & \sum_{b}\left(\Delta_{b}^{K}\right)_{yx}\\
+    \delta W_{yx}^{K} & = & \left(\Delta_{b}^{K}\right)_{ym}\left(\mathfrak{D}_{b}^{K-1}\right)_{mx}^{T}
+\end{eqnarray*}
+
+For the activation layers:
+
+\begin{eqnarray*}
+    \mathfrak{D}_{bim}^{K} & = & \sigma^{\prime}\left(O_{bi}^{K-1}\right)\mathfrak{D}_{bim}^{K-1}\\
+    \partial\mathfrak{D}_{bim}^{K} & = & \left[\partial\sigma^{\prime}\left(O_{bi}^{K-1}\right)\right]\mathfrak{D}_{bim}^{K-1}+\sigma^{\prime}\left(O_{bi}^{K-1}\right)\left[\partial\mathfrak{D}_{bim}^{K-1}\right]\\
+    \partial\mathfrak{D}_{bim}^{K} & = & \left[\partial O_{bi}^{K-1}\right]\mathfrak{D}_{bim}^{K-1}\sigma^{\prime\prime}\left(O_{bi}^{K-1}\right)+\sigma^{\prime}\left(O_{bi}^{K-1}\right)\left[\partial\mathfrak{D}_{bim}^{K-1}\right]\\
+    \Delta_{bim}^{K}\partial\mathfrak{D}_{bim}^{K} & = & \left\{ \Delta_{bim}^{K}\mathfrak{D}_{bim}^{K-1}\sigma^{\prime\prime}\left(O_{bi}^{K-1}\right)\right\} \left[\partial O_{bi}^{K-1}\right]+\left\{ \Delta_{bim}^{K}\sigma^{\prime}\left(O_{bi}^{K-1}\right)\right\} \left[\partial\mathfrak{D}_{bim}^{K-1}\right]\\
+    \Delta_{bim}^{K}\partial\mathfrak{D}_{bim}^{K} & = & \left(\delta_{bi}^{K-1}\right)\left[\partial O_{bi}^{K-1}\right]+\left(\Delta_{bim}^{K-1}\right)\left[\partial\mathfrak{D}_{bim}^{K-1}\right]\\
+    \left(\delta_{bi}^{K-1}\right) & \equiv & \left\{ \Delta_{bim}^{K}\mathfrak{D}_{bim}^{K-1}\sigma^{\prime\prime}\left(O_{bi}^{K-1}\right)\right\} \\
+    \left(\Delta_{bim}^{K-1}\right) & \equiv & \left\{ \Delta_{bim}^{K}\sigma^{\prime}\left(O_{bi}^{K-1}\right)\right\} 
+\end{eqnarray*}
+
+Where the first term represents a normal back propagation while the
+second term represents a gradient backpropagation.

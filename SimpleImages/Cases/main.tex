@@ -1,0 +1,30 @@
+\input{header.tex}
+\begin{document}
+	\input{text.tex}
+    The ratio $\frac{m_0}{E_0}$ determines the length scale to resolve the jet,
+    a condition $m_{0}<E_{0}$ is very important for the consistency of our method.\\
+    When the ratio is too large, the prongs are smeared towards the edges like in \autoref{fig:case9}.\\
+    When the ratio is too small, the prongs are not well resolved like in \autoref{fig:case1}.\\
+    A ratio of $\frac{m_0}{E_0}=\frac{1}{2}$ [\autoref{fig:case5}] was chosen as it ``seems'' to correctly resolve the jet, probably this ratio can also be optimized.
+    
+    \begin{figure}
+        \begin{center}
+            \includegraphics[width=0.32\textwidth]{./NoNorm/imageQCD.pdf}
+            \includegraphics[width=0.32\textwidth]{./NoNorm/imageW.pdf}
+            \includegraphics[width=0.32\textwidth]{./NoNorm/imageTOP.pdf}
+        \end{center}
+        \caption{
+            Figures where $E_0 \ne 1$ GeV but the quantity $\frac{\mathbf{E_i}}{E_0}$ is used to fill the histograms.\\
+            {\bf(LEFT):} QCD jets,\\
+            {\bf(MIDDLE):} $W^{\pm}$ jets,\\
+            {\bf(RIGHT):} Top jets.\\
+            There seems to be no difference between this and \autoref{fig:case5}.
+        }
+        \label{fig:caseNorm}
+    \end{figure}
+
+    Image formation with a different normalization for $E_0$ is presented in \autoref{fig:caseNorm} (z axis is intentionally left unnormalized so that it can be easily compared with \autoref{fig:case5}), filling the quantity $\frac{\mathbf{E_i}}{E_0}$ correctly normalizes the image.
+    
+    
+    
+\end{document}

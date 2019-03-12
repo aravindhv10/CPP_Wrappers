@@ -1,0 +1,81 @@
+\section{Normal Backpropagation:}
+
+Through out this document, we follow the convention that indices that
+appear on one side of the equation and not on the other are summed
+over. To make it convinent later on, we split the usual neural network
+function into two steps (the linear transformation step and the non-linear
+activation step):
+
+\begin{eqnarray*}
+    O_{by}^{K} & = & W_{yx}^{K}I_{bx}^{K}+B_{y}^{K}\\
+    \text{For : }K & \ge & 1\\
+    \text{We have : }I_{bx}^{K} & \rightarrow & O_{bx}^{K-1}\\
+    O_{by}^{K+1} & = & \sigma\left[O_{by}^{K}\right]\\
+    \sigma & \Rightarrow & \text{Activation Function.}
+\end{eqnarray*}
+
+To make this more friendly for matrix multiplication, the linear part
+can be written as:
+
+\begin{eqnarray*}
+    O_{by}^{K} & = & I_{bx}^{K}\left(W^{K}\right)_{xy}^{T}+B_{y}^{K}
+\end{eqnarray*}
+
+To learn features by backpropagation (denoting the last layer by the
+index $L$):
+
+\begin{eqnarray*}
+    \epsilon & \equiv & \left(O_{by}^{L}-{\cal Y}_{by}\right)^{2}\\
+    \delta\epsilon & = & 2\left(O_{by}^{L}-{\cal Y}_{by}\right)\left(\delta O_{by}^{L}\right)
+\end{eqnarray*}
+
+Let us denote:
+
+\begin{eqnarray*}
+    \Delta_{by}^{L} & \equiv & 2\left(O_{by}^{L}-{\cal Y}_{by}\right)
+\end{eqnarray*}
+
+Hence, we get:
+
+\begin{eqnarray*}
+    \delta\epsilon & = & \Delta_{by}^{L}\left(\delta O_{by}^{L}\right)
+\end{eqnarray*}
+
+Now, consider the first (linear) cases:
+
+\begin{eqnarray*}
+    \Delta_{by}^{K}\delta O_{by}^{K} & = & \left(\delta W_{yx}^{K}\right)\Delta_{by}^{K}I_{bx}^{K}+\Delta_{by}^{K}W_{yx}^{K}\left(\delta I_{bx}^{K}\right)+\Delta_{by}^{K}\left(\delta B_{y}^{K}\right)\\
+    \Delta_{by}^{K}\delta O_{by}^{K} & = & \left(\delta W_{yx}^{K}\right)\Delta_{by}^{K}O_{bx}^{K-1}+\Delta_{by}^{K}W_{yx}^{K}\left(\delta O_{bx}^{K-1}\right)+\Delta_{by}^{K}\left(\delta B_{y}^{K}\right)
+\end{eqnarray*}
+
+This gives the backpropagation recursion relation:
+
+\begin{eqnarray*}
+    \Delta_{bx}^{K-1} & = & \Delta_{by}^{K}W_{yx}^{K}\\
+    \text{Hence : }\Delta_{by}^{K}\left(\delta O_{by}^{K}\right) & \rightarrow & \Delta_{bx}^{K-1}\left(\delta O_{bx}^{K-1}\right)
+\end{eqnarray*}
+
+And also the gradient of $W_{yx}^{K}$ and $B_{y}^{K}$ which will
+be used for the gradient descent:
+
+\begin{eqnarray*}
+    \delta W_{yx}^{K} & = & \Delta_{by}^{K}O_{bx}^{K-1}\quad=\quad\left(\Delta^{K}\right)_{yb}^{T}O_{bx}^{K-1}\\
+    \delta B_{y}^{K} & = & \Delta_{by}^{K}
+\end{eqnarray*}
+
+Using the sum convention mentioned at the beginning, we can interpret
+the second equation as:
+
+\begin{eqnarray*}
+    \delta B_{y}^{K} & = & \sum_{b}\Delta_{by}^{K}
+\end{eqnarray*}
+
+Similar relations can be derived for the activation layer:
+
+\begin{eqnarray*}
+    \Delta_{by}^{K}\left(\delta O_{by}^{K}\right) & = & \left(\sigma^{\prime}\left[O_{by}^{K-1}\right]\Delta_{by}^{K}\right)\left(\delta O_{by}^{K-1}\right)\\
+    \text{Hence : }\Delta_{by}^{K-1} & = & \Delta_{by}^{K}\sigma^{\prime}\left[O_{by}^{K-1}\right]
+\end{eqnarray*}
+
+We now have all the recursion relations for derivatives (backpropagation)
+required to perform gradient descent.

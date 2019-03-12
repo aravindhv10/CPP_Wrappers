@@ -1,0 +1,20 @@
+\input{header.tex}
+\begin{document}
+The program ``main.cc'' contains the {\tt main()} function which generates events using {\tt pythia}, clusters final detectable particles using {\tt fastjet} and then forms the images using 2D histogram from root.
+The program is extensively commented and the details can be easily read from there.
+
+The actual image formation class is {\tt NewHEPHeaders::MyJetImageGen}, this is a template class which takes two template arguments during declaration.
+One is the number of pixels (40 in the example program) and another is a type to hold the numbers (either float or double, we have used float).
+The details of the actual way in which this works is described in the DRAFT which we are trying to finish as quickly as possible but can also be read off from lines after 4972 in {\tt MainHeaders.hh}.
+Basically it has 3 parts, the rescaling step, the lorentz boosting step and finally the image formation step.
+
+lines from 5028 to 5055 calculate some parameters required for the boosting and rescaling.
+The for loop in 5065 actually performs both the rescaling and the boost at the same time in view of performance.
+The lines after 5080 does the gram-schmidt and the image formation.
+
+The program uses {\tt pythia}, {\tt fastjet} and {\tt root} and hence while compiling needs to be linked against there libraries.
+If these libraries are installed in standard locations, they provide {\tt pythia8-config}, {\tt root-config} and {\tt fastjet-config} which can be used to automatically get the configuration for these libraries to link them.
+If they are installed in non-standard locations, these lines need to be changed appropriately.
+The script {\tt compile} can be edited to change these. The script also compiles the program ``main.cc'' and produces ``main.exe'' which can be executed to generate QCD and $t \bar{t}$ events and make jet images.
+
+\end{document}

@@ -1,0 +1,11 @@
+#!/usr/bin/gnuplot
+set terminal svg size 5000,3000
+set output "out.svg"
+set grid
+set ytics 0.2
+set xtics 0.5
+
+plot \
+    "tmp" using ($1):($2) with lines lc rgbcolor "#880000"  notitle , \
+    "tmp" using 1:4 with lines ls "-     .     -" lc rgbcolor "#0000FF" notitle
+exit

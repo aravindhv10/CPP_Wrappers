@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'g++' './main.cc' $('pythia8-config' '--cxxflags' '--ldflags' '--libs') $('root-config' '--libs' '--glibs' '--evelibs' '--cflags' '--ldflags' '--auxlibs' '--auxcflags') $('fastjet-config' '--cxxflags' '--libs')  '-o' './main.exe'
+exit '0'
