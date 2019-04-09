@@ -1,0 +1,7 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'mkdir' '-pv' '--' './OUTS/PARS/' './OUTS/TMP/'
+cd './OUTS/TMP/'
+'cat' '../QCD/TRAIN/0/image' '../QCD/TRAIN/1/image' '../QCD/TRAIN/2/image' '../QCD/TRAIN/3/image' '../QCD/TRAIN/4/image' '../QCD/TRAIN/5/image' '../QCD/TRAIN/6/image' '../QCD/TRAIN/7/image' > 'QCD_TRAIN.image'
+'cat' '../TOP/TRAIN/0/image' '../TOP/TRAIN/1/image' '../TOP/TRAIN/2/image' '../TOP/TRAIN/3/image' '../TOP/TRAIN/4/image' '../TOP/TRAIN/5/image' '../TOP/TRAIN/6/image' '../TOP/TRAIN/7/image' > 'TOP_TRAIN.image'
+exit '0'

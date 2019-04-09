@@ -955,6 +955,7 @@ namespace CPPFileIO { //////////////////////////////////////////////////////////
 #include "pcg.hh"
 #endif
 
+////////////////////////////////////////////////////////////////
 namespace Tensors {
 ////////////////////////////////////////////////////////////////
     class Nothing {
@@ -964,10 +965,33 @@ namespace Tensors {
     } ;
 ////////////////////////////////////////////////////////////////
     namespace NN /* 1 D Array */ {
+////////////////////////////////////////////////////////////////
+#define _MACRO_ND_LOOP_(I) for(size_t I=0;I<SIZE();I++)
+////////////////////////////////////////////////////////////////
+#define _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Name,Sign)   \
+        inline void Name ( const TYPE_DATA & other ) {         \
+            _MACRO_ND_LOOP_(x)                                 \
+            { DATA[x] Sign other ; }                           \
+        }                                                      \
+        inline void operator Sign ( const TYPE_DATA other )    \
+        { Name (other) ; }
+////////////////////////////////////////////////////////////////
+#define _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Name,Sign)   \
+        inline void Name ( const TYPE_SELF & other ) {         \
+            _MACRO_ND_LOOP_(x)                                 \
+            { DATA[x] Sign other.DATA[x] ; }                   \
+        }                                                      \
+        inline void operator Sign ( const TYPE_SELF & other )  \
+        { Name (other) ; }                                     \
+        _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Name,Sign)
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
         template <size_t X, typename T=float>
         class ND_ARRAY {
         public:
-            typedef T TYPE_DATA ;
+////////////////////////////////////////////////////////////////
+            using TYPE_DATA = T ;
             //
             inline static
             size_t constexpr
@@ -975,75 +999,29 @@ namespace Tensors {
                 return X;
             }
             //
-            typedef ND_ARRAY <SIZE(),TYPE_DATA>
-                TYPE_SELF
+            using TYPE_SELF =
+                ND_ARRAY <SIZE(),TYPE_DATA>
             ; //
         private:
-            TYPE_DATA DATA[SIZE()] ;
-        private:
-            ////////////////////////////////////////////////////////////////
-            inline void Add (
-                const TYPE_SELF & other
-            ) {
-                for (
-                    size_t x = 0 ;
-                    x < SIZE() ;
-                    x++
-                ) {
-                    DATA[x] +=
-                        other.DATA[x]
-                    ; //
-                }
-            }
-            //
-            inline void Sub ( const TYPE_SELF & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] -= other.DATA[x] ; }
-            }
-            //
-            inline void Mul ( const TYPE_SELF & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] *= other.DATA[x] ; }
-            }
-            //
-            inline void Div ( const TYPE_SELF & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] /= other.DATA[x] ; }
-            }
 ////////////////////////////////////////////////////////////////
-            inline void Add ( const TYPE_DATA & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] += other ; }
-            }
-            //
-            inline void Sub ( const TYPE_DATA & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] -= other ; }
-            }
-            //
-            inline void Mul ( const TYPE_DATA & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] *= other ; }
-            }
-            //
-            inline void Div ( const TYPE_DATA & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] /= other ; }
-            }
-            //
-            inline void Eqt ( const TYPE_DATA & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] = other ; }
-            }
-            ////////////////////////////////////////////////////////////////
+            TYPE_DATA DATA[SIZE()] ;
+////////////////////////////////////////////////////////////////
+        public:
+////////////////////////////////////////////////////////////////
+_MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Add,+=)
+_MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Sub,-=)
+_MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Mul,*=)
+_MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Div,/=)
+_MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
+////////////////////////////////////////////////////////////////
             inline TYPE_DATA Dot
             ( const TYPE_SELF & other ) const {
-                double ret = 0 ;
+                TYPE_DATA ret = 0 ;
                 for ( size_t i = 0 ; i < SIZE() ; i++ )
                 { ret += DATA[i] * other.DATA[i] ; }
                 return ret ;
             }
-            ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
             inline void * CopyFrom
             ( const void * __restrict__ other ) {
                 return (void *) memcpy (
@@ -1068,46 +1046,9 @@ namespace Tensors {
                         /* other = */ other.DATA
                 ) ;
             }
-            ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
         public:
-            ////////////////////////////////////////////////////////////////
-            inline void operator +=
-            ( const TYPE_SELF & other )
-            { Add (other) ; }
-            //
-            inline void operator -=
-            ( const TYPE_SELF & other )
-            { Sub (other) ; }
-            //
-            inline void operator *=
-            ( const TYPE_SELF & other )
-            { Mul (other) ; }
-            //
-            inline void operator /=
-            ( const TYPE_SELF & other )
-            { Div (other) ; }
-            //
-            ////////////////////////////////////////////////////////////////
-            inline void operator +=
-            ( const TYPE_DATA & other )
-            { Add (other) ; }
-            //
-            inline void operator -=
-            ( const TYPE_DATA & other )
-            { Sub (other) ; }
-            //
-            inline void operator *=
-            ( const TYPE_DATA & other )
-            { Mul (other) ; }
-            //
-            inline void operator /=
-            ( const TYPE_DATA & other )
-            { Div (other) ; }
-            //
-            inline void operator  =
-            ( const TYPE_DATA & other )
-            { Eqt (other) ; }
-            ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
             //
             inline TYPE_SELF & FLATTEN ()
             { return this[0] ; }
@@ -1118,8 +1059,12 @@ namespace Tensors {
             //
             inline void GET_SQUARED
             ( const TYPE_SELF & other ) {
-                for ( size_t x = 0 ; x < SIZE() ; x++ )
-                { DATA[x] = other.DATA[x] * other.DATA[x] ; }
+                _MACRO_ND_LOOP_(x) {
+                    DATA[x] =
+                        other.DATA[x] *
+                        other.DATA[x]
+                    ; //
+                }
             }
             //
             inline TYPE_DATA operator *
@@ -1137,35 +1082,72 @@ namespace Tensors {
             inline TYPE_DATA *
             GET_DATA () {
                 return reinterpret_cast
-                    < TYPE_DATA * > ( DATA ) ;
+                    < TYPE_DATA * > ( DATA )
+                ; //
             }
             //
             inline TYPE_DATA const *
             GET_DATA () const {
                 return reinterpret_cast
-                    < TYPE_DATA const * > ( DATA ) ;
+                    < TYPE_DATA const * > ( DATA )
+                ; //
             }
             //
             inline TYPE_DATA L1_NORM () const {
                 TYPE_DATA Ret = 0 ;
-                for ( size_t i = 0 ; i < SIZE () ; i++ )
-                { Ret += CPPFileIO::mymod (DATA[i]) ; }
+                _MACRO_ND_LOOP_(i) {
+                    Ret +=
+                        CPPFileIO::mymod
+                            (DATA[i])
+                    ; //
+                }
                 return Ret ;
             }
             //
             inline TYPE_DATA L2_NORM () const {
                 TYPE_DATA Ret = 0 ;
-                for ( size_t i = 0 ; i < SIZE () ; i++ )
-                { Ret += ( DATA[i] * DATA[i] ) ; }
+                _MACRO_ND_LOOP_(i) {
+                    Ret +=
+                        DATA[i] *
+                        DATA[i]
+                    ; //
+                }
                 return Ret ;
             }
             //
         } ;
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
+#undef _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_
+#undef _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_
+#undef _MACRO_ND_LOOP_
+////////////////////////////////////////////////////////////////
     }
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
+#define _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(Sign)       \
+        inline void operator Sign (TYPE_DATA const & a)    \
+        { FLATTEN() Sign a ; }
+////////////////////////////////////////////////////////////////
+#define _MACRO_REGISTER_ALL_OPERATORS_                     \
+        _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(=)          \
+        _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(+=)         \
+        _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(-=)         \
+        _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(*=)         \
+        _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_(/=)
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
     namespace NN /* 2 D Array */ {
-        template <size_t Y, size_t X, typename T=float>
-        class N2D_ARRAY :
-        public ND_ARRAY <Y,ND_ARRAY<X,T>> {
+////////////////////////////////////////////////////////////////
+        template <
+            size_t Y,
+            size_t X,
+            typename T=float
+        > class N2D_ARRAY : public
+        ND_ARRAY <Y,ND_ARRAY<X,T>> {
         public:
             //
             typedef T TYPE_DATA ;
@@ -1212,17 +1194,22 @@ namespace Tensors {
                 ; //
             }
             //
-            typedef N2D_ARRAY <
-                SIZE_Y() ,
-                SIZE_X() ,
-                TYPE_DATA
-            > TYPE_SELF
+            using TYPE_SELF =
+                N2D_ARRAY <
+                    SIZE_Y() ,
+                    SIZE_X() ,
+                    TYPE_DATA
+                >
             ; //
-            typedef ND_ARRAY <
-                SIZE_Y() ,
-                ND_ARRAY < SIZE_X() , TYPE_DATA >
-            > TYPE_PARENT
+            //
+            using TYPE_PARENT =
+                ND_ARRAY <
+                    SIZE_Y() ,
+                    ND_ARRAY
+                        <SIZE_X(),TYPE_DATA>
+                >
             ; //
+            //
             inline void
             GET_SQUARED (
                 TYPE_SELF const & other
@@ -1234,25 +1221,7 @@ namespace Tensors {
                 ; //
             }
             //
-            inline void operator =
-            (TYPE_DATA const & a)
-            { FLATTEN() = a ; }
-            //
-            inline void operator +=
-            (TYPE_DATA const & a)
-            { FLATTEN() += a ; }
-            //
-            inline void operator -=
-            (TYPE_DATA const & a)
-            { FLATTEN() -= a ; }
-            //
-            inline void operator *=
-            (TYPE_DATA const & a)
-            { FLATTEN() *= a ; }
-            //
-            inline void operator /=
-            (TYPE_DATA const & a)
-            { FLATTEN() /= a ; }
+            _MACRO_REGISTER_ALL_OPERATORS_
             //
             inline TYPE_DATA const
             L1_NORM () const {
@@ -1333,20 +1302,20 @@ namespace Tensors {
             //
             template <size_t P>
             inline N2D_ARRAY <
-                SIZE_Y(),
-                P,
+                SIZE_Y()  ,
+                P         ,
                 TYPE_DATA
             > operator * (
                 N2D_ARRAY <
-                    SIZE_X(),
-                    P,
+                    SIZE_X()  ,
+                    P         ,
                     TYPE_DATA
                 > const & In
             ) const {
                 //
                 N2D_ARRAY <
-                    SIZE_Y(),
-                    P,
+                    SIZE_Y()  ,
+                    P         ,
                     TYPE_DATA
                 > ret ;
                 //
@@ -1368,135 +1337,136 @@ namespace Tensors {
             }
             //
         } ;
+////////////////////////////////////////////////////////////////
     }
     namespace NN /* 3 D Array */ {
+////////////////////////////////////////////////////////////////
         template <
-            size_t Z,
-            size_t Y,
-            size_t X,
-            typename T=float
+            size_t Z ,
+            size_t Y ,
+            size_t X ,
+            typename T = float
         > class N3D_ARRAY : public
         ND_ARRAY <Z,N2D_ARRAY<Y,X,T>> {
         public:
             //
             typedef T TYPE_DATA   ;
             inline static constexpr
-                size_t SIZE_X ()
-                { return X;}
+            size_t SIZE_X ()
+            { return X;}
             //
             inline static constexpr
-                size_t SIZE_Y ()
-                { return Y;}
+            size_t SIZE_Y ()
+            { return Y;}
             //
             inline static constexpr
-                size_t SIZE_Z ()
-                { return Z;}
+            size_t SIZE_Z ()
+            { return Z;}
             //
             inline static constexpr
             size_t SIZE () {
                 return
                     SIZE_X() *
                     SIZE_Y() *
-                    SIZE_Z() ;
-                //
+                    SIZE_Z()
+                ; //
             }
             //
-            typedef ND_ARRAY <
-                SIZE(),
-                TYPE_DATA
-            > TYPE_FLATTEN ;
+            using TYPE_FLATTEN =
+                ND_ARRAY <
+                    SIZE()   ,
+                    TYPE_DATA
+                >
+            ; //
             //
             inline TYPE_FLATTEN const &
             FLATTEN () const {
-                return reinterpret_cast
-                    < TYPE_FLATTEN const & >
-                    ( this[0] ) ;
+                return
+                    reinterpret_cast
+                        < TYPE_FLATTEN const & >
+                        ( this[0] )
+                ; //
             }
             //
             inline TYPE_FLATTEN &
             FLATTEN () {
-                return reinterpret_cast
-                    < TYPE_FLATTEN & >
-                    ( this[0] ) ;
+                return
+                    reinterpret_cast
+                        < TYPE_FLATTEN & >
+                        ( this[0] )
+                ; //
             }
             //
-            typedef N3D_ARRAY <
-                SIZE_Z()  ,
-                SIZE_Y()  ,
-                SIZE_X()  ,
-                TYPE_DATA
-            > TYPE_SELF   ;
-            //
-            typedef ND_ARRAY <
-                SIZE_Z(),
-                N2D_ARRAY <
-                    SIZE_Y(),
-                    SIZE_X(),
+            using TYPE_SELF =
+                N3D_ARRAY <
+                    SIZE_Z()  ,
+                    SIZE_Y()  ,
+                    SIZE_X()  ,
                     TYPE_DATA
                 >
-            > TYPE_PARENT ;
+            ; //
+            //
+            using TYPE_PARENT =
+                ND_ARRAY <
+                    SIZE_Z(),
+                    N2D_ARRAY <
+                        SIZE_Y(),
+                        SIZE_X(),
+                        TYPE_DATA
+                    >
+                >
+            ; //
             //
             inline void GET_SQUARED
             ( TYPE_SELF const & other ) {
                 FLATTEN().GET_SQUARED
-                    (other.FLATTEN()) ;
-                //
+                    (other.FLATTEN())
+                ; //
             }
             //
-            inline void operator =
-            (TYPE_DATA const & a)
-            { FLATTEN() = a ; }
-            //
-            inline void operator +=
-            (TYPE_DATA const & a)
-            { FLATTEN() += a ; }
-            //
-            inline void operator -=
-            (TYPE_DATA const & a)
-            { FLATTEN() -= a ; }
-            //
-            inline void operator *=
-            (TYPE_DATA const & a)
-            { FLATTEN() *= a ; }
-            //
-            inline void operator /=
-            (TYPE_DATA const & a)
-            { FLATTEN() /= a ; }
+            _MACRO_REGISTER_ALL_OPERATORS_
             //
             inline TYPE_DATA const
             L1_NORM () const {
                 return
                     FLATTEN()
-                    .L1_NORM() ;
-                //
+                    .L1_NORM()
+                ; //
             }
             //
             inline TYPE_DATA const
             L2_NORM () const {
                 return
                     FLATTEN()
-                    .L2_NORM() ;
-                //
+                    .L2_NORM()
+                ; //
             }
             //
             inline TYPE_DATA *
             GET_DATA () {
                 return
                     FLATTEN()
-                    .GET_DATA();
-                //
+                    .GET_DATA()
+                ; //
             }
             //
             inline TYPE_DATA const *
             GET_DATA () const {
                 return
                     FLATTEN()
-                    .GET_DATA();
-                //
+                    .GET_DATA()
+                ; //
             }
             //
         } ;
     }
+////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
+#undef _MACRO_REGISTER_ALL_OPERATORS_
+#undef _MACRO_REGISTER_OPERATOR_ON_TYPE_DATA_
+////////////////////////////////////////////////////////////////
+
 ////////////////////////////////////////////////////////////////
     namespace FUNCTIONS /* The neural network multiplication function: */ {
         using namespace NN ;
@@ -1510,14 +1480,19 @@ namespace Tensors {
             N2D_ARRAY < B , X , T > const & Input ,
             ND_ARRAY  < Y ,     T > const & Bias
         ) {
-            for(size_t b=0;b<B;b++)
-            { Output[b] = Bias ; }
+            for(size_t b=0;b<B;b++) {
+                Output[b] =
+                    Bias
+                ; //
+            }
             //
             for(size_t y=0;y<Y;y++){
                 for(size_t b=0;b<B;b++){
                     for(size_t x=0;x<X;x++){
                         Output[b][y] +=
-                            Weight[y][x] * Input[b][x] ;
+                            Weight[y][x] *
+                            Input[b][x]
+                        ; //
                     }
                 }
             }
@@ -1582,15 +1557,17 @@ namespace Tensors {
             size_t Y , size_t   X ,
             size_t B , typename T
         > inline void EvalW (
-            N2D_ARRAY <Y,X,T>       & DW    ,
-            N2D_ARRAY <B,Y,T> const & Delta ,
-            N2D_ARRAY <B,X,T> const & Input
+            N2D_ARRAY < Y , X , T >       & DW    ,
+            N2D_ARRAY < B , Y , T > const & Delta ,
+            N2D_ARRAY < B , X , T > const & Input
         ) {
             for(size_t b=0;b<B;b++){
                 for(size_t y=0;y<Y;y++){
                     for(size_t x=0;x<X;x++) {
                         DW[y][x] +=
-                            Delta[b][y] * Input[b][x] ;
+                            Delta[b][y] *
+                            Input[b][x]
+                        ; //
                     }
                 }
             }
@@ -1642,16 +1619,18 @@ namespace Tensors {
             size_t   B , size_t   X ,
             size_t   Y , typename T
         > inline void BackProp (
-            N2D_ARRAY <B,X,T>       & DeltaPrime ,
-            N2D_ARRAY <B,Y,T> const & Delta      ,
-            N2D_ARRAY <Y,X,T> const & Weight
+            N2D_ARRAY < B , X , T >       & DeltaPrime ,
+            N2D_ARRAY < B , Y , T > const & Delta      ,
+            N2D_ARRAY < Y , X , T > const & Weight
         ) {
             DeltaPrime = 0 ;
             for(size_t b=0;b<B;b++){
                 for(size_t y=0;y<Y;y++){
                     for(size_t x=0;x<X;x++){
                         DeltaPrime[b][x] +=
-                            Delta[b][y] * Weight[y][x] ;
+                            Delta[b][y] *
+                            Weight[y][x]
+                        ; //
                     }
                 }
             }
@@ -1715,8 +1694,8 @@ namespace Tensors {
                         for(size_t m=0;m<M;m++){
                             OK[b][y][m] +=
                                 WK[y][x]    *
-                                IK[b][x][m] ;
-                            //
+                                IK[b][x][m]
+                            ; //
                         }
                     }
                 }
@@ -1778,18 +1757,249 @@ namespace Tensors {
             N2D_ARRAY < Y , X ,     T > const & WK ,
             bool                        const   IK
         ) {
-            for(size_t b=0;b<B;b++){
-                OK[b] = WK ;
-                //
+            for(size_t b=0;b<B;b++)
+            { OK[b] = WK ; }
+        }
+    }
+////////////////////////////////////////////////////////////////
+    namespace FUNCTIONS /* Function for back propagation on gradient */ {
+        //
+        template <
+            size_t   B , size_t   X ,
+            size_t   Y , size_t   M ,
+            typename T
+        > inline void GRAD_BACKWARD (
+            N3D_ARRAY < B , X , M , T >       & DELTA_PRIME ,
+            N2D_ARRAY <     Y , X , T > const & WEIGHT      ,
+            N3D_ARRAY < B , Y , M , T > const & DELTA
+        ) {
+            DELTA_PRIME = 0.0 ;
+            for(
+                size_t b=0;
+                b<DELTA_PRIME.SIZE_Z();
+                b++
+            ) {
+                for(
+                    size_t x=0;
+                    x<DELTA_PRIME.SIZE_Y();
+                    x++
+                ) {
+                    for(
+                        size_t y=0;
+                        y<DELTA.SIZE_Y();
+                        y++
+                    ) {
+                        for(
+                            size_t m=0;
+                            m<DELTA_PRIME.SIZE_X();
+                            m++
+                        ) {
+                            DELTA_PRIME[b][x][m] +=
+                                WEIGHT[y][x] *
+                                DELTA[b][y][m]
+                            ; //
+                        }
+                    }
+                }
             }
         }
+        //
+        #ifdef CBLAS_H
+        template <
+            size_t   B , size_t   X ,
+            size_t   Y , size_t   M
+        > inline void GRAD_BACKWARD (
+            N3D_ARRAY < B , X , M , float >       & DELTA_PRIME ,
+            N2D_ARRAY <     Y , X , float > const & WEIGHT      ,
+            N3D_ARRAY < B , Y , M , float > const & DELTA
+        ) {
+            for(
+                size_t b=0;
+                b<DELTA_PRIME.SIZE_Z();
+                b++
+            ) {
+                cblas_sgemm (
+                    CblasRowMajor, CblasTrans, CblasNoTrans,
+                    (const int) /*M=*/X , (const int) /*N=*/M , (const int) /*K=*/Y ,
+                    (const float) /*alpha=*/1.0 ,
+                    (const float *) WEIGHT.GET_DATA   () , (const int) /*lda=*/X ,
+                    (const float *) DELTA[b].GET_DATA () , (const int) /*ldb=*/M ,
+                    (const float) /*beta=*/0 ,
+                    (float *) DELTA_PRIME[b].GET_DATA() , (const int) /*ldc=*/M
+                ) ;
+            }
+        }
+        template <
+            size_t   B , size_t   X ,
+            size_t   Y , size_t   M
+        > inline void GRAD_BACKWARD (
+            N3D_ARRAY < B , X , M , double >       & DELTA_PRIME ,
+            N2D_ARRAY <     Y , X , double > const & WEIGHT      ,
+            N3D_ARRAY < B , Y , M , double > const & DELTA
+        ) {
+            for(
+                size_t b=0;
+                b<DELTA_PRIME.SIZE_Z();
+                b++
+            ) {
+                cblas_dgemm (
+                    CblasRowMajor, CblasTrans, CblasNoTrans,
+                    (const int) /*M=*/X , (const int) /*N=*/M , (const int) /*K=*/Y ,
+                    (const double) /*alpha=*/1.0 ,
+                    (const double *) WEIGHT.GET_DATA   () , (const int) /*lda=*/X ,
+                    (const double *) DELTA[b].GET_DATA () , (const int) /*ldb=*/M ,
+                    (const double) /*beta=*/0 ,
+                    (double *) DELTA_PRIME[b].GET_DATA() , (const int) /*ldc=*/M
+                ) ;
+            }
+        }
+        #endif
+        //
+    }
+////////////////////////////////////////////////////////////////
+    namespace FUNCTIONS /* Function to evaluate change to W with grad */ {
+        //
+        template <
+            size_t   Y , size_t   X ,
+            size_t   M , typename T
+        > inline void
+        EVAL_DW_GRAD (
+            N2D_ARRAY < Y , X , T >       & DW      ,
+            N2D_ARRAY < Y , M , T > const & DELTA   ,
+            N2D_ARRAY < X , M , T > const & GRAD_IN
+        ) {
+            DW = 0.0 ;
+            for(size_t y=0;y<Y;y++){
+                for(size_t x=0;x<X;x++){
+                    for(size_t m=0;m<M;m++){
+                        DW[y][x] =
+                            DELTA[y][m] *
+                            GRAD_IN[x][m]
+                        ; //
+                    }
+                }
+            }
+        }
+        //
+        #ifdef CBLAS_H
+        //
+        template <
+            size_t   Y , size_t   X ,
+            size_t   M
+        > inline void
+        EVAL_DW_GRAD (
+            N2D_ARRAY < Y , X , float >       & DW      ,
+            N2D_ARRAY < Y , M , float > const & DELTA   ,
+            N2D_ARRAY < X , M , float > const & GRAD_IN
+        ) {
+            cblas_sgemm (
+                CblasRowMajor, CblasNoTrans, CblasTrans,
+                (const int) /*M=*/Y , (const int) /*N=*/X , (const int) /*K=*/M ,
+                (const float) /*alpha=*/1.0 ,
+                (const float *) DELTA.GET_DATA   () , (const int) /*lda=*/M ,
+                (const float *) GRAD_IN.GET_DATA () , (const int) /*ldb=*/M ,
+                (const float) /*beta=*/0 ,
+                (float *) DW.GET_DATA() , (const int) /*ldc=*/X
+            ) ;
+        }
+        //
+        template <
+            size_t   Y , size_t   X ,
+            size_t   M
+        > inline void
+        EVAL_DW_GRAD (
+            N2D_ARRAY < Y , X , double >       & DW      ,
+            N2D_ARRAY < Y , M , double > const & DELTA   ,
+            N2D_ARRAY < X , M , double > const & GRAD_IN
+        ) {
+            cblas_dgemm (
+                CblasRowMajor, CblasNoTrans, CblasTrans,
+                (const int) /*M=*/Y , (const int) /*N=*/X , (const int) /*K=*/M ,
+                (const double) /*alpha=*/1.0 ,
+                (const double *) DELTA.GET_DATA   () , (const int) /*lda=*/M ,
+                (const double *) GRAD_IN.GET_DATA () , (const int) /*ldb=*/M ,
+                (const double) /*beta=*/0 ,
+                (double *) DW.GET_DATA() , (const int) /*ldc=*/X
+            ) ;
+        }
+        #endif
+        //
+        template <
+            size_t   B , size_t   Y ,
+            size_t   M , size_t   X ,
+            typename T
+        > inline void
+        EVAL_DW_GRAD (
+            N2D_ARRAY < Y , X ,     T >       & DW1     ,
+            N2D_ARRAY < Y , X ,     T >       & DW2     ,
+            N2D_ARRAY < Y , X ,     T >       & tmpDW   ,
+            N3D_ARRAY < B , Y , M , T > const & DELTA   ,
+            N3D_ARRAY < B , X , M , T > const & GRAD_IN
+        ) {
+            auto & tmp1 = DW1.FLATTEN   () ;
+            auto & tmp2 = DW2.FLATTEN   () ;
+            auto & tmp  = tmpDW.FLATTEN () ;
+            for(size_t b=0;b<B;b++){
+                //
+                EVAL_DW_GRAD (
+                /* DW = */      tmpDW       ,
+                /* DELTA = */   DELTA[b]    ,
+                /* GRAD_IN = */ GRAD_IN[b]
+                ) ; //
+                //
+                for(size_t i=0;i<tmp1.SIZE();i++){
+                    //
+                    tmp1[i] +=
+                        tmp[i]
+                    ; //
+                    //
+                    tmp2[i] +=
+                        tmp[i] *
+                        tmp[i]
+                    ; //
+                    //
+                }
+            }
+        }
+        //
+        template <
+            size_t   B , size_t   Y ,
+            size_t   M , size_t   X ,
+            typename T
+        > inline void
+        EVAL_DW_GRAD (
+            N2D_ARRAY < Y , X ,     T >       & DW1     ,
+            N2D_ARRAY < Y , X ,     T >       & DW2     ,
+            N2D_ARRAY < Y , X ,     T >       & tmpDW   ,
+            N3D_ARRAY < B , Y , M , T > const & DELTA   ,
+            bool                        const   GRAD_IN
+        ) {
+            auto & tmp1 = DW1.FLATTEN   () ;
+            auto & tmp2 = DW2.FLATTEN   () ;
+            for(size_t b=0;b<B;b++){
+                auto & tmp =
+                    DELTA[b].FLATTEN()
+                ; //
+                for(size_t i=0;i<tmp1.SIZE();i++){
+                    tmp1[i] +=
+                        tmp[i]
+                    ; //
+                    tmp2[i] +=
+                        tmp[i] *
+                        tmp[i]
+                    ; //
+                }
+            }
+        }
+        //
     }
 ////////////////////////////////////////////////////////////////
     namespace FUNCTIONS /* Show Functions */ {
         template <size_t Y, typename T>
         inline void
         ShowMatrix (
-            ND_ARRAY <Y,T> const & in
+            ND_ARRAY <Y,T> const &
+                in
         ) {
             for (size_t y=0;y<Y;y++) {
                 printf("%e ",in[y]);
@@ -1829,12 +2039,20 @@ namespace Tensors {
         }
     }
 ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+#define _MACRO_INHERIT_(DefnName) typename TYPE_SELF::DefnName
+#define _MACRO_DEFINE_(DefnName) using DefnName = _MACRO_INHERIT_(DefnName) ;
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
     namespace NN /* PARAMETER */ {
-        template <size_t Y, size_t X, typename T>
-        class PARAMETER {
+        template <
+            size_t   Y ,
+            size_t   X ,
+            typename T
+        > class PARAMETER {
         public:
             //
-            typedef T TYPE_DATA   ;
+            typedef T TYPE_DATA ;
             //
             inline static constexpr size_t
             SIZE_X ()
@@ -1845,48 +2063,59 @@ namespace Tensors {
             { return Y ; }
             //
             inline static size_t constexpr
-            SIZE ()
-            { return SIZE_X() * SIZE_Y() ; }
+            SIZE () {
+                return
+                    SIZE_X() *
+                    SIZE_Y()
+                ; //
+            }
             //
-            typedef PARAMETER
-            < SIZE_Y() , SIZE_X() , TYPE_DATA >
-            TYPE_SELF ;
+            using TYPE_SELF =
+                PARAMETER
+                < SIZE_Y() , SIZE_X() , TYPE_DATA >
+            ; //
             //
-            typedef N2D_ARRAY
-            < SIZE_Y() , SIZE_X() , TYPE_DATA >
-            TYPE_WEIGHT ;
+            using TYPE_WEIGHT =
+                N2D_ARRAY
+                < SIZE_Y() , SIZE_X() , TYPE_DATA >
+            ; //
             //
-            typedef ND_ARRAY
-            < SIZE_Y() , TYPE_DATA >
-            TYPE_BIAS ;
-            //
-            inline TYPE_DATA &
-                operator ()
-                ( size_t y , size_t x )
-                { return WEIGHT[y][x] ; }
-            //
-            inline TYPE_DATA const
-                operator ()
-                ( size_t y , size_t x ) const
-                { return WEIGHT[y][x] ; }
+            using TYPE_BIAS =
+                ND_ARRAY
+                < SIZE_Y() , TYPE_DATA >
+            ; //
             //
             inline TYPE_DATA &
-                operator () (size_t y)
-                { return BIAS[y] ; }
+            operator ()
+            ( size_t y , size_t x )
+            { return WEIGHT[y][x] ; }
             //
             inline TYPE_DATA const
-                operator () (size_t y) const
-                { return BIAS[y] ; }
+            operator ()
+            ( size_t y , size_t x ) const
+            { return WEIGHT[y][x] ; }
             //
-            inline void RANDOMIZE () {
+            inline TYPE_DATA &
+            operator ()
+            (size_t y)
+            { return BIAS[y] ; }
+            //
+            inline TYPE_DATA const
+            operator ()
+            (size_t y) const
+            { return BIAS[y] ; }
+            //
+            inline void
+            RANDOMIZE () {
                 //
                 constexpr TYPE_DATA Var =
                     2.0 /
-                    ((TYPE_DATA)SIZE_X()+SIZE_Y()) ;
-                //
+                    ((TYPE_DATA)SIZE_X()+SIZE_Y())
+                ; //
                 std::normal_distribution
-                    <double> dist (0.0,Var) ;
-                //
+                <double>
+                    dist (0.0,Var)
+                ; //
                 #ifdef PCG_RAND_HPP_INCLUDED
                     pcg64_fast engine ;
                 #else
@@ -1902,33 +2131,41 @@ namespace Tensors {
                 //
             }
             //
-            inline void RELEASE_LOCK ()
+            inline void
+            RELEASE_LOCK ()
             { pthread_mutex_unlock (&lock) ; }
             //
-            inline void ACQUIRE_LOCK ()
+            inline void
+            ACQUIRE_LOCK ()
             { pthread_mutex_lock (&lock) ; }
             //
-            inline void operator =
-                (TYPE_DATA const & a)
-                { WEIGHT = a ; BIAS = a ; }
+            inline void
+            operator =
+            (TYPE_DATA const & a)
+            { WEIGHT = a ; BIAS = a ; }
             //
-            inline void operator /=
-                (TYPE_DATA const & a)
-                { WEIGHT /= a ; BIAS /= a ; }
+            inline void
+            operator /=
+            (TYPE_DATA const & a)
+            { WEIGHT /= a ; BIAS /= a ; }
             //
-            inline void operator *=
-                (TYPE_DATA const & a)
-                { WEIGHT *= a ; BIAS *= a ; }
+            inline void
+            operator *=
+            (TYPE_DATA const & a)
+            { WEIGHT *= a ; BIAS *= a ; }
             //
-            inline void operator +=
-                (TYPE_DATA const & a)
-                { WEIGHT += a ; BIAS += a ; }
+            inline void
+            operator +=
+            (TYPE_DATA const & a)
+            { WEIGHT += a ; BIAS += a ; }
             //
-            inline void operator -=
-                (TYPE_DATA const & a)
-                { WEIGHT -= a ; BIAS -= a ; }
+            inline void
+            operator -=
+            (TYPE_DATA const & a)
+            { WEIGHT -= a ; BIAS -= a ; }
             //
-            inline void operator =
+            inline void
+            operator =
             (TYPE_SELF const & other) {
                 WEIGHT = other.WEIGHT ;
                 BIAS = other.BIAS ;
@@ -1936,19 +2173,23 @@ namespace Tensors {
             //
         private:
             //
-            inline ssize_t WriteToFile
-            (CPPFileIO::FileFD & file) const {
+            inline ssize_t
+            WriteToFile (
+                CPPFileIO::FileFD &
+                    file
+            ) const {
                 ssize_t ret = 0 ;
                 ret += file.multiwrite2file
-                    ( WEIGHT ) ;
-                //
+                    ( WEIGHT )
+                ; //
                 ret += file.multiwrite2file
-                    ( BIAS ) ;
-                //
+                    ( BIAS )
+                ; //
                 return ret;
             }
             //
-            inline ssize_t WriteToFile
+            inline ssize_t
+            WriteToFile
             (std::string filename) const {
                 CPPFileIO::FileFD Writer
                     (filename) ;
@@ -1957,7 +2198,8 @@ namespace Tensors {
                 return WriteToFile(Writer);
             }
             //
-            inline ssize_t ReadFromFile
+            inline ssize_t
+            ReadFromFile
             (CPPFileIO::FileFD & file) {
                 ssize_t ret = 0 ;
                 ret += file.multiread2file
@@ -1969,7 +2211,8 @@ namespace Tensors {
                 return ret;
             }
             //
-            inline ssize_t ReadFromFile
+            inline ssize_t
+            ReadFromFile
             (std::string filename) {
                 CPPFileIO::FileFD Reader
                     (filename) ;
@@ -1980,19 +2223,23 @@ namespace Tensors {
             //
         public:
             //
-            inline ssize_t operator >>
+            inline ssize_t
+            operator >>
             ( CPPFileIO::FileFD & file ) const
             { return WriteToFile  (file) ; }
             //
-            inline ssize_t operator <<
+            inline ssize_t
+            operator <<
             ( CPPFileIO::FileFD & file )
             { return ReadFromFile (file) ; }
             //
-            inline ssize_t operator >>
+            inline ssize_t
+            operator >>
             ( std::string filename ) const
             { return WriteToFile (filename) ; }
             //
-            inline ssize_t operator <<
+            inline ssize_t
+            operator <<
             ( std::string filename )
             { return ReadFromFile (filename) ; }
             //
@@ -2008,58 +2255,65 @@ namespace Tensors {
         class PARAMETER_ADAM : public T {
         public:
             //
-            typedef T TYPE_PARENT ;
+            using TYPE_PARENT = T ;
             //
             PARAMETER_ADAM  () {
                 Beta[0] = GET_BETA1 () ;
                 Beta[1] = GET_BETA2 () ;
-                M=0;V=0;
+                M = 0 ; V = 0 ;
             }
             //
-            typedef PARAMETER_ADAM
-                <TYPE_PARENT> TYPE_SELF ;
+            using TYPE_SELF =
+                PARAMETER_ADAM
+                <TYPE_PARENT>
+            ;//
+            //
+            _MACRO_DEFINE_(TYPE_DATA)
             //
         private:
             //
-            typedef typename TYPE_PARENT::TYPE_DATA
-                TMP_TYPE_DATA ;
-            //
-        public:
-            //
-            inline static constexpr
-            TMP_TYPE_DATA GET_BETA1 ()
+            inline static
+            TYPE_DATA constexpr
+            GET_BETA1 ()
             { return 0.90 ; }
             //
-            inline static constexpr
-            TMP_TYPE_DATA GET_BETA2 ()
+            inline static
+            TYPE_DATA constexpr
+            GET_BETA2 ()
             { return 0.99 ; }
             //
-            inline static constexpr
-            TMP_TYPE_DATA Eps ()
+            inline static
+            TYPE_DATA constexpr
+            Eps ()
             { return 0.001 ; }
-            //
-        private:
             //
             template <typename InType>
             inline void AddParameter (
-                InType              & DST ,
-                InType        const & SRC ,
-                TMP_TYPE_DATA const   beta
+                InType          & DST ,
+                InType    const & SRC ,
+                TYPE_DATA const   beta
             ) {
-                auto const & TMP_SRC = SRC.FLATTEN() ;
-                auto       & TMP_DST = DST.FLATTEN() ;
-                constexpr size_t limit = InType::SIZE();
+                auto const & TMP_SRC =
+                    SRC.FLATTEN()
+                ; //
+                auto & TMP_DST =
+                    DST.FLATTEN()
+                ; //
+                size_t constexpr limit =
+                    InType::SIZE()
+                ; //
                 for(size_t i=0;i<limit;i++) {
                     TMP_DST[i] =
                         (beta*TMP_DST[i]) +
-                        ((1.0-beta)*TMP_SRC[i]) ;
+                        ((1.0-beta)*TMP_SRC[i])
+                    ; //
                 }
             }
             //
             inline void AddBoth (
-                TYPE_PARENT         & DST  ,
-                TYPE_PARENT   const & SRC  ,
-                TMP_TYPE_DATA const   beta
+                TYPE_PARENT       & DST  ,
+                TYPE_PARENT const & SRC  ,
+                TYPE_DATA   const   beta
             ) {
                 AddParameter (
                     DST.WEIGHT ,
@@ -2075,15 +2329,23 @@ namespace Tensors {
             //
             template <typename InType>
             inline void Apply (
-                InType              & DST  ,
-                InType        const & SRCM ,
-                InType        const & SRCV ,
-                TMP_TYPE_DATA const   Eta
+                InType          & DST  ,
+                InType    const & SRCM ,
+                InType    const & SRCV ,
+                TYPE_DATA const   Eta
             ) {
-                constexpr size_t limit = InType::SIZE();
-                auto       &  dst = DST.FLATTEN  () ;
-                auto const & srcm = SRCM.FLATTEN () ;
-                auto const & srcv = SRCV.FLATTEN () ;
+                size_t constexpr limit =
+                    InType::SIZE()
+                ; //
+                auto & dst =
+                    DST.FLATTEN()
+                ; //
+                auto const & srcm =
+                    SRCM.FLATTEN ()
+                ;
+                auto const & srcv =
+                    SRCV.FLATTEN ()
+                ;
                 //
                 for (size_t i=0;i<limit;i++) {
                     dst[i] = dst[i] - (
@@ -2095,10 +2357,10 @@ namespace Tensors {
             }
             //
             inline void ApplyBoth (
-                TYPE_PARENT         & DST  ,
-                TYPE_PARENT   const & SRCM ,
-                TYPE_PARENT   const & SRCV ,
-                TMP_TYPE_DATA const   Eta
+                TYPE_PARENT       & DST  ,
+                TYPE_PARENT const & SRCM ,
+                TYPE_PARENT const & SRCV ,
+                TYPE_DATA   const   Eta
             ) {
                 Apply (
                     DST.WEIGHT , SRCM.WEIGHT ,
@@ -2112,9 +2374,9 @@ namespace Tensors {
 
         public:
             inline void UPDATE (
-                TYPE_PARENT   const & _M  ,
-                TYPE_PARENT   const & _V  ,
-                TMP_TYPE_DATA const   Eta
+                TYPE_PARENT const & _M  ,
+                TYPE_PARENT const & _V  ,
+                TYPE_DATA   const   Eta
             ) {
                 this->ACQUIRE_LOCK();
                 AddBoth(M,_M,Beta[0]);
@@ -2123,53 +2385,47 @@ namespace Tensors {
                 this->RELEASE_LOCK();
             }
         private:
-            TMP_TYPE_DATA Beta[2];
+            TYPE_DATA Beta[2];
             TYPE_PARENT M, V;
         };
     }
 ////////////////////////////////////////////////////////////////
-#define _MACRO_INHERIT_(DefnName) typename TYPE_SELF::DefnName
-#define _MACRO_DEFINE_(DefnName) using DefnName = _MACRO_INHERIT_(DefnName) ;
-////////////////////////////////////////////////////////////////
-#define _MACRO_DEFINE_ALL_ \
-    _MACRO_DEFINE_(TYPE_FIRST_INPUT) \
-    _MACRO_DEFINE_(TYPE_DATA) \
-    _MACRO_DEFINE_(TYPE_MATRIX_OUTPUT) \
-    _MACRO_DEFINE_(TYPE_MATRIX_INPUT) \
-    _MACRO_DEFINE_(TYPE_PARAMETER)
-////////////////////////////////////////////////////////////////
-#define _MACRO_DEFINE_ALL_2_ \
-    _MACRO_DEFINE_ALL_ \
-    _MACRO_DEFINE_(TYPE_DELTA_PARAMETER)
-////////////////////////////////////////////////////////////////
-#define _MACRO_DEFINE_ALL_3_ \
-    _MACRO_DEFINE_ALL_2_ \
-    _MACRO_DEFINE_(TYPE_GRAD_OUTPUT) \
+#define _MACRO_DEFINE_ALL_                                     \
+    _MACRO_DEFINE_(TYPE_FIRST_INPUT)                           \
+    _MACRO_DEFINE_(TYPE_DATA)                                  \
+    _MACRO_DEFINE_(TYPE_MATRIX_OUTPUT)                         \
+    _MACRO_DEFINE_(TYPE_MATRIX_INPUT)                          \
+    _MACRO_DEFINE_(TYPE_PARAMETER)                             \
+    _MACRO_DEFINE_(TYPE_GRAD_OUTPUT)                           \
     _MACRO_DEFINE_(TYPE_GRAD_INPUT)
+////////////////////////////////////////////////////////////////
+#define _MACRO_DEFINE_ALL_2_                                   \
+    _MACRO_DEFINE_ALL_                                         \
+    _MACRO_DEFINE_(TYPE_DELTA_PARAMETER)
 ////////////////////////////////////////////////////////////////
     namespace NN /* FirstLayer */ {
         template <typename T>
         class FirstLayer {
         public:
-            typedef T
-                TYPE_FIRST_INPUT ;
+            using TYPE_FIRST_INPUT = T ;
             //
-            typedef typename
-                TYPE_FIRST_INPUT::TYPE_DATA
-                TYPE_DATA ;
-            //
-            typedef TYPE_FIRST_INPUT
-                TYPE_INPUT ;
-            //
-            typedef TYPE_INPUT
-                TYPE_OUTPUT ;
-            //
-            typedef Nothing
-                TYPE_PARAMETER ;
-            //
-            typedef FirstLayer
-                <TYPE_FIRST_INPUT>
-                TYPE_SELF ;
+            using TYPE_DATA =
+                typename
+                    TYPE_FIRST_INPUT::TYPE_DATA
+            ; //
+            using TYPE_INPUT =
+                TYPE_FIRST_INPUT
+            ; //
+            using TYPE_OUTPUT =
+                TYPE_INPUT
+            ; //
+            using TYPE_PARAMETER =
+                Nothing
+            ; //
+            using TYPE_SELF =
+                FirstLayer
+                    <TYPE_FIRST_INPUT>
+            ;
             //
             inline static bool constexpr
             FORWARD_GRAD () {
@@ -2180,36 +2436,37 @@ namespace Tensors {
             FORWARD_GRAD (
                 TYPE_FIRST_INPUT const & in
             ) {
-                return false ;
+                return GET_GRAD () ;
             }
             //
             inline static size_t constexpr
             SIZE_X () {
                 return
-                    TYPE_FIRST_INPUT
-                        ::SIZE_X () ;
-                //
+                    TYPE_FIRST_INPUT::SIZE_X()
+                ; //
             }
             //
             inline static constexpr
             size_t SIZE_Y () {
                 return
-                    TYPE_FIRST_INPUT
-                        ::SIZE_Y () ;
-                //
+                    TYPE_FIRST_INPUT::SIZE_Y()
+                ; //
             }
             //
             inline static constexpr
             size_t SIZE () {
                 return
-                    TYPE_FIRST_INPUT
-                        ::SIZE () ;
-                //
+                    TYPE_FIRST_INPUT::SIZE()
+                ; //
             }
             //
             inline static constexpr
             size_t INDEX ()
             { return 0 ; }
+            //
+            inline bool GET_GRAD () {
+                return false ;
+            }
             //
             inline void
             GET_LAYER_REFERENCE (
@@ -2241,6 +2498,12 @@ namespace Tensors {
                 Tin const & in
             ) const {}
             //
+            template <typename Tin>
+            inline void
+            BACKWARD_GRAD (
+                Tin const & in
+            ) const {}
+            //
             inline void ATTACH (
                 TYPE_PARAMETER const * _PARS
             ) const {}
@@ -2252,6 +2515,7 @@ namespace Tensors {
             inline void UPDATE (
                 TYPE_DATA const Eta=0.01
             ) const {}
+            //
             //
             TYPE_FIRST_INPUT const * INPUT ;
             //
@@ -2265,71 +2529,102 @@ namespace Tensors {
             typename inputtype ,
             typename selftype
         > class BaseNNType {
+            //
         public:
             //
-            typedef inputtype TYPE_INPUT ;
-            //
-            typedef typename TYPE_INPUT::TYPE_FIRST_INPUT
-                TYPE_FIRST_INPUT ;
-            //
-            typedef typename TYPE_INPUT::TYPE_DATA
-                TYPE_DATA ;
-            //
+            using TYPE_INPUT = inputtype ;
+            using TYPE_FIRST_INPUT =
+                typename TYPE_INPUT::TYPE_FIRST_INPUT
+            ; //
+            using TYPE_DATA =
+                typename TYPE_INPUT::TYPE_DATA
+            ; //
             typedef selftype TYPE_PROXY ;
             //
             inline TYPE_PROXY &
             SELF () {
-                return static_cast
-                    < TYPE_PROXY & >
-                    ( this[0] ) ;
+                return
+                    static_cast
+                        < TYPE_PROXY & >
+                        ( this[0] )
+                ;
             }
             //
             inline TYPE_PROXY const &
             SELF () const {
-                return static_cast
-                    < TYPE_PROXY const & >
-                    ( this[0] ) ;
+                return
+                    static_cast
+                        < TYPE_PROXY const & >
+                        ( this[0] )
+                ; //
             }
             //
             static inline size_t constexpr
             SIZE_Y () {
-                return TYPE_INPUT::SIZE_Y () ;
+                return
+                    TYPE_INPUT::SIZE_Y ()
+                ; //
             }
             //
             static inline size_t constexpr
-            SIZE_X () {
-                return X ;
-            }
+            SIZE_X ()
+            { return X ; }
             //
-            typedef BaseNNType <
-                SIZE_Y ()  ,
-                TYPE_INPUT ,
-                TYPE_PROXY
-            > TYPE_SELF ;
+            using TYPE_SELF =
+                BaseNNType <
+                    SIZE_Y ()  ,
+                    TYPE_INPUT ,
+                    TYPE_PROXY
+                >
+            ; //
             //
-            typedef N2D_ARRAY <
-                TYPE_INPUT::SIZE_Y(),
-                TYPE_INPUT::SIZE_X(),
-                TYPE_DATA
-            > TYPE_MATRIX_INPUT ;
-            //
-            typedef N2D_ARRAY <
-                SIZE_Y(),
-                SIZE_X(),
-                TYPE_DATA
-            > TYPE_MATRIX_OUTPUT ;
-            //
-            typedef PARAMETER <
-                TYPE_MATRIX_OUTPUT::SIZE_X () ,
-                TYPE_MATRIX_INPUT::SIZE_X  () ,
-                TYPE_DATA
-            > TYPE_PARAMETER ;
+            using TYPE_MATRIX_INPUT =
+                N2D_ARRAY <
+                    TYPE_INPUT::SIZE_Y(),
+                    TYPE_INPUT::SIZE_X(),
+                    TYPE_DATA
+                >
+            ; //
+            using TYPE_MATRIX_OUTPUT =
+                N2D_ARRAY <
+                    SIZE_Y(),
+                    SIZE_X(),
+                    TYPE_DATA
+                >
+            ; //
+            using TYPE_PARAMETER =
+                PARAMETER <
+                    TYPE_MATRIX_OUTPUT::SIZE_X () ,
+                    TYPE_MATRIX_INPUT::SIZE_X  () ,
+                    TYPE_DATA
+                >
+            ; //
+            using TYPE_GRAD_OUTPUT =
+                N3D_ARRAY <
+                    SIZE_Y                   () ,
+                    SIZE_X                   () ,
+                    TYPE_FIRST_INPUT::SIZE_X () ,
+                    TYPE_DATA
+                >
+            ; //
+            using TYPE_GRAD_INPUT =
+                N3D_ARRAY <
+                    SIZE_Y                   () ,
+                    TYPE_INPUT::SIZE_X       () ,
+                    TYPE_FIRST_INPUT::SIZE_X () ,
+                    TYPE_DATA
+                >
+            ; //
             //
             inline TYPE_MATRIX_OUTPUT const &
-            FORWARD ( TYPE_FIRST_INPUT const & in ) {
-                return SELF()
-                    .MAIN_FORWARD
-                    (INPUT.FORWARD(in)) ;
+            FORWARD
+            ( TYPE_FIRST_INPUT const & in ) {
+                return
+                    SELF()
+                    .MAIN_FORWARD (
+                        INPUT.FORWARD(in)
+                    )
+                ; //
             }
             //
             inline TYPE_MATRIX_OUTPUT &
@@ -2340,24 +2635,25 @@ namespace Tensors {
             GET_OUTPUT () const
             { return OUTPUT ; }
             //
-            inline void SET_FIRST_INPUT
+            inline void
+            SET_FIRST_INPUT
             (TYPE_FIRST_INPUT * _INPUT)
             { INPUT.SET_FIRST_INPUT (_INPUT) ; }
             //
-            inline static size_t
-            constexpr INDEX ()
+            inline static size_t constexpr
+            INDEX ()
             { return TYPE_INPUT::INDEX() + 1 ; }
             //
             template <typename T>
-            inline void GET_LAYER_REFERENCE
-            (T *& ref) { INPUT.GET_LAYER_REFERENCE(ref); }
+            inline void
+            GET_LAYER_REFERENCE
+            (T *& ref) {
+                INPUT.GET_LAYER_REFERENCE(ref);
+            }
             //
-            inline void GET_LAYER_REFERENCE
+            inline void
+            GET_LAYER_REFERENCE
             ( TYPE_PROXY * & ref )
-            { ref = & SELF () ; }
-            //
-            inline void GET_LAYER_REFERENCE
-            ( TYPE_PROXY const * & ref ) const
             { ref = & SELF () ; }
             //
             inline void
@@ -2368,15 +2664,24 @@ namespace Tensors {
             //
             inline void MAIN_CONSTRUCT () {}
             //
-            inline TYPE_MATRIX_OUTPUT const & MAIN_FORWARD
+            inline TYPE_MATRIX_OUTPUT const &
+            MAIN_FORWARD
             ( TYPE_MATRIX_INPUT const & in ) {
                 /* Do Stuff Here... */
                 printf(" This should not have been called... MAIN_FORWARD ");
-                return this->GET_OUTPUT();
+                return
+                    this->GET_OUTPUT()
+                ; //
             }
             //
-            TYPE_INPUT INPUT ;
+            ////////////////////////////////////////////////////////////////
+            // y = TYPE_PARENT::SIZE_X()           /////////////////////////
+            // b = TYPE_PARENT::SIZE_Y()           /////////////////////////
+            // m = TYPE_FIRST_INPUT::SIZE_X()      /////////////////////////
+            // x = TYPE_SELF::TYPE_INPUT::SIZE_X() /////////////////////////
+            ////////////////////////////////////////////////////////////////
             //
+            TYPE_INPUT         INPUT  ;
             TYPE_MATRIX_OUTPUT OUTPUT ;
             //
         } ;
@@ -2399,19 +2704,19 @@ namespace Tensors {
                     <X,inputtype,selftype>
             ; //
             _MACRO_DEFINE_(TYPE_FIRST_INPUT)
-            _MACRO_DEFINE_(TYPE_MATRIX_INPUT)
-            _MACRO_DEFINE_(TYPE_MATRIX_OUTPUT)
             _MACRO_DEFINE_(TYPE_DATA)
-
+            _MACRO_DEFINE_(TYPE_MATRIX_OUTPUT)
+            _MACRO_DEFINE_(TYPE_MATRIX_INPUT)
+            _MACRO_DEFINE_(TYPE_GRAD_OUTPUT)
+            _MACRO_DEFINE_(TYPE_GRAD_INPUT)
+            //
             using TYPE_DELTA_PARAMETER =
                 _MACRO_INHERIT_(TYPE_PARAMETER)
-            ;
-
+            ; //
             using TYPE_PARAMETER =
                 PARAMETER_ADAM
                     <TYPE_DELTA_PARAMETER>
             ; //
-
             inline TYPE_MATRIX_INPUT const &
             BACKWARD (
                 TYPE_MATRIX_OUTPUT const & delta
@@ -2424,15 +2729,17 @@ namespace Tensors {
                 ; //
                 if (false) {
                     auto norm =
-                        DELTA_PRIME.L2_NORM()
+                        DELTA_PRIME
+                            .L2_NORM()
                     ; //
-                    DELTA_PRIME /= norm ;
-                    //
+                    DELTA_PRIME /=
+                        norm
+                    ; //
                 }
                 //
                 this->INPUT.BACKWARD
-                    ( delta_prime ) ;
-                //
+                    ( delta_prime )
+                ; //
                 return delta_prime ;
                 //
             }
@@ -2457,14 +2764,18 @@ namespace Tensors {
                 this->SELF()
                     .MAIN_UPDATE(Eta)
                 ; //
-                this->INPUT.UPDATE (Eta) ;
+                this->INPUT
+                    .UPDATE
+                        (Eta)
+                ; //
             }
             //
             inline void MAIN_UPDATE
             ( TYPE_DATA const Eta=0.01 ) {}
             //
-            TYPE_MATRIX_INPUT DELTA_PRIME ;
-            //
+            TYPE_MATRIX_INPUT
+                DELTA_PRIME
+            ; //
         } ;
     }
     namespace NN /* BaseNNTypeTrainableGrad */ {
@@ -2482,38 +2793,14 @@ namespace Tensors {
             //
             using TYPE_SELF =
                 BaseNNTypeTrainableGrad <
-                    X , inputtype , selftype
+                    X , inputtype ,
+                    selftype
                 >
             ; //
             //
-            _MACRO_DEFINE_(TYPE_DATA)
-            _MACRO_DEFINE_(TYPE_FIRST_INPUT)
+            _MACRO_DEFINE_ALL_2_
             //
-            using TYPE_PROXY =
-                selftype
-            ; //
-            ////////////////////////////////////////////////////////////////
-            // y = TYPE_PARENT::SIZE_X()           /////////////////////////
-            // b = TYPE_PARENT::SIZE_Y()           /////////////////////////
-            // m = TYPE_FIRST_INPUT::SIZE_X()      /////////////////////////
-            // x = TYPE_SELF::TYPE_INPUT::SIZE_X() /////////////////////////
-            ////////////////////////////////////////////////////////////////
-            //
-            typedef N3D_ARRAY <
-                TYPE_SELF::SIZE_Y      () ,
-                TYPE_SELF::SIZE_X      () ,
-                TYPE_FIRST_INPUT::SIZE_X () ,
-                TYPE_DATA
-            > TYPE_GRAD_OUTPUT ;
-            //
-            typedef N3D_ARRAY <
-                TYPE_SELF::SIZE_Y           () ,
-                TYPE_SELF::TYPE_INPUT::SIZE_X () ,
-                TYPE_FIRST_INPUT::SIZE_X      () ,
-                TYPE_DATA
-            > TYPE_GRAD_INPUT ;
-            //
-            TYPE_GRAD_OUTPUT GRAD ;
+            using TYPE_PROXY = selftype ;
             //
             inline TYPE_GRAD_OUTPUT &
             GET_GRAD () {
@@ -2532,22 +2819,16 @@ namespace Tensors {
                         .MAIN_FORWARD_GRAD(
                             this->INPUT
                                 .FORWARD_GRAD()
-                        );
-                //
+                        )
+                ; //
             }
             //
             inline TYPE_GRAD_OUTPUT const &
             FORWARD_GRAD (
                 TYPE_FIRST_INPUT const & in
             ) {
-                this->FORWARD(in); //
-                return
-                    this->SELF()
-                        .MAIN_FORWARD_GRAD (
-                            this->INPUT
-                                .FORWARD_GRAD()
-                        )
-                ; //
+                this->FORWARD(in) ; //
+                return FORWARD_GRAD () ; //
             }
             //
             inline TYPE_GRAD_OUTPUT const &
@@ -2565,6 +2846,39 @@ namespace Tensors {
                 printf("This should not have been called... MAIN_FORWARD_GRAD\n");
                 return GET_GRAD();
             }
+            //
+            inline TYPE_GRAD_INPUT const &
+            BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
+            ) {
+                TYPE_GRAD_INPUT const & tmp =
+                    this->SELF()
+                        .MAIN_BACKWARD_GRAD
+                            (DELTA)
+                ;
+                this->INPUT
+                    .BACKWARD_GRAD
+                        (tmp)
+                ; //
+                return tmp ;
+            }
+            //
+            // DELTA is TYPE_GRAD_OUTPUT
+            TYPE_GRAD_OUTPUT GRAD ;
+            TYPE_GRAD_INPUT  DELTA_PRIME ;
+            //
+        private:
+            //
+            inline TYPE_GRAD_INPUT const &
+            MAIN_BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
+            ) {
+                printf("MAIN_BACKWARD_GRAD: this should not have been called... implement it in the inherited class...\n");
+                return DELTA_PRIME ;
+            }
+            //
         } ;
     }
 ////////////////////////////////////////////////////////////////
@@ -2583,6 +2897,7 @@ namespace Tensors {
                     <Y,inputtype>
             ; //
             _MACRO_DEFINE_ALL_
+            //
             inline TYPE_MATRIX_OUTPUT const &
             MAIN_FORWARD (
                 TYPE_MATRIX_INPUT const & in
@@ -2592,15 +2907,19 @@ namespace Tensors {
                     PARAMETER->WEIGHT   ,
                     in                  ,
                     PARAMETER->BIAS
-                ) ;
-                return this->GET_OUTPUT () ;
+                ) ; //
+                return
+                    this->GET_OUTPUT ()
+                ; //
             }
             //
             inline void
             ATTACH_PARAMETER (
                 TYPE_PARAMETER & in
             ) {
-                PARAMETER = & in ;
+                PARAMETER =
+                    & in
+                ; //
             }
             //
             TYPE_PARAMETER * PARAMETER ;
@@ -2617,7 +2936,8 @@ namespace Tensors {
         public:
             //
             using TYPE_SELF =
-                ActivateSoftLRU <inputtype>
+                ActivateSoftLRU
+                    <inputtype>
             ; //
             //
             _MACRO_DEFINE_ALL_
@@ -2627,7 +2947,9 @@ namespace Tensors {
                 TYPE_DATA const x
             ) {
                 if ( x < 0 ) {
-                    return x / ( 1.0 - x ) ;
+                    return
+                        x /
+                        ( 1.0 - x ) ;
                 } else {
                     return x ;
                 }
@@ -2638,16 +2960,18 @@ namespace Tensors {
                 TYPE_MATRIX_INPUT const & in
             ) {
                 auto & tmp_in =
-                    in.FLATTEN () ;
-                //
+                    in.FLATTEN ()
+                ; //
                 auto & tmp_out =
                     this->GET_OUTPUT()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 for ( size_t i=0 ; i<tmp_in.SIZE() ; i++ )
                 { tmp_out[i] = SOFT_LRU (tmp_in[i]) ; }
                 //
-                return this->GET_OUTPUT () ;
+                return
+                    this->GET_OUTPUT ()
+                ; //
             }
             //
         } ;
@@ -2672,9 +2996,15 @@ namespace Tensors {
                 TYPE_DATA const x
             ) {
                 if ( x < 0 ) {
-                    return x / ( 1.0 - x ) ;
+                    return
+                        x /
+                        ( 1.0 - x )
+                    ; //
                 } else {
-                    return x / ( 1.0 + x ) ;
+                    return
+                        x /
+                        ( 1.0 + x )
+                    ; //
                 }
             }
             //
@@ -2683,16 +3013,18 @@ namespace Tensors {
                 TYPE_MATRIX_INPUT const & in
             ) {
                 auto & tmp_in =
-                    in.FLATTEN () ;
-                //
+                    in.FLATTEN()
+                ; //
                 auto & tmp_out =
                     this->GET_OUTPUT()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 for ( size_t i=0 ; i<tmp_in.SIZE() ; i++ )
                 { tmp_out[i] = SOFT_SIGN (tmp_in[i]) ; }
                 //
-                return this->GET_OUTPUT () ;
+                return
+                    this->GET_OUTPUT ()
+                ; //
             }
             //
         } ;
@@ -2725,7 +3057,9 @@ namespace Tensors {
                     in                  ,
                     PARAMETER->BIAS
                 ) ;
-                return this->GET_OUTPUT () ;
+                return
+                    this->GET_OUTPUT ()
+                ; //
             }
             //
             inline void
@@ -2743,8 +3077,8 @@ namespace Tensors {
                 in2.GET_SQUARED(in);
                 //
                 INPUT2.GET_SQUARED
-                    (this->INPUT.GET_OUTPUT());
-                //
+                    (this->INPUT.GET_OUTPUT())
+                ; //
                 FUNCTIONS::BackProp (
                     this->GET_DELTA_PRIME() ,
                     in , PARAMETER->WEIGHT
@@ -2772,31 +3106,28 @@ namespace Tensors {
                     b++
                 ) { DP[1].BIAS+=in2[b]; }
                 //
-                return this->
-                    GET_DELTA_PRIME() ;
-                //
+                return
+                    this->GET_DELTA_PRIME()
+                ; //
             }
             //
             inline void
             MAIN_CONSTRUCT () {
-                DP[0]=0.0;
-                DP[1]=0.0;
+                DP[0] = 0.0 ;
+                DP[1] = 0.0 ;
             }
             //
             inline void
             MAIN_UPDATE (
                 TYPE_DATA const Eta=0.01
             ) {
-                //auto norm = DP[0].WEIGHT.L2_NORM () ;
-                //DP[0] /= norm ;
-                //DP[1] /= (norm*norm) ;
                 PARAMETER->UPDATE (
                     /* _M  = */ DP[0] ,
                     /* _V  = */ DP[1] ,
                     /* Eta = */ Eta
                 ) ; //
-                DP[0]=0;
-                DP[1]=0;
+                DP[0] = 0 ;
+                DP[1] = 0 ;
             }
             //
             MainNNLayerTrainable()
@@ -2806,9 +3137,9 @@ namespace Tensors {
             //
         private:
             //
-            TYPE_MATRIX_INPUT INPUT2 ;
-            TYPE_MATRIX_OUTPUT in2 ;
-            TYPE_DELTA_PARAMETER DP[2] ;
+            TYPE_MATRIX_INPUT    INPUT2 ;
+            TYPE_MATRIX_OUTPUT   in2    ;
+            TYPE_DELTA_PARAMETER DP[2]  ;
             //
         } ;
     }
@@ -2854,26 +3185,31 @@ namespace Tensors {
             //
             inline TYPE_MATRIX_OUTPUT const &
             MAIN_FORWARD (
-                TYPE_MATRIX_INPUT const & in
+                TYPE_MATRIX_INPUT const &
+                    in
             ) {
                 //
                 auto & tmp_in =
-                    in.FLATTEN () ;
-                //
+                    in.FLATTEN ()
+                ; //
                 auto & tmp_out =
                     this->GET_OUTPUT()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 for (
                     size_t i=0 ;
                     i<tmp_in.SIZE() ;
                     i++
                 ) {
                     tmp_out[i] =
-                        REAL_ACTIVATE (tmp_in[i]) ;
+                        REAL_ACTIVATE
+                            (tmp_in[i])
+                    ;
                 }
                 //
-                return this->GET_OUTPUT () ;
+                return
+                    this->GET_OUTPUT()
+                ; //
             }
             //
             inline TYPE_MATRIX_INPUT const &
@@ -2884,14 +3220,15 @@ namespace Tensors {
                 auto & tmp_in =
                     this->INPUT
                         .GET_OUTPUT()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 auto & tmp_delta =
-                    delta.FLATTEN () ;
-                //
+                    delta.FLATTEN ()
+                ; //
                 auto & tmp_delta_prime =
                     this->GET_DELTA_PRIME()
-                        .FLATTEN() ;
+                        .FLATTEN()
+                ; //
                 //
                 for (
                     size_t i=0 ;
@@ -2900,12 +3237,13 @@ namespace Tensors {
                 ) {
                     tmp_delta_prime[i] =
                         REAL_ACTIVATE_D (tmp_in[i]) *
-                        tmp_delta[i] ;
+                        tmp_delta[i]
+                    ; //
                 }
                 //
-                return this->
-                    GET_DELTA_PRIME () ;
-                //
+                return
+                    this->GET_DELTA_PRIME()
+                ; //
             }
             //
         } ;
@@ -2966,18 +3304,22 @@ namespace Tensors {
                 //
                 auto & tmp_out =
                     this->GET_OUTPUT()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 for (
                     size_t i=0 ;
                     i<tmp_in.SIZE() ;
                     i++
                 ) {
                     tmp_out[i] =
-                        REAL_ACTIVATE (tmp_in[i]) ;
+                        REAL_ACTIVATE
+                            (tmp_in[i])
+                    ; //
                 }
                 //
-                return this->GET_OUTPUT () ;
+                return
+                    this->GET_OUTPUT()
+                ; //
             }
             //
             inline TYPE_MATRIX_INPUT const &
@@ -2991,12 +3333,12 @@ namespace Tensors {
                         .FLATTEN() ;
                 //
                 auto & tmp_delta =
-                    delta.FLATTEN () ;
-                //
+                    delta.FLATTEN ()
+                ; //
                 auto & tmp_delta_prime =
                     this->GET_DELTA_PRIME()
-                        .FLATTEN() ;
-                //
+                        .FLATTEN()
+                ; //
                 for (
                     size_t i=0 ;
                     i<tmp_delta_prime.SIZE() ;
@@ -3004,12 +3346,12 @@ namespace Tensors {
                 ) {
                     tmp_delta_prime[i] =
                         REAL_ACTIVATE_D (tmp_in[i]) *
-                        tmp_delta[i] ;
-                    //
+                        tmp_delta[i]
+                    ; //
                 }
                 //
-                return this->
-                    GET_DELTA_PRIME () ;
+                return
+                    this->GET_DELTA_PRIME () ;
                 //
             }
             //
@@ -3132,78 +3474,6 @@ namespace Tensors {
                 return
                     this->GET_DELTA_PRIME()
                 ; //
-            }
-            //
-        } ;
-    }
-    namespace NN /* The Last Layer: */ {
-        template <typename input>
-        class Teacher :
-        public BaseNNType <
-            input::SIZE_X() ,
-            input ,
-            Teacher <input>
-        > {
-            //
-        public:
-            //
-            using TYPE_SELF =
-                Teacher <input>
-            ; //
-            _MACRO_DEFINE_ALL_
-            //
-            inline TYPE_MATRIX_OUTPUT const &
-            MAIN_FORWARD (
-                TYPE_MATRIX_INPUT const & in
-            ) { return in ; }
-            //
-            inline TYPE_MATRIX_INPUT const &
-            MAIN_BACKWARD (
-                TYPE_MATRIX_OUTPUT const & in
-            ) {
-                //
-                auto & delta =
-                    this->GET_OUTPUT()
-                    .FLATTEN() ;
-                //
-                auto & INP =
-                    this->INPUT
-                        .GET_OUTPUT()
-                        .FLATTEN() ;
-                //
-                auto & flat_in =
-                    in.FLATTEN();
-                //
-                for(size_t i=0;i<delta.SIZE();i++) {
-                    delta[i]=INP[i]-flat_in[i];
-                }
-                //
-                return this->
-                    GET_OUTPUT() ;
-                //
-            }
-            //
-            inline TYPE_MATRIX_INPUT const &
-            BACKWARD (
-                TYPE_MATRIX_OUTPUT const & delta
-            ) {
-                //
-                TYPE_MATRIX_INPUT const &
-                    delta_prime =
-                        MAIN_BACKWARD(delta) ;
-                //
-                this->INPUT.BACKWARD
-                    ( delta_prime ) ;
-                //
-                return delta_prime ;
-                //
-            }
-            //
-            inline void
-            UPDATE (
-                TYPE_DATA const Eta=0.01
-            ) {
-                this->INPUT.UPDATE (Eta) ;
             }
             //
         } ;
@@ -3332,8 +3602,8 @@ namespace Tensors {
                     //
                 }
                 //
-                return this->
-                    GET_DELTA_PRIME ()
+                return
+                    this->GET_DELTA_PRIME()
                 ; //
             }
             //
@@ -3343,6 +3613,137 @@ namespace Tensors {
             TYPE_DENOMINATOR_ARRAY
                 SUM
             ; //
+        } ;
+    }
+    namespace NN /* The Last Layer: */ {
+        template <typename input>
+        class Teacher :
+        public BaseNNType <
+            input::SIZE_X() ,
+            input ,
+            Teacher <input>
+        > {
+            //
+        public:
+            //
+            using TYPE_SELF =
+                Teacher <input>
+            ; //
+            _MACRO_DEFINE_ALL_
+            //
+            inline TYPE_MATRIX_OUTPUT const &
+            MAIN_FORWARD (
+                TYPE_MATRIX_INPUT const &
+                    in
+            ) { return in ; }
+            //
+            inline TYPE_MATRIX_INPUT const &
+            MAIN_BACKWARD (
+                TYPE_MATRIX_OUTPUT const &
+                    in ,
+                TYPE_DATA weight
+            ) {
+                //
+                auto & delta =
+                    this->GET_OUTPUT()
+                        .FLATTEN()
+                ; //
+                auto & INP =
+                    this->INPUT
+                        .GET_OUTPUT()
+                        .FLATTEN()
+                ; //
+                auto & flat_in =
+                    in.FLATTEN()
+                ; //
+                for(size_t i=0;i<delta.SIZE();i++) {
+                    delta[i] =
+                        INP[i] -
+                        flat_in[i]
+                    ; //
+                }
+                //
+                delta *=
+                    weight
+                ; //
+                //
+                return
+                    this->GET_OUTPUT()
+                ; //
+            }
+            //
+            inline TYPE_MATRIX_INPUT const &
+            BACKWARD (
+                TYPE_MATRIX_OUTPUT const &
+                    delta ,
+                TYPE_DATA weight = 1.0
+            ) {
+                //
+                TYPE_MATRIX_INPUT const &
+                    delta_prime =
+                        MAIN_BACKWARD
+                            (delta,weight)
+                ; //
+                //
+                this->INPUT.BACKWARD
+                    ( delta_prime )
+                ; //
+                //
+                return
+                    delta_prime
+                ; //
+                //
+            }
+            //
+            inline TYPE_MATRIX_INPUT const &
+            TRAIN (
+                TYPE_FIRST_INPUT  const &
+                    in
+                ,
+                TYPE_MATRIX_OUTPUT const &
+                    delta
+                ,
+                TYPE_DATA weight = 1.0
+            ) {
+                this->FORWARD
+                    (in)
+                ; //
+                return
+                    this->BACKWARD
+                        (delta,weight)
+                ; //
+            }
+            //
+            inline void
+            UPDATE (
+                TYPE_DATA const
+                    Eta = 0.01
+            ) {
+                this->INPUT
+                    .UPDATE
+                        (Eta)
+                ; //
+            }
+            //
+            inline TYPE_GRAD_OUTPUT const &
+            FORWARD_GRAD () {
+                return
+                    this->INPUT
+                        .FORWARD_GRAD()
+                ; //
+            }
+            //
+            inline TYPE_GRAD_OUTPUT const &
+            FORWARD_GRAD (
+                TYPE_FIRST_INPUT const &
+                    in
+            ) {
+                this->FORWARD(in);
+                return
+                    FORWARD_GRAD()
+                ; //
+            }
+            //
         } ;
     }
 ////////////////////////////////////////////////////////////////
@@ -3359,13 +3760,20 @@ namespace Tensors {
             //
             using TYPE_SELF =
                 MainNNLayerTrainableGrad
-                    <Y,inputtype>
+                    < Y , inputtype >
             ; //
-            _MACRO_DEFINE_ALL_3_
+            //
+            _MACRO_DEFINE_ALL_2_
+            //
+            using TYPE_WEIGHT =
+                typename
+                    TYPE_DELTA_PARAMETER::TYPE_WEIGHT
+            ; //
             //
             inline TYPE_MATRIX_OUTPUT const &
             MAIN_FORWARD (
-                TYPE_MATRIX_INPUT const & in
+                TYPE_MATRIX_INPUT const &
+                    in
             ) {
                 FUNCTIONS::NeuralMultiply (
                     this->GET_OUTPUT () ,
@@ -3378,21 +3786,24 @@ namespace Tensors {
             //
             inline void
             ATTACH_PARAMETER (
-                TYPE_PARAMETER & in
+                TYPE_PARAMETER &
+                    in
             ) {
                 PARAMETER = & in ;
             }
             //
             inline TYPE_MATRIX_INPUT const &
             MAIN_BACKWARD (
-                TYPE_MATRIX_OUTPUT const & in
+                TYPE_MATRIX_OUTPUT const &
+                    in
             ) {
                 //
                 in2.GET_SQUARED(in);
                 //
                 INPUT2.GET_SQUARED (
-                    this->INPUT.GET_OUTPUT()
-                );
+                    this->INPUT
+                        .GET_OUTPUT()
+                ) ;
                 //
                 FUNCTIONS::BackProp (
                     this->GET_DELTA_PRIME() ,
@@ -3400,30 +3811,41 @@ namespace Tensors {
                 ) ;
                 //
                 FUNCTIONS::EvalW (
-                    DP[0].WEIGHT , in ,
-                    this->INPUT.GET_OUTPUT()
+                    DP[0].WEIGHT ,
+                    in ,
+                    this->INPUT
+                        .GET_OUTPUT()
                 ) ;
                 //
                 FUNCTIONS::EvalW (
                     DP[1].WEIGHT ,
-                    in2 , INPUT2
+                    in2 ,
+                    INPUT2
                 ) ;
                 //
                 for(
                     size_t b=0;
                     b<TYPE_MATRIX_OUTPUT::SIZE_Y();
                     b++
-                ) { DP[0].BIAS+=in[b]; }
+                ) {
+                    DP[0].BIAS +=
+                        in[b]
+                    ; //
+                }
                 //
                 for(
                     size_t b=0;
                     b<TYPE_MATRIX_OUTPUT::SIZE_Y();
                     b++
-                ) { DP[1].BIAS+=in2[b]; }
+                ) {
+                    DP[1].BIAS +=
+                        in2[b]
+                    ; //
+                }
                 //
-                return this->
-                    GET_DELTA_PRIME() ;
-                //
+                return
+                    this->GET_DELTA_PRIME()
+                ; //
             }
             //
             inline void
@@ -3434,7 +3856,8 @@ namespace Tensors {
             //
             inline void
             MAIN_UPDATE (
-                TYPE_DATA const Eta=0.01
+                TYPE_DATA const
+                    Eta = 0.01
             ) {
                 //auto norm = DP[0].WEIGHT.L2_NORM () ;
                 //DP[0] /= norm ;
@@ -3451,8 +3874,6 @@ namespace Tensors {
             MainNNLayerTrainableGrad()
             { MAIN_CONSTRUCT () ; }
             //
-            TYPE_PARAMETER * PARAMETER ;
-            //
             inline TYPE_GRAD_OUTPUT const &
             MAIN_FORWARD_GRAD (
                 TYPE_GRAD_INPUT const &
@@ -3468,7 +3889,8 @@ namespace Tensors {
             //
             inline TYPE_GRAD_OUTPUT const &
             MAIN_FORWARD_GRAD (
-                bool const in
+                bool const
+                    in
             ) {
                 FUNCTIONS::GRAD_PROPAGATE(
                     this->GET_GRAD()  ,
@@ -3478,11 +3900,57 @@ namespace Tensors {
                 return this->GET_GRAD();
             }
             //
+            inline TYPE_GRAD_INPUT const &
+            MAIN_BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
+            ) {
+                //
+                auto & DELTA_PRIME =
+                    this->DELTA_PRIME
+                ; //
+                //
+                FUNCTIONS::GRAD_BACKWARD (
+                    DELTA_PRIME       ,
+                    PARAMETER->WEIGHT ,
+                    DELTA
+                ) ; //
+                //
+                FUNCTIONS::EVAL_DW_GRAD (
+                /* DW1 = */     DP[0].WEIGHT            ,
+                /* DW2 = */     DP[1].WEIGHT            ,
+                /* tmpDW = */   tmpDW                   ,
+                /* DELTA = */   DELTA                   ,
+                /* GRAD_IN = */ this->INPUT.GET_GRAD()
+                ) ; //
+                //
+                return
+                    this->DELTA_PRIME
+                ; //
+                //
+            }
+            //
         private:
             //
-            TYPE_MATRIX_INPUT    INPUT2 ;
-            TYPE_MATRIX_OUTPUT   in2    ;
-            TYPE_DELTA_PARAMETER DP[2]  ;
+            TYPE_PARAMETER *
+                PARAMETER
+            ; //
+            //
+            TYPE_MATRIX_INPUT
+                INPUT2
+            ; //
+            //
+            TYPE_MATRIX_OUTPUT
+                in2
+            ; //
+            //
+            TYPE_DELTA_PARAMETER
+                DP[2]
+            ; //
+            //
+            TYPE_WEIGHT
+                tmpDW
+            ; //
             //
         } ;
     }
@@ -3499,12 +3967,14 @@ namespace Tensors {
             using TYPE_SELF =
                 ActivateSoftLRUTrainableGrad
                     <inputtype>
-            ; //
-            _MACRO_DEFINE_ALL_3_
+            ;
+            //
+            _MACRO_DEFINE_ALL_2_
             //
             static inline TYPE_DATA
             REAL_ACTIVATE (
-                TYPE_DATA const x
+                TYPE_DATA const
+                    x
             ) {
                 if ( x < 0 ) {
                     return x / ( 1.0 - x ) ;
@@ -3515,7 +3985,8 @@ namespace Tensors {
             //
             static inline TYPE_DATA
             REAL_ACTIVATE_D (
-                TYPE_DATA const x
+                TYPE_DATA const
+                    x
             ) {
                 if ( x < 0 ) {
                     TYPE_DATA tmp = 1.0 - x ;
@@ -3525,134 +3996,12 @@ namespace Tensors {
                 }
             }
             //
-            inline TYPE_MATRIX_OUTPUT const &
-            MAIN_FORWARD (
-                TYPE_MATRIX_INPUT const & in
-            ) {
-                //
-                auto & tmp_in =
-                    in.FLATTEN () ;
-                //
-                auto & tmp_out =
-                    this->GET_OUTPUT()
-                        .FLATTEN() ;
-                //
-                for (
-                    size_t i=0 ;
-                    i<tmp_in.SIZE() ;
-                    i++
-                ) {
-                    tmp_out[i] =
-                        REAL_ACTIVATE (tmp_in[i]) ;
-                }
-                //
-                return this->GET_OUTPUT () ;
-            }
-            //
-            inline TYPE_MATRIX_INPUT const &
-            MAIN_BACKWARD (
-                TYPE_MATRIX_OUTPUT const & delta
-            ) {
-                //
-                auto & tmp_in =
-                    this->INPUT
-                        .GET_OUTPUT()
-                        .FLATTEN() ;
-                //
-                auto & tmp_delta =
-                    delta.FLATTEN () ;
-                //
-                auto & tmp_delta_prime =
-                    this->GET_DELTA_PRIME()
-                        .FLATTEN() ;
-                //
-                for (
-                    size_t i=0 ;
-                    i<tmp_delta_prime.SIZE() ;
-                    i++
-                ) {
-                    tmp_delta_prime[i] =
-                        REAL_ACTIVATE_D (tmp_in[i]) *
-                        tmp_delta[i] ;
-                }
-                //
-                return this->
-                    GET_DELTA_PRIME () ;
-                //
-            }
-            //
-            inline TYPE_GRAD_OUTPUT const &
-            MAIN_FORWARD_GRAD (
-                TYPE_GRAD_INPUT const & in
-            ) {
-                auto & Input =
-                    this->INPUT
-                        .GET_OUTPUT() ;
-                //
-                auto & Output =
-                    this->GET_GRAD() ;
-                //
-                for(size_t b=0;b<in.SIZE_Z();b++){
-                    for(size_t i=0;i<in.SIZE_Y();i++){
-                        for(size_t m=0;m<in.SIZE_X();m++){
-                            Output[b][i][m] =
-                                REAL_ACTIVATE_D (Input[b][i])
-                                * in[b][i][m] ;
-                        }
-                    }
-                }
-                //
-                return Output;
-                //
-            }
-        } ;
-    }
-    namespace NN /* Activation layer: SoftLRUPTrainableGrad */ {
-        template <typename inputtype>
-        class ActivateSoftLRUPTrainableGrad :
-        public BaseNNTypeTrainableGrad <
-            inputtype::SIZE_X() , inputtype ,
-            ActivateSoftLRUPTrainableGrad
-                < inputtype >
-        > {
-        public:
-            //
-            using TYPE_SELF =
-                ActivateSoftLRUPTrainableGrad
-                    <inputtype>
-            ; //
-            //
-            _MACRO_DEFINE_ALL_3_
-            //
             static inline TYPE_DATA
-            REAL_ACTIVATE (
-                TYPE_DATA const x
+            REAL_ACTIVATE_D_2 (
+                TYPE_DATA const
+                    x
             ) {
-                if ( x < 0 ) {
-                    return
-                        1.0 /
-                        ( 1.0 - x )
-                    ; //
-                } else {
-                    return 1.0 + x ;
-                }
-            }
-            //
-            static inline TYPE_DATA
-            REAL_ACTIVATE_D (
-                TYPE_DATA const x
-            ) {
-                if ( x < 0 ) {
-                    TYPE_DATA tmp =
-                        1.0 - x
-                    ; //
-                    return
-                        1.0 /
-                        ( tmp * tmp )
-                    ; //
-                } else {
-                    return 1.0 ;
-                }
+                return 0 ;
             }
             //
             inline TYPE_MATRIX_OUTPUT const &
@@ -3667,6 +4016,7 @@ namespace Tensors {
                     this->GET_OUTPUT()
                         .FLATTEN()
                 ; //
+                //
                 for (
                     size_t i=0 ;
                     i<tmp_in.SIZE() ;
@@ -3700,6 +4050,7 @@ namespace Tensors {
                     this->GET_DELTA_PRIME()
                         .FLATTEN()
                 ; //
+                //
                 for (
                     size_t i=0 ;
                     i<tmp_delta_prime.SIZE() ;
@@ -3712,7 +4063,7 @@ namespace Tensors {
                 }
                 //
                 return
-                    this->GET_DELTA_PRIME()
+                    this->GET_DELTA_PRIME ()
                 ; //
             }
             //
@@ -3729,10 +4080,14 @@ namespace Tensors {
                 ; //
                 for(size_t b=0;b<in.SIZE_Z();b++){
                     for(size_t i=0;i<in.SIZE_Y();i++){
+                        TYPE_DATA tmp =
+                            REAL_ACTIVATE_D
+                                (Input[b][i])
+                        ; //
                         for(size_t m=0;m<in.SIZE_X();m++){
                             Output[b][i][m] =
-                                REAL_ACTIVATE_D (Input[b][i])
-                                * in[b][i][m]
+                                tmp *
+                                in[b][i][m]
                             ; //
                         }
                     }
@@ -3741,16 +4096,344 @@ namespace Tensors {
                 return Output;
                 //
             }
+            //
+            inline TYPE_GRAD_INPUT const &
+            MAIN_BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
+            ) {
+                if (true) {
+                    auto & Input =
+                        this->INPUT
+                            .GET_OUTPUT()
+                    ; //
+                    auto & ingrad =
+                        this->INPUT
+                            .GET_GRAD()
+                    ; //
+                    auto & DELTA_PRIME =
+                        this->DELTA_PRIME
+                    ; //
+                    //
+                    size_t constexpr M =
+                        DELTA_PRIME
+                            .SIZE_X()
+                    ; //
+                    size_t constexpr I =
+                        DELTA_PRIME
+                            .SIZE_Y()
+                    ; //
+                    size_t constexpr B =
+                        DELTA_PRIME
+                            .SIZE_Z()
+                    ; //
+                    //
+                    for(size_t b=0;b<B;b++){
+                        for(size_t i=0;i<I;i++){
+                            //
+                            auto tmp1 =
+                                REAL_ACTIVATE_D
+                                    (Input[b][i])
+                            ; //
+                            auto tmp2 =
+                                REAL_ACTIVATE_D_2
+                                    (Input[b][i])
+                            ; //
+                            //
+                            DELTA_PRIME_2[b][i] =
+                                DELTA[b][i][0] *
+                                ingrad[b][i][0] *
+                                tmp2
+                            ; //
+                            for(size_t m=1;m<M;m++){
+                                DELTA_PRIME_2[b][i] +=
+                                    DELTA[b][i][m] *
+                                    ingrad[b][i][m] *
+                                    tmp2
+                                ; //
+                            }
+                            //
+                            for(size_t m=0;m<M;m++){
+                                DELTA_PRIME[b][i][m] =
+                                    DELTA[b][i][m] *
+                                    tmp1
+                                ; //
+                            }
+                            //
+                        }
+                    }
+                    //
+                    this->BACKWARD
+                        (DELTA_PRIME_2)
+                    ; //
+                    return
+                        DELTA_PRIME
+                    ; //
+                }
+                //
+            }
+            //
+            TYPE_MATRIX_INPUT
+                DELTA_PRIME_2
+            ;
+            //
         } ;
     }
-    namespace NN /* The Last Layer grad: */ {
+    namespace NN /* Activation layer: SoftLRUPTrainableGrad */ {
+        template <typename inputtype>
+        class ActivateSoftLRUPTrainableGrad :
+        public BaseNNTypeTrainableGrad <
+            inputtype::SIZE_X() , inputtype ,
+            ActivateSoftLRUPTrainableGrad
+                < inputtype >
+        > {
+            //
+        public:
+            //
+            using TYPE_SELF =
+                ActivateSoftLRUPTrainableGrad
+                    <inputtype>
+            ; //
+            //
+            _MACRO_DEFINE_ALL_2_
+            //
+            static inline TYPE_DATA
+            REAL_ACTIVATE (
+                TYPE_DATA const
+                    x
+            ) {
+                if ( x < 0 ) {
+                    return
+                        1.0  /
+                        ( 1.0 - x )
+                    ; //
+                } else {
+                    return
+                        ( 1.0 + x )
+                    ; //
+                }
+            }
+            //
+            static inline TYPE_DATA
+            REAL_ACTIVATE_D (
+                TYPE_DATA const
+                    x
+            ) {
+                if ( x < 0 ) {
+                    TYPE_DATA tmp =
+                        1.0 - x
+                    ; //
+                    return
+                        1.0 /
+                        ( tmp * tmp )
+                    ; //
+                } else {
+                    return
+                        1.0
+                    ; //
+                }
+            }
+            //
+            static inline TYPE_DATA
+            REAL_ACTIVATE_D_2 (
+                TYPE_DATA const
+                    x
+            ) {
+                if(x<0){
+                    TYPE_DATA tmp =
+                        ( 1.0 - x )
+                    ; //
+                    return
+                        2.0 /
+                        ( tmp * tmp * tmp )
+                    ; //
+                } else {
+                    return
+                        0
+                    ; //
+                }
+
+            }
+            //
+            inline TYPE_MATRIX_OUTPUT const &
+            MAIN_FORWARD (
+                TYPE_MATRIX_INPUT const & in
+            ) {
+                //
+                auto & tmp_in =
+                    in.FLATTEN ()
+                ; //
+                auto & tmp_out =
+                    this->GET_OUTPUT()
+                        .FLATTEN()
+                ; //
+                //
+                for (
+                    size_t i=0 ;
+                    i<tmp_in.SIZE() ;
+                    i++
+                ) {
+                    tmp_out[i] =
+                        REAL_ACTIVATE
+                            (tmp_in[i])
+                    ; //
+                }
+                //
+                return
+                    this->GET_OUTPUT ()
+                ; //
+            }
+            //
+            inline TYPE_MATRIX_INPUT const &
+            MAIN_BACKWARD (
+                TYPE_MATRIX_OUTPUT const & delta
+            ) {
+                //
+                auto & tmp_in =
+                    this->INPUT
+                        .GET_OUTPUT()
+                        .FLATTEN()
+                ; //
+                auto & tmp_delta =
+                    delta.FLATTEN ()
+                ; //
+                auto & tmp_delta_prime =
+                    this->GET_DELTA_PRIME()
+                        .FLATTEN()
+                ; //
+                //
+                for (
+                    size_t i=0 ;
+                    i<tmp_delta_prime.SIZE() ;
+                    i++
+                ) {
+                    tmp_delta_prime[i] =
+                        REAL_ACTIVATE_D (tmp_in[i]) *
+                        tmp_delta[i]
+                    ; //
+                }
+                //
+                return
+                    this->GET_DELTA_PRIME ()
+                ; //
+            }
+            //
+            inline TYPE_GRAD_OUTPUT const &
+            MAIN_FORWARD_GRAD (
+                TYPE_GRAD_INPUT const & in
+            ) {
+                auto & Input =
+                    this->INPUT
+                        .GET_OUTPUT()
+                ; //
+                auto & Output =
+                    this->GET_GRAD()
+                ; //
+                for(size_t b=0;b<in.SIZE_Z();b++){
+                    for(size_t i=0;i<in.SIZE_Y();i++){
+                        TYPE_DATA tmp =
+                            REAL_ACTIVATE_D
+                                (Input[b][i])
+                        ; //
+                        for(size_t m=0;m<in.SIZE_X();m++){
+                            Output[b][i][m] =
+                                tmp *
+                                in[b][i][m]
+                            ; //
+                        }
+                    }
+                }
+                //
+                return Output;
+                //
+            }
+            //
+            inline TYPE_GRAD_INPUT const &
+            MAIN_BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
+            ) {
+                if (true) {
+                    auto & Input =
+                        this->INPUT
+                            .GET_OUTPUT()
+                    ; //
+                    auto & ingrad =
+                        this->INPUT
+                            .GET_GRAD()
+                    ; //
+                    auto & DELTA_PRIME =
+                        this->DELTA_PRIME
+                    ; //
+                    //
+                    size_t constexpr M =
+                        DELTA_PRIME
+                            .SIZE_X()
+                    ; //
+                    size_t constexpr I =
+                        DELTA_PRIME
+                            .SIZE_Y()
+                    ; //
+                    size_t constexpr B =
+                        DELTA_PRIME
+                            .SIZE_Z()
+                    ; //
+                    //
+                    for(size_t b=0;b<B;b++){
+                        for(size_t i=0;i<I;i++){
+                            //
+                            auto tmp1 =
+                                REAL_ACTIVATE_D
+                                    (Input[b][i])
+                            ; //
+                            auto tmp2 =
+                                REAL_ACTIVATE_D_2
+                                    (Input[b][i])
+                            ; //
+                            //
+                            DELTA_PRIME_2[b][i] =
+                                DELTA[b][i][0] *
+                                ingrad[b][i][0] *
+                                tmp2
+                            ; //
+                            for(size_t m=1;m<M;m++){
+                                DELTA_PRIME_2[b][i] +=
+                                    DELTA[b][i][m] *
+                                    ingrad[b][i][m] *
+                                    tmp2
+                                ; //
+                            }
+                            //
+                            for(size_t m=0;m<M;m++){
+                                DELTA_PRIME[b][i][m] =
+                                    DELTA[b][i][m] *
+                                    tmp1
+                                ; //
+                            }
+                            //
+                        }
+                    }
+                    //
+                    this->BACKWARD
+                        (DELTA_PRIME_2)
+                    ; //
+                    return
+                        DELTA_PRIME
+                    ; //
+                }
+                //
+            }
+            //
+            TYPE_MATRIX_INPUT
+                DELTA_PRIME_2
+            ;
+            //
+        } ;
+    }
+    namespace NN /* The Last Layer Grad: */ {
         template <typename input>
         class TeacherGrad :
-        public BaseNNType <
-            input::SIZE_X() ,
-            input ,
-            TeacherGrad <input>
-        > {
+        public Teacher <input> {
             //
         public:
             //
@@ -3758,97 +4441,120 @@ namespace Tensors {
                 TeacherGrad
                     <input>
             ; //
-            _MACRO_DEFINE_ALL_3_
             //
-            inline TYPE_MATRIX_OUTPUT const &
-            MAIN_FORWARD (
-                TYPE_MATRIX_INPUT const & in
-            ) { return in ; }
+            using TYPE_PARENT =
+                Teacher <input>
+            ; //
             //
-            inline TYPE_MATRIX_INPUT const &
-            MAIN_BACKWARD (
-                TYPE_MATRIX_OUTPUT const & in
+            _MACRO_DEFINE_ALL_
+            //
+            inline TYPE_PARENT &
+            AS_PARENT () {
+                return
+                    reinterpret_cast
+                        <TYPE_PARENT &>
+                            (this[0])
+                ; //
+            }
+            //
+            inline TYPE_PARENT const &
+            AS_PARENT () const {
+                return
+                    reinterpret_cast
+                        <TYPE_PARENT const &>
+                            (this[0])
+                ; //
+            }
+            //
+            inline TYPE_GRAD_INPUT const &
+            BACKWARD_GRAD (
+                TYPE_GRAD_OUTPUT const &
+                    DELTA
             ) {
                 //
-                auto & delta =
-                    this->GET_OUTPUT()
-                    .FLATTEN()
-                ; //
-                auto & INP =
+                auto & tmp1 =
                     this->INPUT
-                        .GET_OUTPUT()
+                        .GET_GRAD()
                         .FLATTEN()
                 ; //
-                auto & flat_in =
-                    in.FLATTEN()
+                //
+                auto & tmp2 =
+                    DELTA
+                        .FLATTEN()
                 ; //
+                //
+                auto & tmp =
+                    DELTA_GRAD
+                        .FLATTEN()
+                ; //
+                //
                 for(
                     size_t i=0;
-                    i<delta.SIZE();
+                    i<tmp.SIZE();
                     i++
                 ) {
-                    delta[i]=
-                        INP[i]-flat_in[i]
+                    tmp[i] =
+                        tmp1[i] -
+                        tmp2[i]
                     ; //
+
                 }
                 //
+                this->INPUT
+                    .BACKWARD_GRAD
+                        (DELTA_GRAD)
+                ; //
+                //
                 return
-                    this->GET_OUTPUT()
+                    DELTA_GRAD
+                ; //
+                //
+            }
+            //
+            inline TYPE_GRAD_INPUT const &
+            TRAIN (
+                TYPE_FIRST_INPUT const &
+                    in
+                ,
+                TYPE_GRAD_OUTPUT  const &
+                    delta
+            ) {
+                this->FORWARD_GRAD
+                    (in)
+                ; //
+                return
+                    this->BACKWARD_GRAD
+                        (delta)
                 ; //
             }
             //
             inline TYPE_MATRIX_INPUT const &
-            BACKWARD (
-                TYPE_MATRIX_OUTPUT const & delta
+            TRAIN (
+                TYPE_FIRST_INPUT  const &
+                    in
+                ,
+                TYPE_MATRIX_OUTPUT const &
+                    delta
+                ,
+                TYPE_DATA weight = 1.0
             ) {
-                //
-                TYPE_MATRIX_INPUT const &
-                    delta_prime =
-                        MAIN_BACKWARD(
-                            delta
-                        )
-                ; //
-                this->INPUT
-                    .BACKWARD (
-                        delta_prime
-                    )
-                ; //
-                return delta_prime ;
-                //
-            }
-            //
-            inline void
-            UPDATE (
-                TYPE_DATA const Eta=0.01
-            ) {
-                this->INPUT
-                    .UPDATE (
-                        Eta
-                    )
-                ; //
-            }
-            //
-            inline TYPE_GRAD_OUTPUT const &
-            FORWARD_GRAD () {
                 return
-                    this->INPUT
-                        .FORWARD_GRAD()
+                    AS_PARENT()
+                    .TRAIN(in,delta,weight)
                 ; //
             }
             //
-            inline TYPE_GRAD_OUTPUT const &
-            FORWARD_GRAD (
-                TYPE_FIRST_INPUT const & in
-            ) {
-                this->FORWARD(in);
-                return
-                    this->INPUT
-                        .FORWARD_GRAD()
-                ; //
-            }
+            TYPE_GRAD_INPUT
+                DELTA_GRAD
+            ; //
             //
         } ;
     }
+////////////////////////////////////////////////////////////////
+#undef _MACRO_DEFINE_ALL_2_
+#undef _MACRO_DEFINE_ALL_
+#undef _MACRO_DEFINE_
+#undef _MACRO_INHERIT_
 ////////////////////////////////////////////////////////////////
 }
 #endif

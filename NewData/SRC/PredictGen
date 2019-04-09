@@ -1,0 +1,5 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@image$@predict@g')"
+echo "PredictFile(\"${1}\",\"${OUT}\");"
+#PredictFile () ;
+exit '0'
