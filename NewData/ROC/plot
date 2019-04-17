@@ -1,7 +1,12 @@
 #!/usr/bin/gnuplot
 set terminal svg size 600,400
-set output "out.svg"
 set log y
 set grid
+
+set output "out.svg"
 plot "QCD_TOP.txt" with lines
+
+set output "outQCDWBS.svg"
+plot "QCD_WBS.txt" with lines
+
 exit

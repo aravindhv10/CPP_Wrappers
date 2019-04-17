@@ -5,18 +5,27 @@
 ////////////////////////////////////////////////////////////////
 namespace MISC {
     //
+    size_t constexpr
+        ImageResolution =
+            64
+    ;
+    //
     using TYPE_DATA =
         float
     ; //
     //
     using imagetype =
-        NewHEPHeaders::ImageGen
-            <40,TYPE_DATA>
+        NewHEPHeaders::BoxImageGen <
+            ImageResolution ,
+            TYPE_DATA
+        >
     ; //
     //
     using imagetypeflip =
-        NewHEPHeaders::ImageGenFlip
-            <40,TYPE_DATA>
+        NewHEPHeaders::ImageGenFlip <
+            ImageResolution ,
+            TYPE_DATA
+        >
     ; //
     //
     using outvector4 =
@@ -31,7 +40,7 @@ namespace MISC {
     //
     using TYPE_PREDICT =
         Tensors::NN::ND_ARRAY
-            <1600,TYPE_DATA>
+            <ImageResolution*ImageResolution,TYPE_DATA>
     ;
     //
     using vector4  =
@@ -333,7 +342,7 @@ namespace MISC {
             /* Evaluate Normal Image   : */ {
                 imagetype img (
                     injet.constituents() ,
-                    0.6
+                    0.5
                 ) ; //
                 ImageWriter.push_back
                     (img)
@@ -515,8 +524,8 @@ namespace MISC {
         ) {
             FileReader reader (filename) ;
             for (size_t i=0;i<reader();i++)
-            for (size_t y=0;y<40;y++)
-            for (size_t x=0;x<40;x++) {
+            for (size_t y=0;y<ImageResolution;y++)
+            for (size_t x=0;x<ImageResolution;x++) {
                 Hist.Fill (
                     x , y ,
                     reader(i)
@@ -531,8 +540,8 @@ namespace MISC {
         Hist (
             &(filename[0]) ,
             &(filename[0]) ,
-            40 , 0 , 40 ,
-            40 , 0 , 40
+            ImageResolution , 0 , ImageResolution ,
+            ImageResolution , 0 , ImageResolution
         ) { histname = filename ; }
         //
         ~Plot2D(){
@@ -553,8 +562,6 @@ namespace MISC {
         //
     } ;
     //
-//3abb6677af34ac57c0ca5828fd94f9d886c26ce59a8ce60ecf6778079423dccff1d6f19cb655805d56098e6d38a1a710dee59523eed7511e5a9e4b8ccb3a4686 1
-    //
     class ROC_ELEMENT {
     public:
         //
@@ -565,7 +572,7 @@ namespace MISC {
             TYPE_DATA _value = 0.0 ,
             bool _signal = false
         ) {
-            value = _value ;
+            value  = _value  ;
             signal = _signal ;
         }
         //
@@ -592,6 +599,11 @@ namespace MISC {
         }
         //
     } ;
+    //
+    using ROC_ELEMENTs =
+        std::vector
+            <ROC_ELEMENT>
+    ; //
     //
     inline void
     WriteROC (
@@ -661,7 +673,11 @@ namespace STEP1_GENERATION {
             prefixname = dirname ;
         }
         size_t count = 0 ;
-        EventWriter writer (prefixname) ;
+        EventWriter
+            writer (
+                prefixname
+            )
+        ; //
         MyPythia pythia ;
         /* Configure pythia: */ {
             pythia.readString ( "Beams:eCM = 13000"         ) ;
@@ -683,8 +699,11 @@ namespace STEP1_GENERATION {
             pythia.readString ( "HardQCD:all = on" ) ;
             pythia.init () ;
         }
-        while (count<N_Events)
-        if (pythia.next()) {
+        while (
+            count<N_Events
+        ) if (
+            pythia.next()
+        ) {
             vector4s hadrons ;
             /* Prepare the list of hadrons: */ {
                 for (
@@ -747,26 +766,27 @@ namespace STEP1_GENERATION {
                 .inclusive_jets
                     (800.0)
             ; //
-            if (jets.size()>0) {
-                if (jets[0].constituents().size()>2) {
-                    auto tmppt =
-                        jets[0].pt ()
-                    ; //
-                    auto tmpet =
-                        jets[0].rapidity ()
-                    ; //
-                    if (
-                        (
-                            ( 800 < tmppt ) &&
-                            ( tmppt < 900 )
-                        ) && (
-                            ( -2.5 < tmpet ) &&
-                            ( tmpet < 2.5 )
-                        )
-                    ) {
-                        writer(jets[0]);
-                        count++ ;
-                    }
+            if (
+                (jets.size()>0) &&
+                (jets[0].constituents().size()>2)
+            ) {
+                auto tmppt =
+                    jets[0].pt ()
+                ; //
+                auto tmpet =
+                    jets[0].rapidity ()
+                ; //
+                if (
+                    (
+                        ( 800 < tmppt ) &&
+                        ( tmppt < 900 )
+                    ) && (
+                        ( -2.5 < tmpet ) &&
+                        ( tmpet < 2.5 )
+                    )
+                ) {
+                    writer(jets[0]);
+                    count++ ;
                 }
             }
         }
@@ -815,17 +835,6 @@ namespace STEP1_GENERATION {
                 tmp("./OUTS/QCD/TRAIN/6/image");
                 tmp("./OUTS/QCD/TRAIN/7/image");
             }
-            /* FLIP */ {
-                Plot2D tmp("QCD_TRAIN_IMAGES_FLIP");
-                tmp("./OUTS/QCD/TRAIN/0/imageflip");
-                tmp("./OUTS/QCD/TRAIN/1/imageflip");
-                tmp("./OUTS/QCD/TRAIN/2/imageflip");
-                tmp("./OUTS/QCD/TRAIN/3/imageflip");
-                tmp("./OUTS/QCD/TRAIN/4/imageflip");
-                tmp("./OUTS/QCD/TRAIN/5/imageflip");
-                tmp("./OUTS/QCD/TRAIN/6/imageflip");
-                tmp("./OUTS/QCD/TRAIN/7/imageflip");
-            }
 
         }
         //
@@ -840,17 +849,6 @@ namespace STEP1_GENERATION {
                 tmp("./OUTS/QCD/TEST/5/image");
                 tmp("./OUTS/QCD/TEST/6/image");
                 tmp("./OUTS/QCD/TEST/7/image");
-            }
-            /* FLIP */ {
-                Plot2D tmp("QCD_TEST_IMAGES_FLIP");
-                tmp("./OUTS/QCD/TEST/0/imageflip");
-                tmp("./OUTS/QCD/TEST/1/imageflip");
-                tmp("./OUTS/QCD/TEST/2/imageflip");
-                tmp("./OUTS/QCD/TEST/3/imageflip");
-                tmp("./OUTS/QCD/TEST/4/imageflip");
-                tmp("./OUTS/QCD/TEST/5/imageflip");
-                tmp("./OUTS/QCD/TEST/6/imageflip");
-                tmp("./OUTS/QCD/TEST/7/imageflip");
             }
         }
         //
@@ -1182,17 +1180,6 @@ namespace STEP2_GENERATEWBS {
                 tmp("./OUTS/WBS/TRAIN/6/image");
                 tmp("./OUTS/WBS/TRAIN/7/image");
             }
-            /* FLIP */ {
-                Plot2D tmp("WBS_TRAIN_IMAGES_FLIP");
-                tmp("./OUTS/WBS/TRAIN/0/imageflip");
-                tmp("./OUTS/WBS/TRAIN/1/imageflip");
-                tmp("./OUTS/WBS/TRAIN/2/imageflip");
-                tmp("./OUTS/WBS/TRAIN/3/imageflip");
-                tmp("./OUTS/WBS/TRAIN/4/imageflip");
-                tmp("./OUTS/WBS/TRAIN/5/imageflip");
-                tmp("./OUTS/WBS/TRAIN/6/imageflip");
-                tmp("./OUTS/WBS/TRAIN/7/imageflip");
-            }
         }
         //
         /* TEST */ if(true) {
@@ -1206,17 +1193,6 @@ namespace STEP2_GENERATEWBS {
                 tmp("./OUTS/WBS/TEST/5/image");
                 tmp("./OUTS/WBS/TEST/6/image");
                 tmp("./OUTS/WBS/TEST/7/image");
-            }
-            /* FLIP */ {
-                Plot2D tmp("WBS_TEST_IMAGES_FLIP");
-                tmp("./OUTS/WBS/TEST/0/imageflip");
-                tmp("./OUTS/WBS/TEST/1/imageflip");
-                tmp("./OUTS/WBS/TEST/2/imageflip");
-                tmp("./OUTS/WBS/TEST/3/imageflip");
-                tmp("./OUTS/WBS/TEST/4/imageflip");
-                tmp("./OUTS/WBS/TEST/5/imageflip");
-                tmp("./OUTS/WBS/TEST/6/imageflip");
-                tmp("./OUTS/WBS/TEST/7/imageflip");
             }
         }
         //
@@ -1715,17 +1691,6 @@ namespace STEP3_GENERATETOP {
                 tmp("./OUTS/TOP/TRAIN/6/image");
                 tmp("./OUTS/TOP/TRAIN/7/image");
             }
-            /* FLIP */ {
-                Plot2D tmp("TOP_TRAIN_IMAGES_FLIP");
-                tmp("./OUTS/TOP/TRAIN/0/imageflip");
-                tmp("./OUTS/TOP/TRAIN/1/imageflip");
-                tmp("./OUTS/TOP/TRAIN/2/imageflip");
-                tmp("./OUTS/TOP/TRAIN/3/imageflip");
-                tmp("./OUTS/TOP/TRAIN/4/imageflip");
-                tmp("./OUTS/TOP/TRAIN/5/imageflip");
-                tmp("./OUTS/TOP/TRAIN/6/imageflip");
-                tmp("./OUTS/TOP/TRAIN/7/imageflip");
-            }
         }
         /* TEST */ if(true) {
             /* NORMAL */ {
@@ -1739,18 +1704,6 @@ namespace STEP3_GENERATETOP {
                 tmp("./OUTS/TOP/TEST/6/image");
                 tmp("./OUTS/TOP/TEST/7/image");
             }
-            /* FLIP */ {
-                Plot2D tmp("TOP_TEST_IMAGES_FLIP");
-                tmp("./OUTS/TOP/TEST/0/imageflip");
-                tmp("./OUTS/TOP/TEST/1/imageflip");
-                tmp("./OUTS/TOP/TEST/2/imageflip");
-                tmp("./OUTS/TOP/TEST/3/imageflip");
-                tmp("./OUTS/TOP/TEST/4/imageflip");
-                tmp("./OUTS/TOP/TEST/5/imageflip");
-                tmp("./OUTS/TOP/TEST/6/imageflip");
-                tmp("./OUTS/TOP/TEST/7/imageflip");
-            }
-
         }
     }
     //
@@ -1923,15 +1876,24 @@ namespace STEP4_UNITEDATA {
                         "./OUTS/TMP/QCD_WBS/TRAIN/%ld/",
                         index
                     ) ; //
+                    mkdir (
+                        tmp1,
+                        0755
+                    ) ; //
                 }
-                mkdir
-                    (tmp1,0755)
-                ; //
                 char
                     tmp2[512], tmp3[512]
                 ; /* prepare the sources: */ {
-                    sprintf(tmp2,"./OUTS/WBS/TRAIN/%ld/",index);
-                    sprintf(tmp3,"./OUTS/QCD/TRAIN/%ld/",index);
+                    sprintf(
+                        tmp2,
+                        "./OUTS/WBS/TRAIN/%ld/",
+                        index
+                    ) ;
+                    sprintf(
+                        tmp3,
+                        "./OUTS/QCD/TRAIN/%ld/",
+                        index
+                    );
                 }
                 DataMixer
                     (tmp2,tmp3,tmp1)
@@ -1946,10 +1908,11 @@ namespace STEP4_UNITEDATA {
                         "./OUTS/TMP/QCD_WBS/TEST/%ld/",
                         index
                     ) ; //
+                    mkdir (
+                        tmp1,
+                        0755
+                    ) ; //
                 }
-                mkdir
-                    (tmp1,0755)
-                ; //
                 char
                     tmp2[512], tmp3[512]
                 ; /* prepare the sources: */ {
@@ -1966,6 +1929,7 @@ namespace STEP4_UNITEDATA {
 }
 ////////////////////////////////////////////////////////////////
 namespace STEP5_EVALERROR {
+    //
     using namespace MISC ;
     //
     inline void
@@ -2010,9 +1974,13 @@ namespace STEP5_EVALERROR {
     //
     inline void
     MakeLosses () {
-        RunPredict () ;
+        if (true) {
+            RunPredict () ;
+        }
+
         CPPFileIO::ForkMe forks ;
-        if (forks.InKid()) {
+
+        if (false) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/QCD/TRAIN/0");
             EVAL_PREDICT("./OUTS/QCD/TRAIN/1");
             EVAL_PREDICT("./OUTS/QCD/TRAIN/2");
@@ -2032,7 +2000,7 @@ namespace STEP5_EVALERROR {
             EVAL_PREDICT("./OUTS/QCD/TEST/6");
             EVAL_PREDICT("./OUTS/QCD/TEST/7");
         }
-        if (forks.InKid()) {
+        if (false) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/TOP/TRAIN/0");
             EVAL_PREDICT("./OUTS/TOP/TRAIN/1");
             EVAL_PREDICT("./OUTS/TOP/TRAIN/2");
@@ -2060,7 +2028,7 @@ namespace STEP6_PLOTLOSSES {
     using namespace
         MISC
     ; //
-////////////////////////////////////////////////////////////////
+    //
     inline void
     PlotLosses () {
         MyHistN <4,true>
@@ -2068,7 +2036,7 @@ namespace STEP6_PLOTLOSSES {
         ; //
         for(size_t i=0;i<8;i++){
             char tmp[512] ;
-            /* QCD TRAIN */ {
+            /* QCD TRAIN */ if(false) {
                 sprintf (
                     tmp,
                     "./OUTS/QCD/TRAIN/%ld/loss",
@@ -2081,6 +2049,7 @@ namespace STEP6_PLOTLOSSES {
                         )
                 ; //
                 for(size_t j=0;j<Reader();j++){
+                    ROC_ELEMENT tmp () ;
                     Hists.Fill<0>(Reader(j));
                 }
             }
@@ -2097,10 +2066,11 @@ namespace STEP6_PLOTLOSSES {
                         )
                 ; //
                 for(size_t j=0;j<Reader();j++){
+                    printf("debug: %e\n",Reader(j));
                     Hists.Fill<2>(Reader(j));
                 }
             }
-            /* TOP TRAIN */ {
+            /* TOP TRAIN */ if(false) {
                 sprintf (
                     tmp,
                     "./OUTS/TOP/TRAIN/%ld/loss",
@@ -2129,9 +2099,78 @@ namespace STEP6_PLOTLOSSES {
                         )
                 ; //
                 for(size_t j=0;j<Reader();j++){
+                    printf("debug: %e\n",Reader(j));
                     Hists.Fill<3>(Reader(j));
                 }
             }
+        }
+    }
+    inline void
+    PlotTestLosses () {
+        MyHistN <2,true>
+            Hists (
+                "Losses",
+                100,-0.01,
+                0.41
+            )
+        ; //
+        ROC_ELEMENTs roclist ;
+        for(size_t i=0;i<8;i++){
+            char tmp[512] ;
+            /* QCD TEST */ {
+                sprintf (
+                    tmp,
+                    "./OUTS/QCD/TEST/%ld/loss",
+                    i
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        Reader (
+                            tmp
+                        )
+                ; //
+                for(size_t j=0;j<Reader();j++){
+                    ROC_ELEMENT
+                        tmproc (
+                            Reader(j),
+                            false
+                        )
+                    ;
+                    roclist.push_back
+                        (tmproc)
+                    ;
+                    Hists.Fill<0>(Reader(j));
+                }
+            }
+            /* TOP TEST */ {
+                sprintf (
+                    tmp,
+                    "./OUTS/TOP/TEST/%ld/loss",
+                    i
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        Reader (
+                            tmp
+                        )
+                ; //
+                for(size_t j=0;j<Reader();j++){
+                    ROC_ELEMENT
+                        tmproc (
+                            Reader(j),
+                            true
+                        )
+                    ;
+                    roclist.push_back
+                        (tmproc)
+                    ;
+                    Hists.Fill<1>(Reader(j));
+                }
+            }
+            WriteROC (
+                roclist ,
+                "./OUTS/ROC/AE.txt"
+            ) ; //
         }
     }
 ////////////////////////////////////////////////////////////////
@@ -2237,6 +2276,198 @@ namespace STEP7_CNN_RESPONSE {
     }
     //
     inline void
+    PlotterDCGAN () {
+        using TYPE_RESPONSE =
+            Tensors::NN::ND_ARRAY
+                <2,TYPE_DATA>
+        ;
+        std::vector
+            <ROC_ELEMENT>
+                elements
+        ;
+        MyHistN <4,true>
+            Hist (
+                "DCGANResponse",
+                50,-0.01,1.01
+            )
+        ; //
+        for(size_t index=0;index<8;index++){
+            char tmp[512] ;
+            /* TEST */ {
+                /* QCD */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/QCD/TEST/%ld/DCGAN_RESPONSE",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        elements.push_back (
+                            ROC_ELEMENT(reader(i)[0],false)
+                        ) ; //
+                        Hist.Fill<0>(reader(i)[0]);
+                    }
+                }
+                /* TOP */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/TOP/TEST/%ld/DCGAN_RESPONSE",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        elements.push_back (
+                            ROC_ELEMENT(reader(i)[0],true)
+                        ) ; //
+                        Hist.Fill<1>(reader(i)[0]);
+                    }
+                }
+            }
+            /* TRAIN */ if(false) {
+                /* QCD */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/QCD/TRAIN/%ld/DCGAN_RESPONSE",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        Hist.Fill<2>(reader(i)[0]);
+                    }
+                }
+                /* TOP */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/TOP/TRAIN/%ld/DCGAN_RESPONSE",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        Hist.Fill<3>(reader(i)[0]);
+                    }
+                }
+            }
+        }
+        mkdir ("./OUTS/ROC/",0755) ;
+        WriteROC (
+            elements,
+            "./OUTS/ROC/QCD_TOP_DCGAN.txt"
+        ) ; //
+    }
+    //
+    inline void
+    PlotterQCDWBS () {
+        using TYPE_RESPONSE =
+            Tensors::NN::ND_ARRAY
+                <2,TYPE_DATA>
+        ;
+        std::vector
+            <ROC_ELEMENT>
+                elements
+        ;
+        MyHistN <4,true>
+            Hist (
+                "CNNResponseQCDWBS",
+                50,-0.01,1.01
+            )
+        ; //
+        for(size_t index=0;index<8;index++){
+            char tmp[512] ;
+            /* TEST */ {
+                /* QCD */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/QCD/TEST/%ld/CNNPredictQCDWBS",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        elements.push_back(
+                            ROC_ELEMENT(reader(i)[0],false)
+                        ) ; //
+                        Hist.Fill<0>(reader(i)[0]);
+                    }
+                }
+                /* TOP */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/WBS/TEST/%ld/CNNPredictQCDWBS",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        elements.push_back(
+                            ROC_ELEMENT(reader(i)[0],true)
+                        ) ; //
+                        Hist.Fill<1>(reader(i)[0]);
+                    }
+                }
+            }
+            /* TRAIN */ {
+                /* QCD */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/QCD/TRAIN/%ld/CNNPredictQCDWBS",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        Hist.Fill<2>(reader(i)[0]);
+                    }
+                }
+                /* TOP */ {
+                    sprintf (
+                        tmp,
+                        "./OUTS/WBS/TRAIN/%ld/CNNPredictQCDWBS",
+                        index
+                    ) ; //
+                    std::string filename (tmp) ;
+                    CPPFileIO::FullFileReader
+                        <TYPE_RESPONSE>
+                            reader (filename)
+                    ;
+                    for(size_t i=0;i<reader();i++){
+                        Hist.Fill<3>(reader(i)[0]);
+                    }
+                }
+            }
+        }
+        mkdir ("./OUTS/ROC/",0755) ;
+        WriteROC (
+            elements,
+            "./OUTS/ROC/QCD_WBS.txt"
+        ) ; //
+    }
+    //
+    inline void
     MakeTMVARoot () {
         /* Create the directory structure: */ {
             mkdir("./OUTS/",0755);
@@ -2251,11 +2482,13 @@ namespace STEP7_CNN_RESPONSE {
         ; //
         TTree signalTree ("TreeS","TreeS") ;
         TTree background ("TreeB","TreeB") ;
-        float mass, cnnres ;
+        float mass, cnnres, random ;
         signalTree.Branch ( "mass"   , & mass   ) ;
         signalTree.Branch ( "cnnres" , & cnnres ) ;
+        signalTree.Branch ( "random" , & random ) ;
         background.Branch ( "mass"   , & mass   ) ;
         background.Branch ( "cnnres" , & cnnres ) ;
+        background.Branch ( "random" , & random ) ;
         using TYPE_RESPONSE =
             Tensors::NN::ND_ARRAY
                 <2,TYPE_DATA>
@@ -2283,6 +2516,9 @@ namespace STEP7_CNN_RESPONSE {
                     ListOfNamesVectors.push_back ("./OUTS/QCD/TEST/6/vector") ;
                     ListOfNamesVectors.push_back ("./OUTS/QCD/TEST/7/vector") ;
                 }
+                CPPFileIO::myrandgen <pcg64>
+                    randgen (1,0.1,0.2)
+                ; //
                 for (size_t index=0;index<8;index++) {
                     CPPFileIO::FullFileReader
                         <TYPE_RESPONSE>
@@ -2305,6 +2541,7 @@ namespace STEP7_CNN_RESPONSE {
                     for (size_t i=0;i<Limit;i++) {
                         mass   = reader_vector(i).m() ;
                         cnnres = reader_res(i)[1]     ;
+                        random = randgen[0]           ;
                         background.Fill ()            ;
                     }
                 }
@@ -2331,6 +2568,9 @@ namespace STEP7_CNN_RESPONSE {
                     ListOfNamesVectors.push_back ("./OUTS/TOP/TEST/6/vector") ;
                     ListOfNamesVectors.push_back ("./OUTS/TOP/TEST/7/vector") ;
                 }
+                CPPFileIO::myrandgen <pcg64>
+                    randgen (1,0.8,0.9)
+                ; //
                 for (size_t index=0;index<8;index++) {
                     CPPFileIO::FullFileReader
                         <TYPE_RESPONSE>
@@ -2353,6 +2593,7 @@ namespace STEP7_CNN_RESPONSE {
                     for (size_t i=0;i<Limit;i++) {
                         mass   = reader_vector(i).m() ;
                         cnnres = reader_res(i)[1]     ;
+                        random = randgen[0]           ;
                         signalTree.Fill ()            ;
                     }
                 }
@@ -2363,3 +2604,4 @@ namespace STEP7_CNN_RESPONSE {
     }
     //
 }
+////////////////////////////////////////////////////////////////

@@ -1,21 +1,29 @@
-//STEP1_GENERATION::Generate_Train();
 //STEP1_GENERATION::Generate_Test();
-//STEP3_GENERATETOP::Generate_Train_Top();
-//STEP3_GENERATETOP::Generate_Test_Top();
-//STEP2_GENERATEWBS::Generate_Train_WBS();
-//STEP2_GENERATEWBS::Generate_Test_WBS();
-
+//STEP1_GENERATION::Generate_Train();
 //STEP1_GENERATION::PlotImages();
 //STEP1_GENERATION::PlotNsub();
 
+//STEP3_GENERATETOP::Generate_Test_Top();
+//STEP3_GENERATETOP::Generate_Train_Top();
+//STEP3_GENERATETOP::PlotImages();
+//STEP3_GENERATETOP::PlotNsub();
+
+//STEP2_GENERATEWBS::Generate_Test_WBS();
+//STEP2_GENERATEWBS::Generate_Train_WBS();
 //STEP2_GENERATEWBS::PlotImages();
 //STEP2_GENERATEWBS::PlotNsub();
 
-//STEP3_GENERATETOP::PlotNsub();
-//STEP3_GENERATETOP::PlotImages();
-
 //STEP7_CNN_RESPONSE::Plotter();
+//STEP7_CNN_RESPONSE::PlotterQCDWBS();
+//STEP7_CNN_RESPONSE::PlotterDCGAN();
 //STEP4_UNITEDATA::MixDataTopQCD();
+//STEP7_CNN_RESPONSE::MakeTMVARoot();
 
 //STEP4_UNITEDATA::MixDataWBSQCD();
-STEP7_CNN_RESPONSE::MakeTMVARoot();
+//STEP7_CNN_RESPONSE::MakeTMVARoot();
+//STEP5_EVALERROR::MakeLosses();
+//STEP6_PLOTLOSSES::PlotLosses();
+//STEP6_PLOTLOSSES::PlotTestLosses();
+
+STEP4_UNITEDATA::MixDataTopQCD();
+STEP4_UNITEDATA::MixDataWBSQCD();

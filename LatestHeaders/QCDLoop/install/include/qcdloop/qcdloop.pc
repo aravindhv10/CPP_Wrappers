@@ -1,0 +1,10 @@
+prefix=/usr/local
+exec_prefix=/usr/local
+includedir=/usr/local/include
+libdir=/usr/local/lib
+
+Name: nnpdf
+Description: The qcdloop library
+Version: "2.0.4"
+Cflags: -I/usr/local/include -std=c++11
+Libs: -L/usr/local/lib -lqcdloop

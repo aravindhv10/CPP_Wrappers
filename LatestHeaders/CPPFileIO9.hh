@@ -16,6 +16,7 @@
 #include <fcntl.h> //////
 #include <unistd.h> /////
 #include <math.h> ///////
+#include <cmath> ////////
 #include <string.h> /////
 /////////////////////////
 #include <iostream> /////
@@ -1115,6 +1116,36 @@ _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
                 return Ret ;
             }
             //
+            inline TYPE_SELF
+            operator + (
+                TYPE_SELF const &
+                    other
+            ) const {
+                TYPE_SELF ret ;
+                _MACRO_ND_LOOP_(i) {
+                    ret =
+                        DATA[i] +
+                        other[i]
+                    ;
+                }
+                return ret ;
+            }
+            //
+            inline TYPE_SELF
+            operator - (
+                TYPE_SELF const &
+                    other
+            ) const {
+                TYPE_SELF ret ;
+                _MACRO_ND_LOOP_(i) {
+                    ret =
+                        DATA[i] -
+                        other[i]
+                    ;
+                }
+                return ret ;
+            }
+            //
         } ;
 ////////////////////////////////////////////////////////////////
 
@@ -1259,11 +1290,13 @@ _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
             inline void
             MULTIPLY (
                 N2D_ARRAY
-                    <SIZE_Y(),P,TYPE_DATA> const &
+                    <SIZE_Y(),P,TYPE_DATA>
+                const &
                         M
                 ,
                 N2D_ARRAY
-                    <P,SIZE_X(),TYPE_DATA> const &
+                    <P,SIZE_X(),TYPE_DATA>
+                const &
                         N
             ) {
                 for(size_t y=0;y<SIZE_Y();y++){
@@ -1334,6 +1367,44 @@ _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
                 //
                 return ret ;
                 //
+            }
+            //
+            inline TYPE_SELF
+            operator + (
+                TYPE_SELF const &
+                    other
+            ) const {
+                TYPE_SELF ret ;
+                for (
+                    size_t i=0;
+                    i<ret.FLATTEN().SIZE();
+                    i++
+                ) {
+                    ret.FLATTEN()[i]=
+                        FLATTEN()[i]+
+                        other.FLATTEN()[i]
+                    ; //
+                }
+                return ret ;
+            }
+            //
+            inline TYPE_SELF
+            operator - (
+                TYPE_SELF const &
+                    other
+            ) const {
+                TYPE_SELF ret ;
+                for (
+                    size_t i=0;
+                    i<ret.FLATTEN().SIZE();
+                    i++
+                ) {
+                    ret.FLATTEN()[i]=
+                        FLATTEN()[i]-
+                        other.FLATTEN()[i]
+                    ; //
+                }
+                return ret ;
             }
             //
         } ;

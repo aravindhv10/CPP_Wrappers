@@ -1,124 +1,245 @@
 #!/usr/bin/python3
-
-from __future__ import division, print_function, absolute_import
+from __future__ import print_function
 import numpy as np
-import mxnet as mx
-from mxnet import nd, autograd, gluon
 import os
+import matplotlib as mpl
+import tarfile
+import mxnet as mx
+import matplotlib.image as mpimg
+from matplotlib import pyplot as plt
+from mxnet import gluon
+from mxnet import ndarray as nd
+from mxnet.gluon import nn, utils
+from mxnet import autograd
+#exit()
 
-os.system("taskset -a -p 0xFFFFFFFF %d" % os.getpid())
-mx.random.seed(1)
+PARAM_NAME_D = "./OUTS/PARS/GAN_PARS_D"
+PARAM_NAME_G = "./OUTS/PARS/GAN_PARS_G"
 
-ctx = mx.cpu()
-data_ctx = ctx
-model_ctx = ctx
-batch_size = 200
-width=40
-num_inputs = width*width
-num_outputs = 2
-sizeoftype = 6400
-PARAM_NAME = "./OUTS/PARS/CNN_PARS"
+PARAM_NAME_D = "./GAN_PARS_D"
+PARAM_NAME_G = "./GAN_PARS_G"
 
-def evaluate_accuracy(data_iterator, net):
-    acc = mx.metric.Accuracy()
-    for i, (data, label) in enumerate(data_iterator):
-        data = data.as_in_context(ctx)
-        label = label.as_in_context(ctx)
-        output = net(data)
-        predictions = nd.argmax(output, axis=1)
-        prednew = nd.reshape(predictions,label.shape)
-        #predictions = nd.argmax(output)
-        #print(predictions[1])
-        #print(data.shape,label.shape,output.shape,predictions.shape,prednew.shape)
-        acc.update(preds=prednew, labels=label)
-    return acc.get()[1]
+WIDTH = 64
+RESOLUTION = WIDTH*WIDTH
+IMAGESIZE = RESOLUTION*4
+batch_size = 100
 
-def trainonfiles (dataname,labelname,testdata,testlabel,NEpochs):
-    IMAGEFILE = dataname
+class CenteredLayer(mx.gluon.nn.HybridSequential):
+    def __init__(self, **kwargs):
+        super(CenteredLayer, self).__init__(**kwargs)
+
+    def forward(self, x):
+        return x.reshape((batch_size,WIDTH*WIDTH)).softmax(axis=1).reshape((batch_size,1,WIDTH,WIDTH))
+
+
+def EvalFile (filename) :
+    epochs = 2 # Set low by default for tests, set higher when you actually run this code.
+    batch_size = 100
+    latent_z_size = 100
+    use_gpu = False
+    ctx = mx.gpu() if use_gpu else mx.cpu()
+    lr = 0.0002
+    beta1 = 0.5
+    #
+    lfw_url = 'http://vis-www.cs.umass.edu/lfw/lfw-deepfunneled.tgz'
+    data_path = 'lfw_dataset'
+#    if not os.path.exists(data_path):
+#        os.makedirs(data_path)
+#        data_file = utils.download(lfw_url)
+#        with tarfile.open(data_file) as tar:
+#            tar.extractall(path=data_path)
+#    #
+    target_wd = 64
+    target_ht = 64
+    img_list = []
+    #
+    IMAGEFILE = filename
     statinfo = os.stat(IMAGEFILE)
-    leadingshape = int(statinfo.st_size/sizeoftype)
+    leadingshape = int(statinfo.st_size/IMAGESIZE)
+    #leadingshape = 1000
     print(leadingshape)
-    X = np.memmap(IMAGEFILE, dtype='float32', mode='r', shape=(leadingshape,1,40,40))
+    X = np.memmap(IMAGEFILE, dtype='float32', mode='r', shape=(leadingshape,1,WIDTH,WIDTH))
     Xnd = nd.array(X)
-    LABELFILE = labelname
-    Y = np.memmap(LABELFILE, dtype='float32', mode='r', shape=(leadingshape,1))
-    Ynd = nd.array(Y)
-    dataset = mx.gluon.data.dataset.ArrayDataset(Xnd, Ynd)
-    train_data = mx.gluon.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
-    IMAGEFILE = testdata
-    statinfo = os.stat(IMAGEFILE)
-    leadingshape = int(statinfo.st_size/sizeoftype)
-    print(leadingshape)
-    tX = np.memmap(IMAGEFILE, dtype='float32', mode='r', shape=(leadingshape,1,40,40))
-    tXnd = nd.array(tX)
-    LABELFILE = testlabel
-    tY = np.memmap(LABELFILE, dtype='float32', mode='r', shape=(leadingshape,1))
-    tYnd = nd.array(tY)
-    tdataset = mx.gluon.data.dataset.ArrayDataset(tXnd, tYnd)
-    test_data = mx.gluon.data.DataLoader(tdataset, batch_size=batch_size, shuffle=True, num_workers=1)
-    num_fc = 32
-    net = gluon.nn.HybridSequential()
-    with net.name_scope():
-        net.add(gluon.nn.Conv2D(channels=50, kernel_size=10, activation='relu'))
-        net.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        net.add(gluon.nn.Conv2D(channels=30, kernel_size=5, activation='relu'))
-        net.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        net.add(gluon.nn.Conv2D(channels=10, kernel_size=2, activation='relu'))
-        net.add(gluon.nn.MaxPool2D(pool_size=2, strides=2))
-        # The Flatten layer collapses all axis, except the first one, into one axis.
-        net.add(gluon.nn.Flatten())
-        net.add(gluon.nn.Dense(num_fc, activation="relu"))
-        net.add(gluon.nn.Dense(num_outputs))
-    net.hybridize()
-    net.collect_params().initialize(mx.init.Xavier(magnitude=2.24), ctx=ctx)
-    softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
-    #softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss(sparse_label=False)
-    trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.001})
-    epochs = NEpochs
-    smoothing_constant = .01
-    net.load_parameters(PARAM_NAME, ctx=ctx)
-    for e in range(epochs):
-        for i, (data, label) in enumerate(train_data):
-            data = data.as_in_context(ctx)
-            label = label.as_in_context(ctx)
+    #
+    train_data = mx.io.NDArrayIter(data=Xnd, batch_size=batch_size)
+    #print(X[0][0][0][0])
+    #
+    #exit()
+    #
+    def visualize(img_arr):
+        plt.imshow(img_arr[0])
+        plt.axis('off')
+
+    for i in range(4):
+        plt.subplot(1,4,i+1)
+        visualize(X[i])
+    plt.show()
+    #
+#    exit()
+    # build the generator
+    nc = 1
+    ngf = 64
+    netG = gluon.nn.HybridSequential()
+
+    with netG.name_scope():
+        # input is Z, going into a convolution
+        netG.add(nn.Conv2DTranspose(ngf * 8, 4, 1, 0, use_bias=False))
+        netG.add(nn.BatchNorm())
+        netG.add(nn.Activation('relu'))
+        # state size. (ngf*8) x 4 x 4
+        netG.add(nn.Conv2DTranspose(ngf * 4, 4, 2, 1, use_bias=False))
+        netG.add(nn.BatchNorm())
+        netG.add(nn.Activation('relu'))
+        # state size. (ngf*8) x 8 x 8
+        netG.add(nn.Conv2DTranspose(ngf * 2, 4, 2, 1, use_bias=False))
+        netG.add(nn.BatchNorm())
+        netG.add(nn.Activation('relu'))
+        # state size. (ngf*8) x 16 x 16
+        netG.add(nn.Conv2DTranspose(ngf, 4, 2, 1, use_bias=False))
+        netG.add(nn.BatchNorm())
+        netG.add(nn.Activation('relu'))
+        # state size. (ngf*8) x 32 x 32
+        netG.add(nn.Conv2DTranspose(nc, 4, 2, 1, use_bias=False))
+        netG.add(CenteredLayer())
+        #netG.add(nn.Activation('tanh'))
+        # state size. (nc) x 64 x 64
+    netG.hybridize()
+    # build the discriminator
+    ndf = 64
+    netD = gluon.nn.HybridSequential()
+    with netD.name_scope():
+        # input is (nc) x 64 x 64
+        netD.add(nn.Conv2D(ndf, 4, 2, 1, use_bias=False))
+        netD.add(nn.LeakyReLU(0.2))
+        # state size. (ndf) x 32 x 32
+        netD.add(nn.Conv2D(ndf * 2, 4, 2, 1, use_bias=False))
+        netD.add(nn.BatchNorm())
+        netD.add(nn.LeakyReLU(0.2))
+        # state size. (ndf) x 16 x 16
+        netD.add(nn.Conv2D(ndf * 4, 4, 2, 1, use_bias=False))
+        netD.add(nn.BatchNorm())
+        netD.add(nn.LeakyReLU(0.2))
+        # state size. (ndf) x 8 x 8
+        netD.add(nn.Conv2D(ndf * 8, 4, 2, 1, use_bias=False))
+        netD.add(nn.BatchNorm())
+        netD.add(nn.LeakyReLU(0.2))
+        # state size. (ndf) x 4 x 4
+        netD.add(nn.Conv2D(1, 4, 1, 0, use_bias=False))
+    #
+    # loss
+    netD.hybridize()
+    loss = gluon.loss.SigmoidBinaryCrossEntropyLoss()
+
+    # initialize the generator and the discriminator
+    netG.initialize(mx.init.Normal(0.02), ctx=ctx)
+    netD.initialize(mx.init.Normal(0.02), ctx=ctx)
+    netG.load_parameters(PARAM_NAME_G, ctx=ctx)
+    netD.load_parameters(PARAM_NAME_D, ctx=ctx)
+
+    # trainer for the generator and the discriminator
+    trainerG = gluon.Trainer(netG.collect_params(), 'adam', {'learning_rate': lr, 'beta1': beta1})
+    trainerD = gluon.Trainer(netD.collect_params(), 'adam', {'learning_rate': lr, 'beta1': beta1})
+    #exit()
+    from datetime import datetime
+    import time
+    import logging
+
+    real_label = nd.ones((batch_size,), ctx=ctx)
+    fake_label = nd.zeros((batch_size,),ctx=ctx)
+
+    def facc(label, pred):
+        pred = pred.ravel()
+        label = label.ravel()
+        return ((pred > 0.5) == label).mean()
+    metric = mx.metric.CustomMetric(facc)
+
+    stamp =  datetime.now().strftime('%Y_%m_%d-%H_%M')
+    logging.basicConfig(level=logging.DEBUG)
+
+    for epoch in range(epochs):
+        tic = time.time()
+        btic = time.time()
+        train_data.reset()
+        iter = 0
+        for batch in train_data:
+            ############################
+            # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
+            ###########################
+            data = batch.data[0].as_in_context(ctx)
+            latent_z = mx.nd.random_normal(0, 1, shape=(batch_size, latent_z_size, 1, 1), ctx=ctx)
+
             with autograd.record():
-                output = net(data)
-                loss = softmax_cross_entropy(output, label)
-            loss.backward()
-            trainer.step(data.shape[0])
-            inst_loss = nd.sum(loss).asscalar()
-            print("    ",inst_loss)
-            if((i%50)==0):
-                print("saving...")
-                net.save_parameters(PARAM_NAME)
-            curr_loss = nd.mean(loss).asscalar()
-            moving_loss = (curr_loss if ((i == 0) and (e == 0))
-                           else (1 - smoothing_constant) * moving_loss + smoothing_constant * curr_loss)
+                # train with real image
+                tmpout = netD(data)
+                #print(tmpout.shape)
+                output = tmpout.reshape((-1, 1))
+                errD_real = loss(output, real_label)
+                metric.update([real_label,], [output,])
 
-        test_accuracy = evaluate_accuracy(test_data, net)
-        train_accuracy = evaluate_accuracy(train_data, net)
-        print("Epoch %s. Loss: %s, Train_acc %s, Test_acc %s" % (e, moving_loss, train_accuracy, test_accuracy))
+                # train with fake image
+                fake = netG(latent_z)
+                output = netD(fake.detach()).reshape((-1, 1))
+                errD_fake = loss(output, fake_label)
+                errD = errD_real + errD_fake
+                errD.backward()
+                metric.update([fake_label,], [output,])
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/2/image","./OUTS/TMP/QCD_TOP/TRAIN/2/label","./OUTS/TMP/QCD_TOP/TEST/2/image","./OUTS/TMP/QCD_TOP/TEST/2/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/3/image","./OUTS/TMP/QCD_TOP/TRAIN/3/label","./OUTS/TMP/QCD_TOP/TEST/3/image","./OUTS/TMP/QCD_TOP/TEST/3/label",2)
+            trainerD.step(batch.data[0].shape[0])
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/2/image","./OUTS/TMP/QCD_TOP/TRAIN/2/label","./OUTS/TMP/QCD_TOP/TEST/2/image","./OUTS/TMP/QCD_TOP/TEST/2/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/3/image","./OUTS/TMP/QCD_TOP/TRAIN/3/label","./OUTS/TMP/QCD_TOP/TEST/3/image","./OUTS/TMP/QCD_TOP/TEST/3/label",2)
+            ############################
+            # (2) Update G network: maximize log(D(G(z)))
+            ###########################
+            with autograd.record():
+                fake = netG(latent_z)
+                output = netD(fake).reshape((-1, 1))
+                errG = loss(output, real_label)
+                errG.backward()
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/4/image","./OUTS/TMP/QCD_TOP/TRAIN/4/label","./OUTS/TMP/QCD_TOP/TEST/4/image","./OUTS/TMP/QCD_TOP/TEST/4/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/5/image","./OUTS/TMP/QCD_TOP/TRAIN/5/label","./OUTS/TMP/QCD_TOP/TEST/5/image","./OUTS/TMP/QCD_TOP/TEST/5/label",2)
+            trainerG.step(batch.data[0].shape[0])
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/4/image","./OUTS/TMP/QCD_TOP/TRAIN/4/label","./OUTS/TMP/QCD_TOP/TEST/4/image","./OUTS/TMP/QCD_TOP/TEST/4/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/5/image","./OUTS/TMP/QCD_TOP/TRAIN/5/label","./OUTS/TMP/QCD_TOP/TEST/5/image","./OUTS/TMP/QCD_TOP/TEST/5/label",2)
+            # Print log infomation every ten batches
+            if iter % 10 == 0:
+                name, acc = metric.get()
+                logging.info('speed: {} samples/s'.format(batch_size / (time.time() - btic)))
+                logging.info('discriminator loss = %f, generator loss = %f, binary training acc = %f at iter %d epoch %d'
+                         %(nd.mean(errD).asscalar(),
+                           nd.mean(errG).asscalar(), acc, iter, epoch))
+            iter = iter + 1
+            btic = time.time()
+            netD.save_parameters(PARAM_NAME_D)
+            netG.save_parameters(PARAM_NAME_G)
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/6/image","./OUTS/TMP/QCD_TOP/TRAIN/6/label","./OUTS/TMP/QCD_TOP/TEST/6/image","./OUTS/TMP/QCD_TOP/TEST/6/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/7/image","./OUTS/TMP/QCD_TOP/TRAIN/7/label","./OUTS/TMP/QCD_TOP/TEST/7/image","./OUTS/TMP/QCD_TOP/TEST/7/label",2)
+        name, acc = metric.get()
+        metric.reset()
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/6/image","./OUTS/TMP/QCD_TOP/TRAIN/6/label","./OUTS/TMP/QCD_TOP/TEST/6/image","./OUTS/TMP/QCD_TOP/TEST/6/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/7/image","./OUTS/TMP/QCD_TOP/TRAIN/7/label","./OUTS/TMP/QCD_TOP/TEST/7/image","./OUTS/TMP/QCD_TOP/TEST/7/label",2)
+        # logging.info('\nbinary training acc at epoch %d: %s=%f' % (epoch, name, acc))
+        # logging.info('time: %f' % (time.time() - tic))
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/0/image","./OUTS/TMP/QCD_TOP/TRAIN/0/label","./OUTS/TMP/QCD_TOP/TEST/0/image","./OUTS/TMP/QCD_TOP/TEST/0/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/1/image","./OUTS/TMP/QCD_TOP/TRAIN/1/label","./OUTS/TMP/QCD_TOP/TEST/1/image","./OUTS/TMP/QCD_TOP/TEST/1/label",2)
+        # Visualize one generated image for each epoch
+        # fake_img = fake[0]
+        # visualize(fake_img)
+        # plt.show()
+    #
+    num_image = 8
 
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/0/image","./OUTS/TMP/QCD_TOP/TRAIN/0/label","./OUTS/TMP/QCD_TOP/TEST/0/image","./OUTS/TMP/QCD_TOP/TEST/0/label",2)
-trainonfiles ("./OUTS/TMP/QCD_TOP/TRAIN/1/image","./OUTS/TMP/QCD_TOP/TRAIN/1/label","./OUTS/TMP/QCD_TOP/TEST/1/image","./OUTS/TMP/QCD_TOP/TEST/1/label",2)
+    for i in range(num_image):
+        print("### CAME HERE 1 ###")
+        latent_z = mx.nd.random_normal(0, 1, shape=(batch_size, latent_z_size, 1, 1), ctx=ctx)
+        print("### CAME HERE 2 ###")
+        img = netG(latent_z).asnumpy()
+        print("### CAME HERE 3 ###")
+        plt.subplot(2,4,i+1)
+        visualize(img[0])
+    plt.show()
+    #
+    num_image = 12
+    latent_z = mx.nd.random_normal(0, 1, shape=(1, latent_z_size, 1, 1), ctx=ctx)
+    step = 0.05
+    for i in range(num_image):
+        img = netG(latent_z)
+        plt.subplot(3,4,i+1)
+        visualize(img[0])
+        latent_z += 0.05
+    plt.show()
+#
+EvalFile("image")

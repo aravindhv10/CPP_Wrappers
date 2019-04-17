@@ -1,0 +1,4 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@\.exe@g')"
+'g++' '-mtune=native' '-march=native' '-O3' "${1}" 'libopenblas.a' 'libquadmath.a' 'libgomp.a' '-lpthread' '-o' "${OUT}"
+exit '0'
