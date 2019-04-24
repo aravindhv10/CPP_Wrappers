@@ -25,6 +25,7 @@ using TYPE_COMPLEX_DATAs =
 ;
 int main () {
     HEP slave ;
+    slave.APPROX_C0(5.0000001,10.0000001);
     /* Testing B0 function: */ {
         auto res =
             slave
@@ -59,7 +60,7 @@ int main () {
             slave
             .LoopIntegral (
                 5.0 , 2.0 , 2.0 ,
-                q1 , q2 , 1.0
+                q1 , q2
             )
         ;
         printf("C0 eps0 (%e,%e)\n",res[0].real(),res[0].imag());

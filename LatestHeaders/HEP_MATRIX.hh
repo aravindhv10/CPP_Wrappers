@@ -444,16 +444,21 @@ public:
     ////////////////////////////////
     // The Definitions /////////////
     ////////////////////////////////
-    using TYPE_DATA = T ;
+    using
+        TYPE_DATA =
+            T
+    ;
     //
-    using TYPE_COMPLEX_DATA =
-        std::complex
-            <TYPE_DATA>
+    using
+        TYPE_COMPLEX_DATA =
+            std::complex
+                <TYPE_DATA>
     ; //
     //
-    using TYPE_MAIN_VECTOR =
-        Tensors::NN::ND_ARRAY
-            <4,TYPE_COMPLEX_DATA>
+    using
+        TYPE_MAIN_VECTOR =
+            Tensors::NN::ND_ARRAY
+                <4,TYPE_COMPLEX_DATA>
     ; //
     //
     using TYPE_MAIN_MATRIX =
@@ -595,6 +600,27 @@ public:
     }
     //
     static inline TYPE_MAIN_VECTOR
+    GET_VECTOR (
+        TYPE_DATA const
+            M ,
+        TYPE_DATA const
+            Z
+    ) {
+        TYPE_DATA En =
+            std::sqrt (
+                (Z*Z) +
+                (M*M)
+            )
+        ;
+        return
+            GET_VECTOR(
+                En,0,
+                0,Z
+            )
+        ;
+    }
+    //
+    static inline TYPE_MAIN_VECTOR
     DAGGER (
         TYPE_MAIN_VECTOR const &
             in
@@ -674,9 +700,9 @@ public:
         TYPE_DATA        const   w = EPS()
     ) {
         return
-            PROPAGATOR(
-                NORM2(p).real(),
-                m,w
+            PROPAGATOR (
+                NORM2(p).real() ,
+                m , w
             )
         ;
     }
@@ -686,14 +712,20 @@ public:
     static inline TYPE_MAIN_MATRIX
     constexpr ZERO_MATRIX () {
         TYPE_MAIN_MATRIX ret ;
-        ret = TYPE_COMPLEX_DATA ( 0 , 0 ) ;
+        ret =
+            TYPE_COMPLEX_DATA
+                ( 0 , 0 )
+        ;
         return ret ;
     }
     //
     static inline TYPE_MAIN_VECTOR
     constexpr ZERO_VECTOR () {
         TYPE_MAIN_VECTOR ret ;
-        ret = TYPE_COMPLEX_DATA ( 0 , 0 ) ;
+        ret =
+            TYPE_COMPLEX_DATA
+                ( 0 , 0 )
+        ;
         return ret ;
     }
     //
@@ -984,8 +1016,14 @@ public:
         TYPE_MAIN_VECTOR const &
             b
     ) {
-        TYPE_MAIN_VECTOR ret ;
-        for(size_t i=0;i<TYPE_MAIN_VECTOR::SIZE();i++){
+        TYPE_MAIN_VECTOR
+            ret
+        ;
+        for (
+            size_t i=0;
+            i<TYPE_MAIN_VECTOR::SIZE();
+            i++
+        ) {
             ret = a[i] - b[i] ;
         }
         return ret ;
@@ -993,20 +1031,25 @@ public:
     //
     static inline TYPE_MAIN_MATRIX
     SUBTRACT (
-        TYPE_MAIN_MATRIX const & a ,
-        TYPE_MAIN_MATRIX const & b
+        TYPE_MAIN_MATRIX const &
+            a ,
+        TYPE_MAIN_MATRIX const &
+            b
     ) {
         TYPE_MAIN_MATRIX ret ;
         auto & tmp =
-            ret.FLATTEN() ;
-        //
-        tmp = TYPE_COMPLEX_DATA(0) ;
+            ret.FLATTEN()
+        ; //
+        tmp =
+            TYPE_COMPLEX_DATA
+                (0)
+        ;
         auto tmp_a =
-            a.FLATTEN();
-        //
+            a.FLATTEN()
+        ; //
         auto tmp_b =
-            b.FLATTEN();
-        //
+            b.FLATTEN()
+        ; //
         for(
             size_t i=0;
             i<tmp.SIZE();
@@ -1131,7 +1174,8 @@ public:
 ////////////////////////////////////////////////////////////////
     static inline TYPE_MAIN_MATRIX
     PHOTON_PROPAGATOR (
-        TYPE_MAIN_VECTOR const & p
+        TYPE_MAIN_VECTOR const &
+            p
     ) {
         auto k = PROPAGATOR (p) ;
         TYPE_MAIN_MATRIX ret =
@@ -1144,24 +1188,183 @@ public:
         return MULTIPLY (ret,k) ;
     }
 ////////////////////////////////////////////////////////////////
+    static inline TYPE_DATA constexpr
+    EULER_GAMMA () {
+        // https://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant
+        return
+            0.57721566490153286060651209008240243104215933593
+        ; //
+    }
+    //
+    using TYPE_LOOP_RESULTS =
+        Tensors::NN::ND_ARRAY
+            <6,TYPE_COMPLEX_DATA>
+    ; //
+    //
+    static inline size_t
+    INTERPRET_EPSILON (
+        long const
+            pw
+    ) {
+        if (
+            ( -2 <= pw ) &&
+            ( pw <= 2  )
+        ) {
+            return
+                pw + 2
+            ; //
+        } else {
+            return
+                5
+            ; //
+        }
+    }
+    //
+    static inline TYPE_LOOP_RESULTS
+    MULTIPLY (
+        TYPE_LOOP_RESULTS const &
+            a ,
+        TYPE_LOOP_RESULTS const &
+            b
+    ) {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Prepare the results: */ {
+            ret = TYPE_COMPLEX_DATA(0,0);
+            for(long i=-2;i<=2;i++){
+                for(long j=-2;j<=2;j++){
+                    auto res =
+                        i + j
+                    ;
+                    if (
+                        ( -2  <= res ) &&
+                        ( res <= 2   )
+                    ) {
+                        ret[INTERPRET_EPSILON(res)] +=
+                            a[INTERPRET_EPSILON(i)] *
+                            b[INTERPRET_EPSILON(j)]
+                        ; //
+                    }
+                }
+            }
+        }
+        return
+            ret
+        ;
+    }
+    //
     using LoopType =
         ql::QCDLoop <
-            TYPE_COMPLEX_DATA,
-            TYPE_DATA,
+            TYPE_COMPLEX_DATA ,
+            TYPE_DATA         ,
             TYPE_DATA
         >
     ; //
-    using TYPE_LOOP_RESULTS =
-        Tensors::NN::ND_ARRAY
-            <3,TYPE_COMPLEX_DATA>
-    ; //
+    //
     LoopType
         LoopEvaluator
     ; //
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    QCDLoop_R_GAMMA () {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Evaluate the gamma factor: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            ret[INTERPRET_EPSILON(0)] =
+                1.0
+            ; //
+            ret[INTERPRET_EPSILON(1)] =
+                -EULER_GAMMA()
+            ; //
+            ret[INTERPRET_EPSILON(2)] =
+                ( std::pow ( EULER_GAMMA() , 2 ) /  2.0 ) -
+                ( std::pow (          PI() , 2 ) / 12.0 )
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS const
+    DIM_EXP (
+        TYPE_DATA const
+            K
+    ) {
+        TYPE_DATA const
+            lnk2 =
+                -2.0 *
+                std::log(K)
+        ;
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Evaluate the return values: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            ret[INTERPRET_EPSILON(0)]     =
+                std::pow (K,4)
+            ; //
+            ret[INTERPRET_EPSILON(1)]     =
+                ret[INTERPRET_EPSILON(0)] *
+                lnk2
+            ; //
+            ret[INTERPRET_EPSILON(2)]     =
+                ret[INTERPRET_EPSILON(1)] *
+                lnk2                      /
+                2.0
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    CONVERSION_FACTOR_C0 () {
+        auto ret =
+            QCDLoop_R_GAMMA ()
+        ; /* Evaluate the value: */ {
+            TYPE_DATA constexpr
+                tmp1 =
+                    std::sqrt(PI()) *
+                    2.0
+            ; //
+            MULTIPLY (
+                ret ,
+                DIM_EXP (
+                    1.0/tmp1
+                )
+            ) ;
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    CONVERSION_FACTOR_B0 () {
+        auto ret =
+            CONVERSION_FACTOR_C0()
+        ; //
+        ret *=
+            TYPE_COMPLEX_DATA
+                (0,-1)
+        ;
+        return
+            ret
+        ; //
+    }
+    //
     inline TYPE_LOOP_RESULTS
     A0 (
-        TYPE_DATA const m ,
-        TYPE_DATA const mu2 = 1.0
+        TYPE_DATA const
+            m ,
+        TYPE_DATA const
+            mu2 = 1.0
     ) {
         std::vector
             <TYPE_COMPLEX_DATA>
@@ -1186,11 +1389,14 @@ public:
         TYPE_LOOP_RESULTS
             ret
         ; /* Record the return values: */ {
-            ret[0] = res[0] ;
-            ret[1] = res[1] ;
-            ret[2] = res[2] ;
+            ret = TYPE_COMPLEX_DATA (0,0) ;
+            ret [ INTERPRET_EPSILON ( 0) ] = res[0] ;
+            ret [ INTERPRET_EPSILON (-1) ] = res[1] ;
+            ret [ INTERPRET_EPSILON (-2) ] = res[2] ;
         }
-        return ret ;
+        return
+            ret
+        ; //
     }
     //
     inline TYPE_LOOP_RESULTS
@@ -1198,10 +1404,14 @@ public:
         TYPE_DATA const m ,
         TYPE_DATA const mu2 = 1.0
     ) {
-        return
+        printf("BIG FAT WARNING... THIS FUNCTION HAS NOT BEEN TRANSLATED CORRECTLY...\n");
+        auto ret =
             A0 (
                 m*m , mu2
             )
+        ; //
+        return
+            ret
         ; //
     }
     //
@@ -1242,11 +1452,14 @@ public:
         TYPE_LOOP_RESULTS
             ret
         ; /* Record the return values: */ {
-            ret[0] = res[0] ;
-            ret[1] = res[1] ;
-            ret[2] = res[2] ;
+            ret = TYPE_COMPLEX_DATA (0,0) ;
+            ret [ INTERPRET_EPSILON (  0 ) ] = res[0] ;
+            ret [ INTERPRET_EPSILON ( -1 ) ] = res[1] ;
+            ret [ INTERPRET_EPSILON ( -2 ) ] = res[2] ;
         }
-        return ret ;
+        return
+            ret
+        ; //
     }
     //
     inline TYPE_LOOP_RESULTS
@@ -1257,16 +1470,25 @@ public:
         TYPE_DATA        const mu2 = 1.0
     ) {
         TYPE_DATA p =
-            sqrt (
+            std::sqrt (
                 NORM2(p2)
                 .real()
             )
         ; //
-        return
+        auto ret =
             B0 (
                 m1*m1 , m2*m2 ,
                 p     , mu2
             )
+        ; //
+        ret =
+            MULTIPLY (
+                ret ,
+                CONVERSION_FACTOR_B0()
+            )
+        ; //
+        return
+            ret
         ; //
     }
     //
@@ -1277,11 +1499,20 @@ public:
         TYPE_DATA const p2 ,
         TYPE_DATA const mu2 = 1.0
     ) {
-        return
+        auto ret =
             B0 (
                 m1*m1 , m2*m2 ,
                 p2    , mu2
             )
+        ; //
+        ret =
+            MULTIPLY (
+                ret ,
+                CONVERSION_FACTOR_B0()
+            )
+        ; //
+        return
+            ret
         ; //
     }
     //
@@ -1334,13 +1565,14 @@ public:
         TYPE_LOOP_RESULTS
             ret
         ; /* Record the return values: */ {
-            ret[0] = res[0] ;
-            ret[1] = res[1] ;
-            ret[2] = res[2] ;
+            ret = TYPE_COMPLEX_DATA ( 0 , 0 ) ;
+            ret [ INTERPRET_EPSILON (  0 ) ] = res[0] ;
+            ret [ INTERPRET_EPSILON ( -1 ) ] = res[1] ;
+            ret [ INTERPRET_EPSILON ( -2 ) ] = res[2] ;
         }
         return
             ret
-        ;
+        ; //
     }
     //
     inline TYPE_LOOP_RESULTS
@@ -1369,12 +1601,123 @@ public:
                 q2
             ).real()
         ; //
-        return
+        auto ret =
             C0 (
                 m1*m1 , m2*m2 , m3*m3 ,
                 p1    , p2    , p3    ,
                 mu2
             )
+        ; //
+        ret =
+            MULTIPLY (
+                ret ,
+                CONVERSION_FACTOR_C0()
+            )
+        ; //
+        return
+            ret
+        ; //
+    }
+    //
+    inline TYPE_LOOP_RESULTS
+    APPROX_C0 (
+        TYPE_DATA M ,
+        TYPE_DATA m
+    ) {
+        auto p1 =
+            GET_VECTOR
+                (-M/2.0,0,0,-M/2.0)
+        ; //
+        auto p2 =
+            GET_VECTOR
+                (-M/2.0,0,0,M/2.0)
+        ; //
+        auto q1 = p1 ;
+        auto q2 = p1 + p2 ;
+        auto original =
+            LoopIntegral
+                (m,m,m,q1,q2)
+        ; //
+        TYPE_DATA const
+            z =
+                (m*m) /
+                (M*M)
+        ; //
+        printf("Z = %e\n",z);
+        TYPE_DATA const
+            z4 = z * 4
+        ; //
+        TYPE_COMPLEX_DATA
+            tmpret
+        ;
+        if (z4>1) {
+            printf("4z > 1\n") ;
+            TYPE_DATA const
+                fact1 =
+                    -2.0 /
+                    std::pow(M,2)
+            ; //
+            TYPE_DATA const
+                fact2 =
+                    std::pow (
+                        std::atan (
+                            1.0 /
+                            std::sqrt(z4-1.0)
+                        ) ,
+                        2
+                    )
+            ; //
+            tmpret =
+                fact1 *
+                fact2
+            ;
+        }
+        else if (z4<1) {
+            printf("4z < 1\n") ;
+            TYPE_DATA const
+                fact1 =
+                    1.0 / (
+                        std::pow(M,2) *
+                        2.0
+                    )
+            ; //
+            TYPE_DATA const
+                tmp2 =
+                    std::sqrt (
+                        1.0 - z4
+                    )
+            ; //
+            TYPE_DATA const
+                fact2 =
+                    ( 1.0 + tmp2 ) /
+                    ( 1.0 - tmp2 )
+            ; //
+            tmpret =
+                std::pow (
+                    TYPE_COMPLEX_DATA (
+                        std::log(fact2) ,
+                        -PI()
+                    ) ,
+                    2
+                ) *
+                fact1
+            ; //
+        }
+        TYPE_LOOP_RESULTS
+            ret
+        ;
+        ret[INTERPRET_EPSILON(0)] =
+            tmpret
+        ; //
+        printf (
+            "COMPARE: (%e,%e) ; (%e,%e)\n",
+            tmpret.real()                         ,
+            tmpret.imag()                         ,
+            original[INTERPRET_EPSILON(0)].real() ,
+            original[INTERPRET_EPSILON(0)].imag()
+        ) ;
+        return
+            ret
         ; //
     }
     //

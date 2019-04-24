@@ -7,7 +7,7 @@ namespace MISC {
     //
     size_t constexpr
         ImageResolution =
-            64
+            40
     ;
     //
     using TYPE_DATA =
@@ -348,15 +348,6 @@ namespace MISC {
                     (img)
                 ; //
             }
-            /* Evaluate Flipped Image  : */ {
-                imagetypeflip imgflip (
-                    injet.constituents() ,
-                    0.6
-                ) ; //
-                ImageWriterFlip.push_back
-                    (imgflip)
-                ; //
-            }
             /* Write Top Tagged bool   : */ {
                 TopTagWriter.push_back(
                     CheckTopTag (
@@ -385,9 +376,6 @@ namespace MISC {
         CPPFileIO::FileVector < imagetype >
             ImageWriter
         ; //
-        CPPFileIO::FileVector < imagetypeflip >
-            ImageWriterFlip
-        ; //
         CPPFileIO::FileVector < outvector4 >
             VectorWriter
         ; //
@@ -401,7 +389,6 @@ namespace MISC {
         EventWriter     ( std::string _prefixname   ) :
         prefixname      ( _prefixname               ) ,
         ImageWriter     ( prefixname + "/image"     ) ,
-        ImageWriterFlip ( prefixname + "/imageflip" ) ,
         VectorWriter    ( prefixname + "/vector"    ) ,
         TopTagWriter    ( prefixname + "/toptag"    ) ,
         NSubWriter      ( prefixname + "/nsub"      ) {}
@@ -1956,18 +1943,23 @@ namespace STEP5_EVALERROR {
         CPPFileIO::FullFileReader
             <TYPE_PREDICT>
                 Reader (
-                    dirname+"/predict"
+                    dirname +
+                    "/predict"
                 )
         ; //
         CPPFileIO::FileVector
             <TYPE_DATA>
                 Writer (
-                    dirname+"/loss"
+                    dirname +
+                    "/loss"
                 )
         ; //
-        for(size_t i=0;i<Reader();i++){
-            Writer.push_back(
-                sqrt(Reader(i).L2_NORM())
+        for (size_t i=0;i<Reader();i++) {
+            Writer.push_back (
+                sqrt (
+                    Reader(i)
+                    .L2_NORM()
+                )
             ) ; //
         }
     }
@@ -1977,10 +1969,8 @@ namespace STEP5_EVALERROR {
         if (true) {
             RunPredict () ;
         }
-
         CPPFileIO::ForkMe forks ;
-
-        if (false) if (forks.InKid()) {
+        if (true) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/QCD/TRAIN/0");
             EVAL_PREDICT("./OUTS/QCD/TRAIN/1");
             EVAL_PREDICT("./OUTS/QCD/TRAIN/2");
@@ -1990,7 +1980,7 @@ namespace STEP5_EVALERROR {
             EVAL_PREDICT("./OUTS/QCD/TRAIN/6");
             EVAL_PREDICT("./OUTS/QCD/TRAIN/7");
         }
-        if (forks.InKid()) {
+        if (true) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/QCD/TEST/0");
             EVAL_PREDICT("./OUTS/QCD/TEST/1");
             EVAL_PREDICT("./OUTS/QCD/TEST/2");
@@ -2000,7 +1990,7 @@ namespace STEP5_EVALERROR {
             EVAL_PREDICT("./OUTS/QCD/TEST/6");
             EVAL_PREDICT("./OUTS/QCD/TEST/7");
         }
-        if (false) if (forks.InKid()) {
+        if (true) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/TOP/TRAIN/0");
             EVAL_PREDICT("./OUTS/TOP/TRAIN/1");
             EVAL_PREDICT("./OUTS/TOP/TRAIN/2");
@@ -2010,7 +2000,7 @@ namespace STEP5_EVALERROR {
             EVAL_PREDICT("./OUTS/TOP/TRAIN/6");
             EVAL_PREDICT("./OUTS/TOP/TRAIN/7");
         }
-        if (forks.InKid()) {
+        if (true) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/TOP/TEST/0");
             EVAL_PREDICT("./OUTS/TOP/TEST/1");
             EVAL_PREDICT("./OUTS/TOP/TEST/2");
@@ -2036,7 +2026,7 @@ namespace STEP6_PLOTLOSSES {
         ; //
         for(size_t i=0;i<8;i++){
             char tmp[512] ;
-            /* QCD TRAIN */ if(false) {
+            /* QCD TRAIN */ if(true) {
                 sprintf (
                     tmp,
                     "./OUTS/QCD/TRAIN/%ld/loss",
@@ -2053,7 +2043,7 @@ namespace STEP6_PLOTLOSSES {
                     Hists.Fill<0>(Reader(j));
                 }
             }
-            /* QCD TEST */ {
+            /* QCD TEST */ if(true) {
                 sprintf (
                     tmp,
                     "./OUTS/QCD/TEST/%ld/loss",
@@ -2070,7 +2060,7 @@ namespace STEP6_PLOTLOSSES {
                     Hists.Fill<2>(Reader(j));
                 }
             }
-            /* TOP TRAIN */ if(false) {
+            /* TOP TRAIN */ if(true) {
                 sprintf (
                     tmp,
                     "./OUTS/TOP/TRAIN/%ld/loss",
@@ -2086,7 +2076,7 @@ namespace STEP6_PLOTLOSSES {
                     Hists.Fill<1>(Reader(j));
                 }
             }
-            /* TOP TEST */ {
+            /* TOP TEST */ if(true) {
                 sprintf (
                     tmp,
                     "./OUTS/TOP/TEST/%ld/loss",
@@ -2105,6 +2095,7 @@ namespace STEP6_PLOTLOSSES {
             }
         }
     }
+    //
     inline void
     PlotTestLosses () {
         MyHistN <2,true>
@@ -2173,7 +2164,138 @@ namespace STEP6_PLOTLOSSES {
             ) ; //
         }
     }
-////////////////////////////////////////////////////////////////
+    //
+    inline void
+    MakeTMVARoot () {
+        /* Create the directory structure: */ {
+            mkdir("./OUTS/",0755);
+            mkdir("./OUTS/TMP/",0755);
+            mkdir("./OUTS/TMP/tmva/",0755);
+        }
+        TFile
+            outfile (
+                "./OUTS/TMP/tmva/tmva_class_example.root",
+                "RECREATE"
+            )
+        ; //
+        TTree signalTree ("TreeS","TreeS") ;
+        TTree background ("TreeB","TreeB") ;
+        float mass, loss ;
+        signalTree.Branch ( "mass" , & mass ) ;
+        signalTree.Branch ( "loss" , & loss ) ;
+        background.Branch ( "mass" , & mass ) ;
+        background.Branch ( "loss" , & loss ) ;
+        /* QCD TEST */ {
+            std::vector <std::string>
+                lossfiles
+            ; /* Create the loss list */ {
+                lossfiles.push_back ("./OUTS/QCD/TEST/0/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/1/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/2/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/3/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/4/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/5/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/6/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/7/loss") ;
+            }
+            std::vector <std::string>
+                vectfiles
+            ; /* Create the vector list: */ {
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/0/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/1/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/2/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/3/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/4/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/5/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/6/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TRAIN/7/vector") ;
+
+            }
+            for(size_t index=0;index<8;index++){
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        READER_LOSS (
+                            lossfiles[index]
+                        )
+                ; //
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                        READER_VECTOR (
+                            vectfiles[index]
+                        )
+                ; //
+                for(
+                    size_t i = 0 ;
+                    i < READER_LOSS() ;
+                    i++
+                ) {
+                    loss =
+                        READER_LOSS(i)
+                    ; //
+                    mass =
+                        READER_VECTOR(i).m()
+                    ;
+                    background.Fill();
+                }
+            }
+        }
+        /* TOP TEST */ {
+            std::vector <std::string>
+                lossfiles
+            ; /* Create the loss list */ {
+                lossfiles.push_back ("./OUTS/TOP/TEST/0/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/1/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/2/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/3/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/4/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/5/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/6/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/7/loss") ;
+            }
+            std::vector <std::string>
+                vectfiles
+            ; /* Create the vector list: */ {
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/0/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/1/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/2/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/3/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/4/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/5/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/6/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TRAIN/7/vector") ;
+            }
+            for(size_t index=0;index<8;index++){
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        READER_LOSS (
+                            lossfiles[index]
+                        )
+                ; //
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                        READER_VECTOR (
+                            vectfiles[index]
+                        )
+                ; //
+                for(
+                    size_t i = 0 ;
+                    i < READER_LOSS() ;
+                    i++
+                ) {
+                    loss =
+                        READER_LOSS(i)
+                    ; //
+                    mass =
+                        READER_VECTOR(i).m()
+                    ;
+                    signalTree.Fill();
+                }
+            }
+        }
+        signalTree.Write();
+        background.Write();
+    }
+    //
 }
 ////////////////////////////////////////////////////////////////
 namespace STEP7_CNN_RESPONSE {

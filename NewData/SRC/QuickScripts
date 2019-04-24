@@ -1,6 +1,6 @@
 #!/bin/bash
 cd "$('dirname' '--' "${0}")"
 'rm' '-vf' '--' 'QuickScripts.exe'
-'hepgcc' './QuickScripts.cc' '-o' 'QuickScripts.exe'
+'./compile' './QuickScripts.cc'
 exec './QuickScripts.exe'
 exit '0'

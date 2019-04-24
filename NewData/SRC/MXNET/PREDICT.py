@@ -41,7 +41,7 @@ net.load_parameters(PARAM_NAME, ctx=ctx)
 def PredictFile(infilename,outfilename):
     statinfo = os.stat(infilename)
     leadingshape = int(statinfo.st_size/sizeoftype)
-    #leadingshape = min(leadingshape,500000)
+    leadingshape = min(leadingshape,100000)
     print(leadingshape)
     X = np.memmap(infilename, dtype='float32', mode='r', shape=(leadingshape,num_inputs))
     A = nd.array(X)
@@ -59,14 +59,14 @@ PredictFile("./OUTS/QCD/TEST/4/image","./OUTS/QCD/TEST/4/predict");
 PredictFile("./OUTS/QCD/TEST/5/image","./OUTS/QCD/TEST/5/predict");
 PredictFile("./OUTS/QCD/TEST/6/image","./OUTS/QCD/TEST/6/predict");
 PredictFile("./OUTS/QCD/TEST/7/image","./OUTS/QCD/TEST/7/predict");
-#PredictFile("./OUTS/QCD/TRAIN/0/image","./OUTS/QCD/TRAIN/0/predict");
-#PredictFile("./OUTS/QCD/TRAIN/1/image","./OUTS/QCD/TRAIN/1/predict");
-#PredictFile("./OUTS/QCD/TRAIN/2/image","./OUTS/QCD/TRAIN/2/predict");
-#PredictFile("./OUTS/QCD/TRAIN/3/image","./OUTS/QCD/TRAIN/3/predict");
-#PredictFile("./OUTS/QCD/TRAIN/4/image","./OUTS/QCD/TRAIN/4/predict");
-#PredictFile("./OUTS/QCD/TRAIN/5/image","./OUTS/QCD/TRAIN/5/predict");
-#PredictFile("./OUTS/QCD/TRAIN/6/image","./OUTS/QCD/TRAIN/6/predict");
-#PredictFile("./OUTS/QCD/TRAIN/7/image","./OUTS/QCD/TRAIN/7/predict");
+PredictFile("./OUTS/QCD/TRAIN/0/image","./OUTS/QCD/TRAIN/0/predict");
+PredictFile("./OUTS/QCD/TRAIN/1/image","./OUTS/QCD/TRAIN/1/predict");
+PredictFile("./OUTS/QCD/TRAIN/2/image","./OUTS/QCD/TRAIN/2/predict");
+PredictFile("./OUTS/QCD/TRAIN/3/image","./OUTS/QCD/TRAIN/3/predict");
+PredictFile("./OUTS/QCD/TRAIN/4/image","./OUTS/QCD/TRAIN/4/predict");
+PredictFile("./OUTS/QCD/TRAIN/5/image","./OUTS/QCD/TRAIN/5/predict");
+PredictFile("./OUTS/QCD/TRAIN/6/image","./OUTS/QCD/TRAIN/6/predict");
+PredictFile("./OUTS/QCD/TRAIN/7/image","./OUTS/QCD/TRAIN/7/predict");
 PredictFile("./OUTS/TOP/TEST/0/image","./OUTS/TOP/TEST/0/predict");
 PredictFile("./OUTS/TOP/TEST/1/image","./OUTS/TOP/TEST/1/predict");
 PredictFile("./OUTS/TOP/TEST/2/image","./OUTS/TOP/TEST/2/predict");
@@ -75,11 +75,11 @@ PredictFile("./OUTS/TOP/TEST/4/image","./OUTS/TOP/TEST/4/predict");
 PredictFile("./OUTS/TOP/TEST/5/image","./OUTS/TOP/TEST/5/predict");
 PredictFile("./OUTS/TOP/TEST/6/image","./OUTS/TOP/TEST/6/predict");
 PredictFile("./OUTS/TOP/TEST/7/image","./OUTS/TOP/TEST/7/predict");
-#PredictFile("./OUTS/TOP/TRAIN/0/image","./OUTS/TOP/TRAIN/0/predict");
-#PredictFile("./OUTS/TOP/TRAIN/1/image","./OUTS/TOP/TRAIN/1/predict");
-#PredictFile("./OUTS/TOP/TRAIN/2/image","./OUTS/TOP/TRAIN/2/predict");
-#PredictFile("./OUTS/TOP/TRAIN/3/image","./OUTS/TOP/TRAIN/3/predict");
-#PredictFile("./OUTS/TOP/TRAIN/4/image","./OUTS/TOP/TRAIN/4/predict");
-#PredictFile("./OUTS/TOP/TRAIN/5/image","./OUTS/TOP/TRAIN/5/predict");
-#PredictFile("./OUTS/TOP/TRAIN/6/image","./OUTS/TOP/TRAIN/6/predict");
-#PredictFile("./OUTS/TOP/TRAIN/7/image","./OUTS/TOP/TRAIN/7/predict");
+PredictFile("./OUTS/TOP/TRAIN/0/image","./OUTS/TOP/TRAIN/0/predict");
+PredictFile("./OUTS/TOP/TRAIN/1/image","./OUTS/TOP/TRAIN/1/predict");
+PredictFile("./OUTS/TOP/TRAIN/2/image","./OUTS/TOP/TRAIN/2/predict");
+PredictFile("./OUTS/TOP/TRAIN/3/image","./OUTS/TOP/TRAIN/3/predict");
+PredictFile("./OUTS/TOP/TRAIN/4/image","./OUTS/TOP/TRAIN/4/predict");
+PredictFile("./OUTS/TOP/TRAIN/5/image","./OUTS/TOP/TRAIN/5/predict");
+PredictFile("./OUTS/TOP/TRAIN/6/image","./OUTS/TOP/TRAIN/6/predict");
+PredictFile("./OUTS/TOP/TRAIN/7/image","./OUTS/TOP/TRAIN/7/predict");

@@ -25,5 +25,22 @@
 //STEP6_PLOTLOSSES::PlotLosses();
 //STEP6_PLOTLOSSES::PlotTestLosses();
 
-STEP4_UNITEDATA::MixDataTopQCD();
-STEP4_UNITEDATA::MixDataWBSQCD();
+//STEP4_UNITEDATA::MixDataTopQCD();
+//STEP4_UNITEDATA::MixDataWBSQCD();
+
+//STEP5_EVALERROR::MakeLosses();
+//STEP6_PLOTLOSSES::PlotLosses();
+
+//STEP6_PLOTLOSSES::MakeTMVARoot();
+//MXNET_CHECK::MainNet::START();
+//MXNET_CHECK::MainNet::TRAIN();
+//MXNET_CHECK::MainNet * slave = new MXNET_CHECK::MainNet ;
+//slave->Train();
+//delete slave ;
+
+//MXNET_CHECK::MainNet slave ;
+//slave.Train();
+
+//MXNET_CHECK::MainNet::START();
+//MXNET_CHECK::MainNet::TRAIN();
+//printf("Back to main program...\n");
