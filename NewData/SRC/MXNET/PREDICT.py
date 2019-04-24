@@ -8,14 +8,14 @@ import os
 ctx = mx.cpu()
 data_ctx = ctx
 model_ctx = ctx
-batch_size = 100
-width=64
+batch_size = 200
+width=40
 num_inputs = width*width
 sizeoftype = num_inputs*4
 PARAM_NAME = "./OUTS/PARS/net_params"
 mx.random.seed(1)
 os.system("taskset -a -p 0xFFFFFFFF %d" % os.getpid())
-sizes = [ 64*64 , 16*16 , 4*4 ]
+sizes = [ 40*40 , 24*24 , 10*10 ]
 num_outputs = num_inputs
 #
 class CenteredLayer(mx.gluon.nn.HybridSequential):

@@ -510,14 +510,22 @@ namespace MISC {
             std::string filename
         ) {
             FileReader reader (filename) ;
-            for (size_t i=0;i<reader();i++)
-            for (size_t y=0;y<ImageResolution;y++)
-            for (size_t x=0;x<ImageResolution;x++) {
-                Hist.Fill (
-                    x , y ,
-                    reader(i)
-                        .Image[y][x]
-                ) ; //
+
+            for (size_t i=0;i<reader();i++) {
+                TYPE_DATA sum = 0 ;
+                for (size_t y=0;y<ImageResolution;y++)
+                for (size_t x=0;x<ImageResolution;x++) {
+                    Hist.Fill (
+                        x , y ,
+                        reader(i)
+                            .Image[y][x]
+                    ) ; //
+                    sum +=
+                        reader(i)
+                            .Image[y][x]
+                    ; //
+                }
+                //printf("DEBUG: %e\n",sum);
             }
         }
         //
@@ -2209,7 +2217,6 @@ namespace STEP6_PLOTLOSSES {
                 vectfiles.push_back ("./OUTS/QCD/TRAIN/5/vector") ;
                 vectfiles.push_back ("./OUTS/QCD/TRAIN/6/vector") ;
                 vectfiles.push_back ("./OUTS/QCD/TRAIN/7/vector") ;
-
             }
             for(size_t index=0;index<8;index++){
                 CPPFileIO::FullFileReader

@@ -9,14 +9,14 @@ import os
 ctx = mx.cpu()
 data_ctx = ctx
 model_ctx = ctx
-batch_size = 100
-width=64
+batch_size = 200
+width=40
 num_inputs = width*width
 sizeoftype = num_inputs*4
 PARAM_NAME = "./OUTS/PARS/net_params"
 mx.random.seed(1)
 os.system("taskset -a -p 0xFFFFFFFF %d" % os.getpid())
-sizes = [ 64*64 , 16*16 , 4*4 ]
+sizes = [ 40*40 , 24*24 , 10*10 ]
 num_outputs = num_inputs
 
 class CenteredLayer(mx.gluon.nn.HybridSequential):
@@ -64,27 +64,29 @@ def TrainOnFile(filename):
             trainer.step(data.shape[0])
             inst_loss = nd.sum(loss).asscalar()
             cumulative_loss += inst_loss
-            print("    ",inst_loss)
+#            print("    ",inst_loss)
             #net.save_parameters(PARAM_NAME)
         print(cumulative_loss);
         net.save_parameters(PARAM_NAME)
 
-TrainOnFile("./OUTS/QCD/TRAIN/0/image")
-TrainOnFile("./OUTS/QCD/TRAIN/1/image")
-TrainOnFile("./OUTS/QCD/TRAIN/0/image")
-TrainOnFile("./OUTS/QCD/TRAIN/1/image")
 
-TrainOnFile("./OUTS/QCD/TRAIN/2/image")
-TrainOnFile("./OUTS/QCD/TRAIN/3/image")
-TrainOnFile("./OUTS/QCD/TRAIN/2/image")
-TrainOnFile("./OUTS/QCD/TRAIN/3/image")
+for e in range(4):
+  TrainOnFile("./OUTS/QCD/TRAIN/0/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/1/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/0/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/1/image")
 
-TrainOnFile("./OUTS/QCD/TRAIN/4/image")
-TrainOnFile("./OUTS/QCD/TRAIN/5/image")
-TrainOnFile("./OUTS/QCD/TRAIN/4/image")
-TrainOnFile("./OUTS/QCD/TRAIN/5/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/2/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/3/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/2/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/3/image")
 
-TrainOnFile("./OUTS/QCD/TRAIN/6/image")
-TrainOnFile("./OUTS/QCD/TRAIN/7/image")
-TrainOnFile("./OUTS/QCD/TRAIN/6/image")
-TrainOnFile("./OUTS/QCD/TRAIN/7/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/4/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/5/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/4/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/5/image")
+
+  TrainOnFile("./OUTS/QCD/TRAIN/6/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/7/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/6/image")
+  TrainOnFile("./OUTS/QCD/TRAIN/7/image")

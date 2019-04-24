@@ -25,6 +25,7 @@ using TYPE_COMPLEX_DATAs =
 ;
 int main () {
     HEP slave ;
+    slave.Approx_A0(100,1);
     slave.APPROX_C0(5.0000001,10.0000001);
     /* Testing B0 function: */ {
         auto res =

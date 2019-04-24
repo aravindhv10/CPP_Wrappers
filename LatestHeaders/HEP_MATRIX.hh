@@ -498,9 +498,58 @@ public:
             0.000000001
         ;
     }
+    //
+    static inline size_t const
+    FACTORIAL (size_t const i) {
+        if(i==1){return 1;}
+        else if(i==0){return 1;}
+        else{return i*FACTORIAL(i-1);}
+    }
+    //
+    static inline TYPE_DATA const
+    HARMONIC_SUM (size_t const i) {
+        if (i==1) {
+            return 1 ;
+        }
+        else {
+            return
+                HARMONIC_SUM(i-1) +
+                (
+                    1.0 /
+                    ( (TYPE_DATA) i )
+                )
+            ; //
+        }
+
+    }
+    //
+    static inline long const
+    MINUS_1 (long n) {
+        if(n==0){return 1;}
+        else if(n>0){return -MINUS_1(n-1);}
+        else if(n<0){return -MINUS_1(n+1);}
+    }
+    //
+    static inline TYPE_DATA
+    constexpr EULER_GAMMA () {
+        // https://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant
+        return
+            0.57721566490153286060651209008240243104215933593
+        ; //
+    }
     ////////////////////////////////
     // Complexified constants: /////
     ////////////////////////////////
+    static inline TYPE_COMPLEX_DATA
+    TO_C (TYPE_DATA const in) {
+        TYPE_COMPLEX_DATA
+            ret (in,0)
+        ; //
+        return
+            ret
+        ; //
+    }
+    //
     static inline TYPE_COMPLEX_DATA
     constexpr C_1 () {
         return
@@ -1188,13 +1237,6 @@ public:
         return MULTIPLY (ret,k) ;
     }
 ////////////////////////////////////////////////////////////////
-    static inline TYPE_DATA constexpr
-    EULER_GAMMA () {
-        // https://en.wikipedia.org/wiki/Euler%E2%80%93Mascheroni_constant
-        return
-            0.57721566490153286060651209008240243104215933593
-        ; //
-    }
     //
     using TYPE_LOOP_RESULTS =
         Tensors::NN::ND_ARRAY
@@ -1253,6 +1295,26 @@ public:
         ;
     }
     //
+    static inline TYPE_LOOP_RESULTS constexpr
+    DIMENSION () {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Set up the values: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            ret[INTERPRET_EPSILON(0)] =
+                4.0
+            ; //
+            ret[INTERPRET_EPSILON(1)] =
+                -2.0
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
     using LoopType =
         ql::QCDLoop <
             TYPE_COMPLEX_DATA ,
@@ -1273,16 +1335,22 @@ public:
             ret =
                 TYPE_COMPLEX_DATA(0,0)
             ; //
-            ret[INTERPRET_EPSILON(0)] =
-                1.0
-            ; //
-            ret[INTERPRET_EPSILON(1)] =
-                -EULER_GAMMA()
-            ; //
-            ret[INTERPRET_EPSILON(2)] =
-                ( std::pow ( EULER_GAMMA() , 2 ) /  2.0 ) -
-                ( std::pow (          PI() , 2 ) / 12.0 )
-            ; //
+            if (false) {
+                ret[INTERPRET_EPSILON(0)] =
+                    1.0
+                ; //
+                ret[INTERPRET_EPSILON(1)] =
+                    -EULER_GAMMA()
+                ; //
+                ret[INTERPRET_EPSILON(2)] =
+                    ( std::pow ( EULER_GAMMA() , 2 ) /  2.0 ) -
+                    ( std::pow (          PI() , 2 ) / 12.0 )
+                ; //
+            } else {
+                ret[INTERPRET_EPSILON(0)] =
+                    TYPE_COMPLEX_DATA(1,0)
+                ;
+            }
         }
         return
             ret
@@ -1323,6 +1391,45 @@ public:
         ; //
     }
     //
+    static inline TYPE_LOOP_RESULTS const
+    GAMMA_FUNCTION (
+        long const
+            i
+    ) {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Evaluate the return value: */ {
+            ret = TYPE_COMPLEX_DATA(0,0) ;
+            if ( i > 0 ) {
+                ret[INTERPRET_EPSILON(0)] =
+                    TYPE_COMPLEX_DATA(FACTORIAL(i),0)
+                ;
+            } else if ( i == 0 ) {
+                ret[INTERPRET_EPSILON(0)] =
+                    -EULER_GAMMA()
+                ; //
+                ret[INTERPRET_EPSILON(-1)] =
+                    1
+                ; //
+            } else {
+                long      const n     = -i              ;
+                TYPE_DATA const fact  = FACTORIAL ( n ) ;
+                TYPE_DATA const Minux = MINUS_1   ( n ) ;
+                TYPE_DATA const term  = Minux  /  fact  ;
+                ret[INTERPRET_EPSILON(0)] =
+                    ( HARMONIC_SUM(n) - EULER_GAMMA() ) *
+                    term
+                ; //
+                ret[INTERPRET_EPSILON(-1)] =
+                    term
+                ; //
+            }
+        }
+        return
+            ret
+        ;
+    }
+    //
     static inline TYPE_LOOP_RESULTS constexpr
     CONVERSION_FACTOR_C0 () {
         auto ret =
@@ -1336,9 +1443,20 @@ public:
             MULTIPLY (
                 ret ,
                 DIM_EXP (
-                    1.0/tmp1
+                    1.0 / tmp1
                 )
             ) ;
+            TYPE_DATA constexpr
+                TRANS =
+                    1.0 / (
+                        16.0 *
+                        std::pow (PI(),2)
+                    )
+            ; //
+            ret *=
+                TYPE_COMPLEX_DATA
+                    ( TRANS , 0 )
+            ; //
         }
         return
             ret
@@ -1353,6 +1471,20 @@ public:
         ret *=
             TYPE_COMPLEX_DATA
                 (0,-1)
+        ;
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    CONVERSION_FACTOR_A0 () {
+        auto ret =
+            CONVERSION_FACTOR_C0()
+        ; //
+        ret *=
+            TYPE_COMPLEX_DATA
+                (-1,0)
         ;
         return
             ret
@@ -1404,15 +1536,92 @@ public:
         TYPE_DATA const m ,
         TYPE_DATA const mu2 = 1.0
     ) {
-        printf("BIG FAT WARNING... THIS FUNCTION HAS NOT BEEN TRANSLATED CORRECTLY...\n");
+        //printf("BIG FAT WARNING... THIS FUNCTION HAS NOT BEEN TRANSLATED CORRECTLY...\n");
         auto ret =
             A0 (
                 m*m , mu2
             )
         ; //
+        ret =
+            MULTIPLY (
+                ret ,
+                CONVERSION_FACTOR_A0()
+            )
+        ; //
         return
             ret
         ; //
+    }
+    //
+    inline TYPE_LOOP_RESULTS
+    Approx_A0 (
+        TYPE_DATA const m ,
+        TYPE_DATA const mu2 = 1.0
+    ) {
+        auto original =
+            LoopIntegral
+                (m,mu2)
+        ; //
+        TYPE_DATA const
+            DELTA =
+                std::pow(m,2)
+        ; //
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Final value: */ {
+            auto const fact1 =
+                DIM_EXP (
+                    1.0 /
+                    (std::sqrt(PI())*2.0)
+                )
+            ; //
+            auto const fact2 =
+                fact1 *
+                (
+                    C_I() *
+                    TO_C(MINUS_1(1))
+                )
+            ; //
+            auto const fact3 =
+                MULTIPLY (
+                    GAMMA_FUNCTION(-1) ,
+                    fact2
+                )
+            ; //
+            TYPE_LOOP_RESULTS
+                last
+            ; //
+            last =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            last[INTERPRET_EPSILON(0)] =
+                DELTA
+            ; //
+            last[INTERPRET_EPSILON(1)] =
+                -DELTA * std::log(DELTA)
+            ; //
+            last[INTERPRET_EPSILON(2)] =
+                DELTA                       *
+                std::pow(std::log(DELTA),2) /
+                2.0
+            ; //
+            ret =
+                MULTIPLY(fact3,last) * C_I()
+            ; //
+        }
+        for(long i=-2;i<=2;i++){
+            printf(
+                "DEBUG(%ld) : PESKIN(%e,%e) ; QCDLoops(%e,%e)\n",
+                i,
+                ret      [INTERPRET_EPSILON(i)] .real (),
+                ret      [INTERPRET_EPSILON(i)] .imag (),
+                original [INTERPRET_EPSILON(i)] .real (),
+                original [INTERPRET_EPSILON(i)] .imag ()
+            ) ; //
+        }
+        return
+            ret
+        ;
     }
     //
     inline TYPE_LOOP_RESULTS

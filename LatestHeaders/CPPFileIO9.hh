@@ -1015,6 +1015,28 @@ _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Mul,*=)
 _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Div,/=)
 _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
 ////////////////////////////////////////////////////////////////
+            //
+            //asd;
+            //
+            inline TYPE_SELF
+            operator * (
+                TYPE_DATA const
+                    other
+            ) const {
+                TYPE_SELF
+                    ret
+                ; /* Prepare the return value : */ {
+                    _MACRO_ND_LOOP_(x) {
+                        ret[x] =
+                            this[0][x] * other
+                        ; //
+                    }
+                }
+                return
+                    ret
+                ;
+            }
+            //
             inline TYPE_DATA Dot
             ( const TYPE_SELF & other ) const {
                 TYPE_DATA ret = 0 ;
