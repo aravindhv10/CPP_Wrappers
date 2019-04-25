@@ -11,10 +11,12 @@ namespace MXNET_CHECK {
     using MISC::TYPE_DATA ;
     using MISC::imagetype ;
     using MISC::ImageResolution ;
+    //
     size_t constexpr
         BatchSize =
             200
     ; //
+    //
     class MainNet {
     public:
         //
@@ -290,8 +292,7 @@ namespace MXNET_CHECK {
         }
         //
         inline void
-        InitParams (
-        ) {
+        InitParams () {
             lenet
                 .InferArgsMap (
                     ctx_cpu    ,
@@ -681,6 +682,529 @@ namespace MXNET_CHECK {
                 }
             }
 
+        }
+        //
+    } ;
+    //
+    class AE_MXNET {
+    public:
+        //
+        using ImageArray =
+            Tensors::NN::N2D_ARRAY <
+                BatchSize , (
+                    ImageResolution *
+                    ImageResolution
+                ) , TYPE_DATA
+            >
+        ; //
+        //
+        using MainImageReader =
+            CPPFileIO::FullFileReader
+                <ImageArray>
+        ; //
+        //
+        TYPE_DATA *
+            Buffer
+        ; //
+        //
+        Symbol
+            MainNet
+        ; //
+        //
+        std::map
+            <std::string,NDArray>
+                args_map
+        ; //
+        //
+        Context
+            ctx_cpu
+        ; //
+        //
+        Optimizer *
+            opt
+        ; //
+        //
+        Executor *
+            exe
+        ; //
+        //
+        std::vector
+            <std::string>
+                arg_names
+        ; //
+        //
+        inline void
+        WriteParams () {
+            printf (
+                "Writing Parameters...\n"
+            ) ; //
+            std::string
+                outparsname (
+                    "./OUTS/PARS/NET_PARS"
+                )
+            ; //
+            CPPFileIO::FileFD
+                filefd (outparsname)
+            ; //
+            filefd.writefile () ;
+            NDArray::WaitAll () ;
+            for (auto & x: args_map) {
+                if (
+                    ( x.first != "data"  ) &&
+                    ( x.first != "label" )
+                ) {
+                    filefd.multiwrite2file(
+                        x.second.GetData () [0] ,
+                        x.second.Size    ()
+                    ) ; //
+                }
+            }
+            printf (
+                "Done Writing...\n"
+            ) ; //
+        }
+        //
+        inline void
+        ReadParams () {
+            printf (
+                "Reading Parameters...\n"
+            ) ; //
+            std::string
+                outparsname (
+                    "./OUTS/PARS/NET_PARS"
+                )
+            ; //
+            CPPFileIO::FileFD
+                filefd (outparsname)
+            ; //
+            filefd.readfile  () ;
+            NDArray::WaitAll () ;
+            for ( auto & x : args_map ) {
+                if (
+                    ( x.first != "data"  ) &&
+                    ( x.first != "label" )
+                ) {
+                    size_t const bufsize =
+                        x.second.Size()
+                    ; //
+                    std::vector <TYPE_DATA>
+                        buf (bufsize)
+                    ; //
+                    filefd.multiread2file (
+                        buf[0],
+                        bufsize
+                    ) ; //
+                    x.second
+                        .SyncCopyFromCPU (
+                            &(buf[0]) ,
+                            bufsize
+                        )
+                    ; //
+                    x.second.WaitToRead() ;
+                }
+            }
+            NDArray::WaitAll();
+            printf (
+                "Done Reading...\n"
+            ) ; //
+        }
+        //
+        inline void
+        UpdateParms () {
+            for (
+                size_t i = 0 ;
+                i < arg_names.size() ;
+                i++
+            ) {
+                if (
+                    ( arg_names[i] != "data"  ) &&
+                    ( arg_names[i] != "label" )
+                ) {
+                    opt->Update (
+                        i, exe->arg_arrays[i],
+                        exe->grad_arrays[i]
+                    ) ; //
+                }
+            }
+            NDArray::WaitAll();
+        }
+        //
+        inline void
+        train () {
+            args_map["data"]
+                .SyncCopyFromCPU (
+                    Buffer ,
+                    ImageArray::SIZE ()
+                )
+            ; //
+            args_map["label"]
+                .SyncCopyFromCPU (
+                    Buffer ,
+                    ImageArray::SIZE ()
+                )
+            ; //
+            args_map["data"]
+                .WaitToRead()
+            ; //
+            args_map["label"]
+                .WaitToRead()
+            ; //
+            exe->Forward(true);
+            exe->Backward();
+            UpdateParms () ;
+        }
+        //
+        inline TYPE_DATA
+        ValAccuracy () {
+            TYPE_DATA ret = 0 ;
+            /* Copy the data: */ {
+                args_map["data"]
+                    .SyncCopyFromCPU (
+                        Buffer ,
+                        ImageArray::SIZE ()
+                    )
+                ; //
+                args_map["label"]
+                    .SyncCopyFromCPU (
+                        Buffer ,
+                        ImageArray::SIZE()
+                    )
+                ; //
+                args_map["data"]
+                    .WaitToRead()
+                ; //
+                args_map["label"]
+                    .WaitToRead()
+                ; //
+            }
+            exe->Forward(false);
+            ImageArray const &
+                Input =
+                    (ImageArray const &)
+                        Buffer[0]
+            ; //
+            const auto &
+                out =
+                    exe->outputs
+            ; //
+            NDArray out_cpu =
+                out[0].Copy
+                (ctx_cpu)
+            ; //
+            NDArray::WaitAll();
+            ImageArray const &
+                output =
+                    (ImageArray const &)
+                        out_cpu.GetData()[0]
+            ; //
+            ImageArray diff =
+                Input - output
+            ; //
+            return
+                diff.L2_NORM() /
+                ((TYPE_DATA)BatchSize)
+            ; //
+        }
+        //
+        inline void
+        Train (
+            size_t index
+        ) {
+            //
+            char tmp [512] ; //
+            sprintf (
+                tmp,
+                "./OUTS/QCD/TRAIN/%ld/image",
+                index
+            ) ; //
+            std::string
+                filename (tmp)
+            ;
+            //
+            MainImageReader
+                Reader (filename)
+            ; //
+            //
+            for(size_t epoch=0;epoch<2;epoch++){
+                for (
+                    size_t i = 0 ;
+                    ( i < Reader() ) && ( i < 5000000 ) ;
+                    i++
+                ) {
+                    Buffer =
+                        Reader(i).GET_DATA ()
+                    ; //
+                    train () ;
+                    //
+                }
+                WriteParams();
+            }
+            //
+        }
+        //
+        inline void
+        Validate (
+            size_t index
+        ) {
+            //
+            char tmp[512];
+            //
+            sprintf (
+                tmp,
+                "./OUTS/QCD/TEST/%ld/image",
+                index
+            ) ; //
+            //
+            std::string
+                Filename (tmp)
+            ; //
+            //
+            MainImageReader
+                Reader (Filename)
+            ; //
+            //
+            TYPE_DATA
+                diff =
+                    0
+            ; //
+            //
+            auto
+                Limit =
+                    Reader()
+            ; //
+            for (
+                size_t i = 0 ;
+                ( i < Limit ) && ( i < 1000000 )  ;
+                i++
+            ) {
+                Buffer =
+                    Reader(i).GET_DATA ()
+                ; //
+                diff +=
+                    ValAccuracy ()
+                ; //
+            }
+            diff /=
+                ((TYPE_DATA)Limit)
+            ; //
+            printf("Error = %e\n",diff);
+        }
+        //
+        inline void
+        GetNetSymbol () {
+            size_t
+                sizes[3] = {
+                    ImageResolution * ImageResolution ,
+                    24              * 24              ,
+                    10              * 10
+                }
+            ; //
+            //
+            Symbol data =
+                Symbol::Variable
+                    ("data")
+            ; //
+            args_map["data"] =
+                NDArray (
+                    Shape (
+                        BatchSize ,
+                        sizes[0]
+                    ) ,
+                    ctx_cpu , false
+                )
+            ; //
+            //
+            Symbol label =
+                Symbol::Variable
+                    ("label")
+            ; //
+            args_map["label"] =
+                NDArray (
+                    Shape (
+                        BatchSize ,
+                        sizes[0]
+                    ) ,
+                    ctx_cpu , false
+                )
+            ; //
+            //
+            Symbol
+                fc1_w("fc1_w") ,
+                fc1_b("fc1_b")
+            ; //
+            Symbol fc1 =
+                FullyConnected (
+                    "fc1" , data  ,
+                    fc1_w , fc1_b , sizes[1]
+                )
+            ; //
+            //
+            Symbol
+                fc2_w("fc2_w") ,
+                fc2_b("fc2_b")
+            ; //
+            Symbol fc2 =
+                FullyConnected (
+                    "fc2" , fc1   ,
+                    fc2_w , fc2_b , sizes[2]
+                )
+            ; //
+            //
+            Symbol
+                fc3_w("fc3_w") ,
+                fc3_b("fc3_b")
+            ; //
+            Symbol fc3 =
+                FullyConnected (
+                    "fc3" , fc2   ,
+                    fc3_w , fc3_b , sizes[1]
+                )
+            ; //
+            //
+            Symbol
+                fc4_w("fc4_w") ,
+                fc4_b("fc4_b")
+            ; //
+            Symbol fc4 =
+                FullyConnected (
+                    "fc4" , fc3   ,
+                    fc4_w , fc4_b , sizes[0]
+                )
+            ; //
+            //
+            Symbol Out =
+                softmax (
+                    "softmaxout" ,
+                    fc4 , 1
+                )
+            ; //
+            //
+            Symbol FinalNet =
+                LinearRegressionOutput (
+                    "Teacher" ,
+                    Out , label , 1600.0
+                )
+            ; //
+            //
+            arg_names =
+                FinalNet.ListArguments()
+            ; //
+            //
+            MainNet =
+                FinalNet
+            ; //
+        }
+        //
+        inline void
+        AllocateMemory () {
+            /* Optimizer Part : */ {
+                opt =
+                    OptimizerRegistry::Find
+                        ("adam")
+                ; //
+                opt
+                    ->SetParam ( "lr"           , 0.001     )
+                    ->SetParam ( "beta1"        , 0.9       )
+                    ->SetParam ( "beta2"        , 0.99      )
+                    ->SetParam ( "epsilon"      , 0.0000001 )
+                    ->SetParam ( "wd"           , 0.001     )
+                    ->SetParam ( "rescale_grad" , 1.0       )
+                ; //
+            }
+            /* Executor part : */ {
+                exe =
+                    MainNet
+                        .SimpleBind (
+                            ctx_cpu  ,
+                            args_map
+                        )
+                ;
+            }
+        }
+        //
+        inline void
+        SetUpNet () {
+            GetNetSymbol () ;
+            MainNet
+                .InferArgsMap (
+                    ctx_cpu    ,
+                    & args_map ,
+                    args_map
+                )
+            ; //
+            Xavier
+                xavier =
+                    Xavier (
+                        Xavier::gaussian ,
+                        Xavier::in       ,
+                        2.34
+                    )
+            ; //
+            for ( auto & x : args_map ) {
+                xavier (
+                    x.first ,
+                    & x.second
+                ) ;
+            }
+            NDArray::WaitAll();
+            AllocateMemory () ;
+        }
+        //
+        inline void
+        FreeUpMemory () {
+            /* Clean memory: */ {
+                NDArray::WaitAll();
+                //
+                delete
+                    exe
+                ; //
+                delete
+                    opt
+                ; //
+                //
+                NDArray::WaitAll();
+            }
+            MXNotifyShutdown();
+        }
+        //
+        inline void
+        BeginTrain (size_t const limit=6) {
+            ReadParams () ;
+            for(size_t e=0;e<limit;e++){
+                for(size_t i=0;i<4;i++){
+                    printf   ( "Before: " ) ;
+                    Validate (  2*i       ) ;
+                    Train    (  2*i       ) ;
+                    printf   ( "After: "  ) ;
+                    Validate (  2*i       ) ;
+                    printf   ( "Before: " ) ;
+                    Validate ( (2*i) + 1  ) ;
+                    Train    ( (2*i) + 1  ) ;
+                    printf   ( "After: "  ) ;
+                    Validate ( (2*i) + 1  ) ;
+                }
+            }
+        }
+        //
+        inline void Start () {
+            WriteParams () ;
+        }
+        //
+        AE_MXNET() :
+        ctx_cpu (
+            Context (
+                DeviceType::kCPU ,
+                0
+            )
+        ) {
+            SetUpNet () ;
+        }
+        //
+        ~AE_MXNET(){
+            FreeUpMemory();
+            printf(
+                "Done Destructor...\n"
+            ) ; //
         }
         //
     } ;
