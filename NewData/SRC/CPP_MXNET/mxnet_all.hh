@@ -698,13 +698,21 @@ namespace MXNET_CHECK {
             >
         ; //
         //
+        using ResultLossType =
+            Tensors::NN::ND_ARRAY
+                <BatchSize,TYPE_DATA>
+        ; //
         using MainImageReader =
             CPPFileIO::FullFileReader
                 <ImageArray>
         ; //
         //
-        TYPE_DATA *
+        ImageArray *
             Buffer
+        ; //
+        //
+        ResultLossType *
+            Result_Buffer
         ; //
         //
         Symbol
@@ -833,13 +841,13 @@ namespace MXNET_CHECK {
         train () {
             args_map["data"]
                 .SyncCopyFromCPU (
-                    Buffer ,
+                    Buffer->GET_DATA() ,
                     ImageArray::SIZE ()
                 )
             ; //
             args_map["label"]
                 .SyncCopyFromCPU (
-                    Buffer ,
+                    Buffer->GET_DATA() ,
                     ImageArray::SIZE ()
                 )
             ; //
@@ -856,17 +864,16 @@ namespace MXNET_CHECK {
         //
         inline TYPE_DATA
         ValAccuracy () {
-            TYPE_DATA ret = 0 ;
             /* Copy the data: */ {
                 args_map["data"]
                     .SyncCopyFromCPU (
-                        Buffer ,
+                        Buffer->GET_DATA(),
                         ImageArray::SIZE ()
                     )
                 ; //
                 args_map["label"]
                     .SyncCopyFromCPU (
-                        Buffer ,
+                        Buffer->GET_DATA(),
                         ImageArray::SIZE()
                     )
                 ; //
@@ -877,12 +884,9 @@ namespace MXNET_CHECK {
                     .WaitToRead()
                 ; //
             }
-            exe->Forward(false);
-            ImageArray const &
-                Input =
-                    (ImageArray const &)
-                        Buffer[0]
-            ; //
+            exe->Forward
+                (false)
+            ;
             const auto &
                 out =
                     exe->outputs
@@ -898,8 +902,27 @@ namespace MXNET_CHECK {
                         out_cpu.GetData()[0]
             ; //
             ImageArray diff =
-                Input - output
+                Buffer[0] -
+                output
             ; //
+            /* Evaluate the loss */ {
+                if (
+                    !CPPFileIO::is_junked
+                        (Result_Buffer)
+                ) {
+                    for (
+                        size_t i = 0              ;
+                        i < Result_Buffer->SIZE() ;
+                        i++
+                    ) {
+                        Result_Buffer[0][i] =
+                            std::sqrt (
+                                diff[i].L2_NORM()
+                            )
+                        ; //
+                    }
+                }
+            }
             return
                 diff.L2_NORM() /
                 ((TYPE_DATA)BatchSize)
@@ -925,14 +948,18 @@ namespace MXNET_CHECK {
                 Reader (filename)
             ; //
             //
-            for(size_t epoch=0;epoch<2;epoch++){
+            for (
+                size_t epoch = 0 ;
+                epoch < 2        ;
+                epoch++
+            ) {
                 for (
                     size_t i = 0 ;
                     ( i < Reader() ) && ( i < 5000000 ) ;
                     i++
                 ) {
                     Buffer =
-                        Reader(i).GET_DATA ()
+                        &(Reader(i))
                     ; //
                     train () ;
                     //
@@ -946,6 +973,10 @@ namespace MXNET_CHECK {
         Validate (
             size_t index
         ) {
+            //
+            CPPFileIO::set_junked
+                (Result_Buffer)
+            ;
             //
             char tmp[512];
             //
@@ -978,7 +1009,7 @@ namespace MXNET_CHECK {
                 i++
             ) {
                 Buffer =
-                    Reader(i).GET_DATA ()
+                    &(Reader(i))
                 ; //
                 diff +=
                     ValAccuracy ()
@@ -988,6 +1019,122 @@ namespace MXNET_CHECK {
                 ((TYPE_DATA)Limit)
             ; //
             printf("Error = %e\n",diff);
+        }
+        //
+        inline void
+        MakeLoss (
+            std::string dirname
+        ) {
+            std::string imagename =
+                dirname + "/image"
+            ; //
+            std::string lossname =
+                dirname + "/loss"
+            ; //
+            //
+            MainImageReader
+                Reader (imagename)
+            ; //
+            CPPFileIO::FileVector
+                <ResultLossType>
+                    Writer (lossname)
+            ; //
+            //
+            TYPE_DATA
+                diff =
+                    0
+            ; //
+            //
+            auto
+                Limit =
+                    Reader()
+            ; //
+            ResultLossType
+                tmpbuf
+            ; //
+            Result_Buffer =
+                & tmpbuf
+            ; //
+            for (
+                size_t i = 0 ;
+                ( i < Limit ) && ( i < 1000000 ) ;
+                i++
+            ) {
+                Buffer =
+                    &(Reader(i))
+                ; //
+                diff +=
+                    ValAccuracy ()
+                ; //
+                Writer.push_back
+                    (tmpbuf)
+                ; //
+            }
+            diff /=
+                ((TYPE_DATA)Limit)
+            ; //
+            printf("Error = %e\n",diff);
+        }
+        //
+        inline void
+        MakeLoss () {
+            ReadParams () ;
+            std::vector <std::string>
+                filenames
+            ; //
+            /* Prepare the list of filenames: */ {
+                filenames.push_back("./OUTS/QCD/TEST/0");
+                filenames.push_back("./OUTS/QCD/TEST/1");
+                filenames.push_back("./OUTS/QCD/TEST/2");
+                filenames.push_back("./OUTS/QCD/TEST/3");
+                filenames.push_back("./OUTS/QCD/TEST/4");
+                filenames.push_back("./OUTS/QCD/TEST/5");
+                filenames.push_back("./OUTS/QCD/TEST/6");
+                filenames.push_back("./OUTS/QCD/TEST/7");
+                filenames.push_back("./OUTS/QCD/TRAIN/0");
+                filenames.push_back("./OUTS/QCD/TRAIN/1");
+                filenames.push_back("./OUTS/QCD/TRAIN/2");
+                filenames.push_back("./OUTS/QCD/TRAIN/3");
+                filenames.push_back("./OUTS/QCD/TRAIN/4");
+                filenames.push_back("./OUTS/QCD/TRAIN/5");
+                filenames.push_back("./OUTS/QCD/TRAIN/6");
+                filenames.push_back("./OUTS/QCD/TRAIN/7");
+                filenames.push_back("./OUTS/TOP/TEST/0");
+                filenames.push_back("./OUTS/TOP/TEST/1");
+                filenames.push_back("./OUTS/TOP/TEST/2");
+                filenames.push_back("./OUTS/TOP/TEST/3");
+                filenames.push_back("./OUTS/TOP/TEST/4");
+                filenames.push_back("./OUTS/TOP/TEST/5");
+                filenames.push_back("./OUTS/TOP/TEST/6");
+                filenames.push_back("./OUTS/TOP/TEST/7");
+                filenames.push_back("./OUTS/TOP/TRAIN/0");
+                filenames.push_back("./OUTS/TOP/TRAIN/1");
+                filenames.push_back("./OUTS/TOP/TRAIN/2");
+                filenames.push_back("./OUTS/TOP/TRAIN/3");
+                filenames.push_back("./OUTS/TOP/TRAIN/4");
+                filenames.push_back("./OUTS/TOP/TRAIN/5");
+                filenames.push_back("./OUTS/TOP/TRAIN/6");
+                filenames.push_back("./OUTS/TOP/TRAIN/7");
+                filenames.push_back("./OUTS/WBS/TEST/0");
+                filenames.push_back("./OUTS/WBS/TEST/1");
+                filenames.push_back("./OUTS/WBS/TEST/2");
+                filenames.push_back("./OUTS/WBS/TEST/3");
+                filenames.push_back("./OUTS/WBS/TEST/4");
+                filenames.push_back("./OUTS/WBS/TEST/5");
+                filenames.push_back("./OUTS/WBS/TEST/6");
+                filenames.push_back("./OUTS/WBS/TEST/7");
+                filenames.push_back("./OUTS/WBS/TRAIN/0");
+                filenames.push_back("./OUTS/WBS/TRAIN/1");
+                filenames.push_back("./OUTS/WBS/TRAIN/2");
+                filenames.push_back("./OUTS/WBS/TRAIN/3");
+                filenames.push_back("./OUTS/WBS/TRAIN/4");
+                filenames.push_back("./OUTS/WBS/TRAIN/5");
+                filenames.push_back("./OUTS/WBS/TRAIN/6");
+                filenames.push_back("./OUTS/WBS/TRAIN/7");
+            }
+            for (size_t i=0;i<filenames.size();i++) {
+                MakeLoss(filenames[i]);
+            }
         }
         //
         inline void
@@ -1035,9 +1182,13 @@ namespace MXNET_CHECK {
             Symbol fc1 =
                 FullyConnected (
                     "fc1" , data  ,
-                    fc1_w , fc1_b , sizes[1]
+                    fc1_w , fc1_b ,
+                    sizes[1]
                 )
             ; //
+            Symbol fa1 =
+                relu ("fa1",fc1)
+            ;
             //
             Symbol
                 fc2_w("fc2_w") ,
@@ -1045,9 +1196,13 @@ namespace MXNET_CHECK {
             ; //
             Symbol fc2 =
                 FullyConnected (
-                    "fc2" , fc1   ,
-                    fc2_w , fc2_b , sizes[2]
+                    "fc2" , fa1   ,
+                    fc2_w , fc2_b ,
+                    sizes[2]
                 )
+            ; //
+            Symbol fa2 =
+                relu ("fa2",fc2)
             ; //
             //
             Symbol
@@ -1056,9 +1211,13 @@ namespace MXNET_CHECK {
             ; //
             Symbol fc3 =
                 FullyConnected (
-                    "fc3" , fc2   ,
-                    fc3_w , fc3_b , sizes[1]
+                    "fc3" , fa2   ,
+                    fc3_w , fc3_b ,
+                    sizes[1]
                 )
+            ; //
+            Symbol fa3 =
+                relu ("fa3",fc3)
             ; //
             //
             Symbol
@@ -1067,27 +1226,43 @@ namespace MXNET_CHECK {
             ; //
             Symbol fc4 =
                 FullyConnected (
-                    "fc4" , fc3   ,
-                    fc4_w , fc4_b , sizes[0]
+                    "fc4" , fa3   ,
+                    fc4_w , fc4_b ,
+                    sizes[0]
                 )
             ; //
+            Symbol fa4 =
+                relu ("fa4",fc4)
+            ; //
             //
+            Symbol
+                fc5_w("fc5_w") ,
+                fc5_b("fc5_b")
+            ; //
+            Symbol fc5 =
+                FullyConnected (
+                    "fc5" , fa4   ,
+                    fc5_w , fc5_b ,
+                    sizes[0]
+                )
+            ; //
             Symbol Out =
                 softmax (
                     "softmaxout" ,
-                    fc4 , 1
+                    fc5 , 1
                 )
             ; //
             //
             Symbol FinalNet =
                 LinearRegressionOutput (
-                    "Teacher" ,
-                    Out , label , 1600.0
+                    "Teacher" , Out , label ,
+                    ImageResolution * ImageResolution
                 )
             ; //
             //
             arg_names =
-                FinalNet.ListArguments()
+                FinalNet
+                    .ListArguments()
             ; //
             //
             MainNet =
@@ -1168,7 +1343,10 @@ namespace MXNET_CHECK {
         }
         //
         inline void
-        BeginTrain (size_t const limit=6) {
+        BeginTrain (
+            size_t const
+                limit = 6
+        ) {
             ReadParams () ;
             for(size_t e=0;e<limit;e++){
                 for(size_t i=0;i<4;i++){
