@@ -756,16 +756,17 @@ namespace MXNET_CHECK {
             ; //
             filefd.writefile () ;
             NDArray::WaitAll () ;
-            for (auto & x: args_map) {
-                if (
-                    ( x.first != "data"  ) &&
-                    ( x.first != "label" )
-                ) {
-                    filefd.multiwrite2file(
-                        x.second.GetData () [0] ,
-                        x.second.Size    ()
-                    ) ; //
-                }
+            for (
+                auto & x :
+                    args_map
+            ) if (
+                ( x.first != "data"  ) &&
+                ( x.first != "label" )
+            ) {
+                filefd.multiwrite2file (
+                    x.second.GetData () [0] ,
+                    x.second.Size    ()
+                ) ; //
             }
             printf (
                 "Done Writing...\n"
@@ -787,29 +788,30 @@ namespace MXNET_CHECK {
             ; //
             filefd.readfile  () ;
             NDArray::WaitAll () ;
-            for ( auto & x : args_map ) {
-                if (
-                    ( x.first != "data"  ) &&
-                    ( x.first != "label" )
-                ) {
-                    size_t const bufsize =
-                        x.second.Size()
-                    ; //
-                    std::vector <TYPE_DATA>
-                        buf (bufsize)
-                    ; //
-                    filefd.multiread2file (
-                        buf[0],
+            for (
+                auto & x :
+                    args_map
+            ) if (
+                ( x.first != "data"  ) &&
+                ( x.first != "label" )
+            ) {
+                size_t const bufsize =
+                    x.second.Size()
+                ; //
+                std::vector <TYPE_DATA>
+                    buf (bufsize)
+                ; //
+                filefd.multiread2file (
+                    buf[0],
+                    bufsize
+                ) ; //
+                x.second
+                    .SyncCopyFromCPU (
+                        &(buf[0]) ,
                         bufsize
-                    ) ; //
-                    x.second
-                        .SyncCopyFromCPU (
-                            &(buf[0]) ,
-                            bufsize
-                        )
-                    ; //
-                    x.second.WaitToRead() ;
-                }
+                    )
+                ; //
+                x.second.WaitToRead() ;
             }
             NDArray::WaitAll();
             printf (
@@ -823,40 +825,45 @@ namespace MXNET_CHECK {
                 size_t i = 0 ;
                 i < arg_names.size() ;
                 i++
+            ) if (
+                ( arg_names[i] != "data"  ) &&
+                ( arg_names[i] != "label" )
             ) {
-                if (
-                    ( arg_names[i] != "data"  ) &&
-                    ( arg_names[i] != "label" )
-                ) {
-                    opt->Update (
-                        i, exe->arg_arrays[i],
-                        exe->grad_arrays[i]
-                    ) ; //
-                }
+                opt->Update (
+                    i, exe->arg_arrays[i],
+                    exe->grad_arrays[i]
+                ) ; //
             }
             NDArray::WaitAll();
         }
         //
         inline void
+        ReadData () {
+            args_map["data"]
+                .SyncCopyFromCPU (
+                    Buffer->GET_DATA() ,
+                    ImageArray::SIZE ()
+                )
+            ; //
+            if (false) {
+                args_map["label"]
+                    .SyncCopyFromCPU (
+                        Buffer->GET_DATA() ,
+                        ImageArray::SIZE ()
+                    )
+                ; //
+                args_map["label"]
+                    .WaitToRead()
+                ; //
+            }
+            args_map["data"]
+                .WaitToRead()
+            ; //
+        }
+        //
+        inline void
         train () {
-            args_map["data"]
-                .SyncCopyFromCPU (
-                    Buffer->GET_DATA() ,
-                    ImageArray::SIZE ()
-                )
-            ; //
-            args_map["label"]
-                .SyncCopyFromCPU (
-                    Buffer->GET_DATA() ,
-                    ImageArray::SIZE ()
-                )
-            ; //
-            args_map["data"]
-                .WaitToRead()
-            ; //
-            args_map["label"]
-                .WaitToRead()
-            ; //
+            ReadData () ;
             exe->Forward(true);
             exe->Backward();
             UpdateParms () ;
@@ -864,26 +871,7 @@ namespace MXNET_CHECK {
         //
         inline TYPE_DATA
         ValAccuracy () {
-            /* Copy the data: */ {
-                args_map["data"]
-                    .SyncCopyFromCPU (
-                        Buffer->GET_DATA(),
-                        ImageArray::SIZE ()
-                    )
-                ; //
-                args_map["label"]
-                    .SyncCopyFromCPU (
-                        Buffer->GET_DATA(),
-                        ImageArray::SIZE()
-                    )
-                ; //
-                args_map["data"]
-                    .WaitToRead()
-                ; //
-                args_map["label"]
-                    .WaitToRead()
-                ; //
-            }
+            ReadData () ;
             exe->Forward
                 (false)
             ;
@@ -948,6 +936,13 @@ namespace MXNET_CHECK {
                 Reader (filename)
             ; //
             //
+            size_t Limit =
+                CPPFileIO::mymin (
+                    Reader() ,
+                    (size_t)5000000
+                )
+            ; //
+            //
             for (
                 size_t epoch = 0 ;
                 epoch < 2        ;
@@ -955,7 +950,7 @@ namespace MXNET_CHECK {
             ) {
                 for (
                     size_t i = 0 ;
-                    ( i < Reader() ) && ( i < 5000000 ) ;
+                    i < Limit ;
                     i++
                 ) {
                     Buffer =
@@ -999,13 +994,15 @@ namespace MXNET_CHECK {
                     0
             ; //
             //
-            auto
-                Limit =
-                    Reader()
+            size_t Limit =
+                CPPFileIO::mymin (
+                    Reader() ,
+                    (size_t)5000000
+                )
             ; //
             for (
                 size_t i = 0 ;
-                ( i < Limit ) && ( i < 1000000 )  ;
+                i < Limit ;
                 i++
             ) {
                 Buffer =
@@ -1045,9 +1042,11 @@ namespace MXNET_CHECK {
                     0
             ; //
             //
-            auto
-                Limit =
-                    Reader()
+            size_t Limit =
+                CPPFileIO::mymin (
+                    Reader() ,
+                    (size_t)5000000
+                )
             ; //
             ResultLossType
                 tmpbuf
@@ -1057,7 +1056,7 @@ namespace MXNET_CHECK {
             ; //
             for (
                 size_t i = 0 ;
-                ( i < Limit ) && ( i < 1000000 ) ;
+                i < Limit ;
                 i++
             ) {
                 Buffer =
@@ -1161,20 +1160,6 @@ namespace MXNET_CHECK {
                 )
             ; //
             //
-            Symbol label =
-                Symbol::Variable
-                    ("label")
-            ; //
-            args_map["label"] =
-                NDArray (
-                    Shape (
-                        BatchSize ,
-                        sizes[0]
-                    ) ,
-                    ctx_cpu , false
-                )
-            ; //
-            //
             Symbol
                 fc1_w("fc1_w") ,
                 fc1_b("fc1_b")
@@ -1253,9 +1238,24 @@ namespace MXNET_CHECK {
                 )
             ; //
             //
+            if (false) {
+                Symbol label =
+                    Symbol::Variable
+                        ("label")
+                ; //
+                args_map["label"] =
+                    NDArray (
+                        Shape (
+                            BatchSize ,
+                            sizes[0]
+                        ) ,
+                        ctx_cpu , false
+                    )
+                ; //
+            }
             Symbol FinalNet =
                 LinearRegressionOutput (
-                    "Teacher" , Out , label ,
+                    "Teacher" , Out , data ,
                     ImageResolution * ImageResolution
                 )
             ; //
@@ -1282,7 +1282,7 @@ namespace MXNET_CHECK {
                     ->SetParam ( "beta1"        , 0.9       )
                     ->SetParam ( "beta2"        , 0.99      )
                     ->SetParam ( "epsilon"      , 0.0000001 )
-                    ->SetParam ( "wd"           , 0.001     )
+                    ->SetParam ( "wd"           , 0.0       )
                     ->SetParam ( "rescale_grad" , 1.0       )
                 ; //
             }
@@ -1329,14 +1329,8 @@ namespace MXNET_CHECK {
         FreeUpMemory () {
             /* Clean memory: */ {
                 NDArray::WaitAll();
-                //
-                delete
-                    exe
-                ; //
-                delete
-                    opt
-                ; //
-                //
+                delete exe ;
+                delete opt ;
                 NDArray::WaitAll();
             }
             MXNotifyShutdown();
@@ -1364,7 +1358,8 @@ namespace MXNET_CHECK {
             }
         }
         //
-        inline void Start () {
+        inline void
+        Start () {
             WriteParams () ;
         }
         //

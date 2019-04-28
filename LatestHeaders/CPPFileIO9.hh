@@ -1018,7 +1018,7 @@ _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Eqt,=)
             //
             //asd;
             //
-            inline TYPE_SELF
+            inline TYPE_SELF const
             operator * (
                 TYPE_DATA const
                     other

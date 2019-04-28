@@ -42,5 +42,5 @@
 //slave.Train();
 
 //MXNET_CHECK::MainNet::START();
-//MXNET_CHECK::MainNet::TRAIN();
-//printf("Back to main program...\n");
+MXNET_CHECK::MainNet::TRAIN();
+printf("Back to main program...\n");

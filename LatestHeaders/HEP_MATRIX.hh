@@ -1229,12 +1229,15 @@ public:
         auto k = PROPAGATOR (p) ;
         TYPE_MAIN_MATRIX ret =
             ZERO_MATRIX ()
+        ; /* Prepare the matrix: */ {
+            ret[0][0] = -1 ;
+            ret[1][1] =  1 ;
+            ret[2][2] =  1 ;
+            ret[3][3] =  1 ;
+        }
+        return
+            MULTIPLY (ret,k)
         ; //
-        ret[0][0] = -1 ;
-        ret[1][1] =  1 ;
-        ret[2][2] =  1 ;
-        ret[3][3] =  1 ;
-        return MULTIPLY (ret,k) ;
     }
 ////////////////////////////////////////////////////////////////
     //
@@ -1295,6 +1298,47 @@ public:
         ;
     }
     //
+    static inline TYPE_LOOP_RESULTS const
+    MULTIPLY (
+        TYPE_LOOP_RESULTS const &
+            a ,
+        TYPE_COMPLEX_DATA const &
+            b
+    ) {
+        TYPE_LOOP_RESULTS
+            ret
+        ;
+        for(size_t i=0;i<ret.SIZE();i++){
+            ret[i] =
+                a[i] * b
+            ; //
+        }
+        return
+            ret
+        ;
+    }
+    //
+    static inline TYPE_LOOP_RESULTS const
+    MULTIPLY (
+        TYPE_LOOP_RESULTS const &
+            a ,
+        TYPE_DATA const &
+            b
+    ) {
+        TYPE_LOOP_RESULTS
+            ret
+        ;
+        for(size_t i=0;i<ret.SIZE();i++){
+            ret[i] =
+                a[i] *
+                TYPE_COMPLEX_DATA(b,0.0)
+            ; //
+        }
+        return
+            ret
+        ;
+    }
+    //
     static inline TYPE_LOOP_RESULTS constexpr
     DIMENSION () {
         TYPE_LOOP_RESULTS
@@ -1328,9 +1372,179 @@ public:
     ; //
     //
     static inline TYPE_LOOP_RESULTS constexpr
-    QCDLoop_R_GAMMA () {
+    ZERO_LOOP () {
         TYPE_LOOP_RESULTS
             ret
+        ; /* Put the identity: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    IDENTITY_LOOP () {
+        auto ret =
+            ZERO_LOOP()
+        ; /* Put the identity: */ {
+            ret[INTERPRET_EPSILON(0)] =
+                TYPE_COMPLEX_DATA(1,0)
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    EPSILON_LOOP () {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Put the identity: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            ret[INTERPRET_EPSILON(1)] =
+                TYPE_COMPLEX_DATA(1,0)
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    EPSILON_2_LOOP () {
+        TYPE_LOOP_RESULTS
+            ret
+        ; /* Put the identity: */ {
+            ret =
+                TYPE_COMPLEX_DATA(0,0)
+            ; //
+            ret[INTERPRET_EPSILON(2)] =
+                TYPE_COMPLEX_DATA(1,0)
+            ; //
+        }
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    INV_EPS_HAT () {
+        auto ret =
+            ZERO_LOOP ()
+        ; //
+        ret[INTERPRET_EPSILON(-1)] =
+            TYPE_COMPLEX_DATA(1.0,0.0)
+        ; //
+        ret[INTERPRET_EPSILON(0)] =
+            TYPE_COMPLEX_DATA(
+                std::log(4.0*PI()) - EULER_GAMMA(),
+                0.0
+            )
+        ; //
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    INV_EPS_HAT_SQR () {
+        return
+            MULTIPLY (
+                INV_EPS_HAT() ,
+                INV_EPS_HAT()
+            )
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    EPS_HAT () {
+        auto ret =
+            ZERO_LOOP ()
+        ; //
+        ret[INTERPRET_EPSILON(1)] =
+            TYPE_COMPLEX_DATA(1.0,0.0)
+        ; //
+        ret[INTERPRET_EPSILON(2)] =
+            TYPE_COMPLEX_DATA(
+                EULER_GAMMA() - std::log(4.0*PI()) ,
+                0.0
+            )
+        ; //
+        return
+            ret
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    EPS_HAT_SQR () {
+        return
+            MULTIPLY (
+                EPS_HAT() ,
+                EPS_HAT()
+            )
+        ; //
+    }
+    //
+    static inline TYPE_LOOP_RESULTS const
+    FROM_EPS_HAT (
+        TYPE_LOOP_RESULTS const &
+            in
+    ) {
+        auto term0 =
+            MULTIPLY (
+                INV_EPS_HAT_SQR() ,
+                in[INTERPRET_EPSILON(-2)]
+            )
+        ; //
+        auto term1 =
+            MULTIPLY (
+                INV_EPS_HAT() ,
+                in[INTERPRET_EPSILON(-1)]
+            )
+        ; //
+        auto term2 =
+            MULTIPLY (
+                IDENTITY_LOOP() ,
+                in[INTERPRET_EPSILON(0)]
+            )
+        ; //
+        auto term3 =
+            MULTIPLY (
+                EPS_HAT() ,
+                in[INTERPRET_EPSILON(1)]
+            )
+        ; //
+        auto term4 =
+            MULTIPLY (
+                EPS_HAT_SQR() ,
+                in[INTERPRET_EPSILON(2)]
+            )
+        ; //
+        TYPE_LOOP_RESULTS
+            ret
+        ; //
+        for(size_t i=0;i<ret.SIZE();i++){
+            ret[i] =
+                term0[i]+term1[i]+
+                term2[i]+term3[i]+
+                term4[i]
+            ; //
+        }
+        return
+            ret
+        ;
+    }
+    //
+    static inline TYPE_LOOP_RESULTS constexpr
+    QCDLoop_R_GAMMA () {
+        TYPE_LOOP_RESULTS
+            ret ;
         ; /* Evaluate the gamma factor: */ {
             ret =
                 TYPE_COMPLEX_DATA(0,0)
@@ -1349,7 +1563,7 @@ public:
             } else {
                 ret[INTERPRET_EPSILON(0)] =
                     TYPE_COMPLEX_DATA(1,0)
-                ;
+                ; //
             }
         }
         return
@@ -1357,33 +1571,33 @@ public:
         ; //
     }
     //
+    // Evaluate: K^(p1 + \epsilon p2)
     static inline TYPE_LOOP_RESULTS const
     DIM_EXP (
         TYPE_DATA const
-            K
-    ) {
+            K ,
+        long const
+            p1 = 4 ,
         TYPE_DATA const
-            lnk2 =
-                -2.0 *
-                std::log(K)
-        ;
+            p2 = -2
+    ) {
+        TYPE_DATA const T1 =
+            std::pow(K,p1)
+        ; //
+        TYPE_DATA const tmp =
+            std::log(K)*p2
+        ; //
         TYPE_LOOP_RESULTS
-            ret
-        ; /* Evaluate the return values: */ {
-            ret =
-                TYPE_COMPLEX_DATA(0,0)
+            ret = IDENTITY_LOOP()
+        ; /* Evaluate the values : */ {
+            ret[INTERPRET_EPSILON(0)] =
+                T1
             ; //
-            ret[INTERPRET_EPSILON(0)]     =
-                std::pow (K,4)
+            ret[INTERPRET_EPSILON(1)] =
+                T1 * tmp
             ; //
-            ret[INTERPRET_EPSILON(1)]     =
-                ret[INTERPRET_EPSILON(0)] *
-                lnk2
-            ; //
-            ret[INTERPRET_EPSILON(2)]     =
-                ret[INTERPRET_EPSILON(1)] *
-                lnk2                      /
-                2.0
+            ret[INTERPRET_EPSILON(2)] =
+                T1 * std::pow(tmp,2) / 2.0
             ; //
         }
         return
@@ -1394,24 +1608,28 @@ public:
     static inline TYPE_LOOP_RESULTS const
     GAMMA_FUNCTION (
         long const
-            i
+            i ,
+        TYPE_DATA const
+            j = 1.0
     ) {
         TYPE_LOOP_RESULTS
-            ret
+            ret = ZERO_LOOP ()
         ; /* Evaluate the return value: */ {
-            ret = TYPE_COMPLEX_DATA(0,0) ;
             if ( i > 0 ) {
                 ret[INTERPRET_EPSILON(0)] =
-                    TYPE_COMPLEX_DATA(FACTORIAL(i),0)
+                    TYPE_COMPLEX_DATA(
+                        FACTORIAL(i),
+                        0
+                    )
                 ;
             } else if ( i == 0 ) {
                 ret[INTERPRET_EPSILON(0)] =
                     -EULER_GAMMA()
                 ; //
                 ret[INTERPRET_EPSILON(-1)] =
-                    1
+                    1.0 / j
                 ; //
-            } else {
+            } else if ( i < 0 ) {
                 long      const n     = -i              ;
                 TYPE_DATA const fact  = FACTORIAL ( n ) ;
                 TYPE_DATA const Minux = MINUS_1   ( n ) ;
@@ -1421,7 +1639,7 @@ public:
                     term
                 ; //
                 ret[INTERPRET_EPSILON(-1)] =
-                    term
+                    term / j
                 ; //
             }
         }
@@ -1431,63 +1649,55 @@ public:
     }
     //
     static inline TYPE_LOOP_RESULTS constexpr
-    CONVERSION_FACTOR_C0 () {
-        auto ret =
-            QCDLoop_R_GAMMA ()
-        ; /* Evaluate the value: */ {
-            TYPE_DATA constexpr
-                tmp1 =
-                    std::sqrt(PI()) *
-                    2.0
-            ; //
-            MULTIPLY (
-                ret ,
+    CONVERSION_FACTOR_A0 () {
+        auto const
+            term1 =
+                QCDLoop_R_GAMMA ()
+        ; //
+        auto const
+            term2 =
                 DIM_EXP (
-                    1.0 / tmp1
+                    PI() , 2 ,
+                    -1.0
                 )
-            ) ;
-            TYPE_DATA constexpr
-                TRANS =
-                    1.0 / (
-                        16.0 *
-                        std::pow (PI(),2)
-                    )
-            ; //
-            ret *=
-                TYPE_COMPLEX_DATA
-                    ( TRANS , 0 )
-            ; //
-        }
+        ; //
+        auto const
+            term3 =
+                DIM_EXP (
+                    1.0/(2.0*PI()) ,
+                    4 , -2.0
+                )
+        ; //
+        //
         return
-            ret
+            MULTIPLY (
+                MULTIPLY (
+                    MULTIPLY (
+                        term1 , term2
+                    ) , term3
+                ) ,
+                TYPE_COMPLEX_DATA(-1.0,0)
+            )
         ; //
     }
     //
     static inline TYPE_LOOP_RESULTS constexpr
     CONVERSION_FACTOR_B0 () {
-        auto ret =
-            CONVERSION_FACTOR_C0()
-        ; //
-        ret *=
-            TYPE_COMPLEX_DATA
-                (0,-1)
-        ;
         return
-            ret
+            MULTIPLY (
+                CONVERSION_FACTOR_A0() ,
+                TYPE_COMPLEX_DATA (0.0,1.0)
+            )
         ; //
     }
     //
     static inline TYPE_LOOP_RESULTS constexpr
-    CONVERSION_FACTOR_A0 () {
-        auto ret =
-            CONVERSION_FACTOR_C0()
-        ; //
-        ret *=
-            TYPE_COMPLEX_DATA
-                (-1,0)
-        ;
+    CONVERSION_FACTOR_C0 () {
         return
-            ret
+            MULTIPLY (
+                CONVERSION_FACTOR_A0() ,
+                TYPE_COMPLEX_DATA (-1.0,0.0)
+            )
         ; //
     }
     //
@@ -1533,21 +1743,26 @@ public:
     //
     inline TYPE_LOOP_RESULTS
     LoopIntegral (
-        TYPE_DATA const m ,
-        TYPE_DATA const mu2 = 1.0
+        TYPE_DATA const
+            m ,
+        TYPE_DATA const
+            mu2 = 1.0
     ) {
-        //printf("BIG FAT WARNING... THIS FUNCTION HAS NOT BEEN TRANSLATED CORRECTLY...\n");
         auto ret =
             A0 (
-                m*m , mu2
+                m * m ,
+                mu2
             )
         ; //
         ret =
-            MULTIPLY (
-                ret ,
-                CONVERSION_FACTOR_A0()
-            )
+            FROM_EPS_HAT(ret)
         ; //
+        for(int i=-2;i<=2;i++){
+            ret[INTERPRET_EPSILON(i)] =
+                -ret[INTERPRET_EPSILON(i)] /
+                std::pow(4.0*PI(),2)
+            ; //
+        }
         return
             ret
         ; //
@@ -1555,8 +1770,10 @@ public:
     //
     inline TYPE_LOOP_RESULTS
     Approx_A0 (
-        TYPE_DATA const m ,
-        TYPE_DATA const mu2 = 1.0
+        TYPE_DATA const
+            m ,
+        TYPE_DATA const
+            mu2 = 1.0
     ) {
         auto original =
             LoopIntegral
@@ -1567,56 +1784,76 @@ public:
                 std::pow(m,2)
         ; //
         TYPE_LOOP_RESULTS
-            ret
+            ret = ZERO_LOOP ()
         ; /* Final value: */ {
-            auto const fact1 =
-                DIM_EXP (
-                    1.0 /
-                    (std::sqrt(PI())*2.0)
-                )
+            TYPE_LOOP_RESULTS const
+                term1 =
+                    MULTIPLY (
+                        DIM_EXP (
+                            1.0/(4.0*PI()) ,
+                            2              ,
+                            -1
+                        ) ,
+                        TYPE_COMPLEX_DATA(0,-1)
+                    )
             ; //
-            auto const fact2 =
-                fact1 *
-                (
-                    C_I() *
-                    TO_C(MINUS_1(1))
-                )
+            TYPE_LOOP_RESULTS const
+                term2 =
+                    MULTIPLY (
+                        term1 ,
+                        GAMMA_FUNCTION
+                            (-1,1.0)
+                    )
             ; //
-            auto const fact3 =
-                MULTIPLY (
-                    GAMMA_FUNCTION(-1) ,
-                    fact2
-                )
+            TYPE_LOOP_RESULTS const
+                term3 =
+                    MULTIPLY (
+                        term2 ,
+                        DIM_EXP (
+                            DELTA ,
+                            1,-1.0
+                        )
+                    )
             ; //
-            TYPE_LOOP_RESULTS
-                last
+            TYPE_LOOP_RESULTS const
+                term4 =
+                    MULTIPLY (
+                        term3 ,
+                        DIM_EXP
+                            (mu2,0,1.0)
+                    )
             ; //
-            last =
-                TYPE_COMPLEX_DATA(0,0)
-            ; //
-            last[INTERPRET_EPSILON(0)] =
-                DELTA
-            ; //
-            last[INTERPRET_EPSILON(1)] =
-                -DELTA * std::log(DELTA)
-            ; //
-            last[INTERPRET_EPSILON(2)] =
-                DELTA                       *
-                std::pow(std::log(DELTA),2) /
-                2.0
-            ; //
+            // Translating to my convention of 1 factor of i per propagator:
             ret =
-                MULTIPLY(fact3,last) * C_I()
+                MULTIPLY (
+                    term4 , C_I()
+                )
+            ; //
+        }
+        TYPE_LOOP_RESULTS
+            ret2 = ZERO_LOOP ()
+        ; /* Evaluate According to goto convention: */ {
+            ret2[INTERPRET_EPSILON(-1)] =
+                DELTA / (std::pow(4*PI(),2))
+            ; //
+            ret2[INTERPRET_EPSILON(0)]  =
+                -DELTA * (
+                    std::log (
+                        4.0*PI()*mu2/DELTA
+                    ) + 1.0 - EULER_GAMMA()
+                ) / (std::pow(4*PI(),2))
             ; //
         }
         for(long i=-2;i<=2;i++){
-            printf(
-                "DEBUG(%ld) : PESKIN(%e,%e) ; QCDLoops(%e,%e)\n",
-                i,
-                ret      [INTERPRET_EPSILON(i)] .real (),
-                ret      [INTERPRET_EPSILON(i)] .imag (),
-                original [INTERPRET_EPSILON(i)] .real (),
-                original [INTERPRET_EPSILON(i)] .imag ()
+            printf (
+                "DEBUG(%ld) : PESKIN(%e,%e) ; QCDLoops(%e,%e) ; GOTO(%e,%e)\n" ,
+                i                                        ,
+                ret      [INTERPRET_EPSILON(i)] .real () ,
+                ret      [INTERPRET_EPSILON(i)] .imag () ,
+                original [INTERPRET_EPSILON(i)] .real () ,
+                original [INTERPRET_EPSILON(i)] .imag () ,
+                ret2     [INTERPRET_EPSILON(i)] .real () ,
+                ret2     [INTERPRET_EPSILON(i)] .imag ()
             ) ; //
         }
         return
@@ -1679,10 +1916,8 @@ public:
         TYPE_DATA        const mu2 = 1.0
     ) {
         TYPE_DATA p =
-            std::sqrt (
-                NORM2(p2)
+            NORM2(p2)
                 .real()
-            )
         ; //
         auto ret =
             B0 (
@@ -1691,11 +1926,14 @@ public:
             )
         ; //
         ret =
-            MULTIPLY (
-                ret ,
-                CONVERSION_FACTOR_B0()
-            )
+            FROM_EPS_HAT(ret)
         ; //
+        for(int i=-2;i<=2;i++){
+            ret[INTERPRET_EPSILON(i)] =
+                -ret[INTERPRET_EPSILON(i)] * C_I() /
+                std::pow(4.0*PI(),2)
+            ; //
+        }
         return
             ret
         ; //
@@ -1711,15 +1949,18 @@ public:
         auto ret =
             B0 (
                 m1*m1 , m2*m2 ,
-                p2    , mu2
+                p2*p2 , mu2
             )
         ; //
         ret =
-            MULTIPLY (
-                ret ,
-                CONVERSION_FACTOR_B0()
-            )
+            FROM_EPS_HAT(ret)
         ; //
+        for(int i=-2;i<=2;i++){
+            ret[INTERPRET_EPSILON(i)] =
+                -ret[INTERPRET_EPSILON(i)] * C_I() /
+                std::pow(4.0*PI(),2)
+            ; //
+        }
         return
             ret
         ; //
@@ -1818,11 +2059,15 @@ public:
             )
         ; //
         ret =
-            MULTIPLY (
-                ret ,
-                CONVERSION_FACTOR_C0()
-            )
+            FROM_EPS_HAT(ret)
         ; //
+        for(int i=-2;i<=2;i++){
+            ret[INTERPRET_EPSILON(i)] =
+                -ret[INTERPRET_EPSILON(i)]  *
+                TYPE_COMPLEX_DATA(-1.0,0.0) /
+                std::pow(4.0*PI(),2)
+            ; //
+        }
         return
             ret
         ; //
@@ -1833,98 +2078,19 @@ public:
         TYPE_DATA M ,
         TYPE_DATA m
     ) {
-        auto p1 =
-            GET_VECTOR
-                (-M/2.0,0,0,-M/2.0)
-        ; //
-        auto p2 =
-            GET_VECTOR
-                (-M/2.0,0,0,M/2.0)
-        ; //
-        auto q1 = p1 ;
-        auto q2 = p1 + p2 ;
-        auto original =
-            LoopIntegral
-                (m,m,m,q1,q2)
-        ; //
-        TYPE_DATA const
-            z =
-                (m*m) /
-                (M*M)
-        ; //
-        printf("Z = %e\n",z);
-        TYPE_DATA const
-            z4 = z * 4
-        ; //
-        TYPE_COMPLEX_DATA
-            tmpret
-        ;
-        if (z4>1) {
-            printf("4z > 1\n") ;
-            TYPE_DATA const
-                fact1 =
-                    -2.0 /
-                    std::pow(M,2)
-            ; //
-            TYPE_DATA const
-                fact2 =
-                    std::pow (
-                        std::atan (
-                            1.0 /
-                            std::sqrt(z4-1.0)
-                        ) ,
-                        2
-                    )
-            ; //
-            tmpret =
-                fact1 *
-                fact2
-            ;
-        }
-        else if (z4<1) {
-            printf("4z < 1\n") ;
-            TYPE_DATA const
-                fact1 =
-                    1.0 / (
-                        std::pow(M,2) *
-                        2.0
-                    )
-            ; //
-            TYPE_DATA const
-                tmp2 =
-                    std::sqrt (
-                        1.0 - z4
-                    )
-            ; //
-            TYPE_DATA const
-                fact2 =
-                    ( 1.0 + tmp2 ) /
-                    ( 1.0 - tmp2 )
-            ; //
-            tmpret =
-                std::pow (
-                    TYPE_COMPLEX_DATA (
-                        std::log(fact2) ,
-                        -PI()
-                    ) ,
-                    2
-                ) *
-                fact1
-            ; //
-        }
         TYPE_LOOP_RESULTS
             ret
-        ;
-        ret[INTERPRET_EPSILON(0)] =
-            tmpret
         ; //
-        printf (
-            "COMPARE: (%e,%e) ; (%e,%e)\n",
-            tmpret.real()                         ,
-            tmpret.imag()                         ,
-            original[INTERPRET_EPSILON(0)].real() ,
-            original[INTERPRET_EPSILON(0)].imag()
-        ) ;
+        auto p1 =
+            GET_VECTOR (
+                M/2.0,M/2.0,0,0
+            )
+        ; //
+        auto p2 =
+            GET_VECTOR (
+                M/2.0,-M/2.0,0,0
+            )
+        ; //
         return
             ret
         ; //

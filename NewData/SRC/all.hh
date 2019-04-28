@@ -2046,10 +2046,19 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
-                    ROC_ELEMENT tmp () ;
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    //Hists.Fill<0>( std::sqrt(Reader(j)) );
                     Hists.Fill<0>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
             /* QCD TEST */ if(true) {
                 sprintf (
@@ -2063,10 +2072,19 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
-                    printf("debug: %e\n",Reader(j));
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    //Hists.Fill<2>(std::sqrt(Reader(j)));
                     Hists.Fill<2>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
             /* TOP TRAIN */ if(true) {
                 sprintf (
@@ -2080,9 +2098,19 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    //Hists.Fill<1>(std::sqrt(Reader(j)));
                     Hists.Fill<1>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
             /* TOP TEST */ if(true) {
                 sprintf (
@@ -2096,10 +2124,19 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
-                    printf("debug: %e\n",Reader(j));
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    //Hists.Fill<3>(std::sqrt(Reader(j)));
                     Hists.Fill<3>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
         }
     }
