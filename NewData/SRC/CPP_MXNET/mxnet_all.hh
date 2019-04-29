@@ -1278,7 +1278,7 @@ namespace MXNET_CHECK {
                         ("adam")
                 ; //
                 opt
-                    ->SetParam ( "lr"           , 0.001     )
+                    ->SetParam ( "lr"           , 0.0001    )
                     ->SetParam ( "beta1"        , 0.9       )
                     ->SetParam ( "beta2"        , 0.99      )
                     ->SetParam ( "epsilon"      , 0.0000001 )
