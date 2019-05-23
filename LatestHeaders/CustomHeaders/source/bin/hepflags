@@ -1,0 +1,8 @@
+#!/bin/bash
+'root-config' '--libs' '--glibs' '--evelibs' '--cflags' '--ldflags' '--auxlibs' '--auxcflags'
+'fastjet-config' '--cxxflags' '--libs'
+'pythia8-config' '--cxxflags' '--ldflags' '--libs'
+'lhapdf-config' '--libs' '--cflags'
+'echo' '-lDelphes -lHepMC'
+'echo' '/usr/local/lib/libEnergyCorrelator.a  /usr/local/lib/libNsubjettiness.a'
+exit '0'

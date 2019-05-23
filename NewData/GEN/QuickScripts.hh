@@ -1,1 +1,1 @@
-../SRC/QuickScripts.hh
+./QuickScriptsNormal/QuickScripts.hh

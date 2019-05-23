@@ -1,6 +1,14 @@
-#include "cblas.h"
-#include "pcg.hh"
-#include "CPPFileIO9.hh"
+//#include "cblas.h"
+#include "./CPPFileIO/main.hh"
+//#include "pcg.hh"
+#include <sys/timeb.h>
+#include "CPPFileIO10.hh"
+
+inline void ShowTime() {
+    timeb tp ;
+    ftime(&tp);
+    printf("time = %ld\n",tp.time);
+}
 
 using namespace Tensors::NN ;
 template <size_t BatchSize>
@@ -240,22 +248,32 @@ public:
         TYPE_DATA small = 0.00001 ;
         auto * tmp = GET () ;
         for (size_t j=0;j<10;j++) {
+            printf("Starting...");
+            ShowTime();
             tmp->train_grad
                 (small)
             ; //
+            printf("Done...");
+            ShowTime();
         }
         for (size_t j=0;j<count;j++) {
+
             for (size_t i=0;i<20;i++) {
+                printf("Starting...");
+                ShowTime();
 //                tmp->constrain
 //                    (small)
 //                ; //
                 tmp->train_grad
                     (small)
                 ; //
+                printf("Done...");
+                ShowTime();
             }
             printf("Writing...\n");
             tmp->write();
             printf("Wrote...\n");
+
         }
         for (size_t j=0;j<count;j++) {
             for (size_t i=0;i<20;i++) {

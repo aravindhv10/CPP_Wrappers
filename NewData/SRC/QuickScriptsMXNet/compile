@@ -1,0 +1,16 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+
+'g++' \
+'-I../../include' \
+'-I../../3rdparty/tvm/nnvm/include' \
+'-I../../3rdparty/dmlc-core/include' \
+'-I../include' \
+'-o' "${OUT}.exe" "${1}" \
+$('root-config' '--libs' '--glibs' '--evelibs' '--cflags' '--ldflags' '--auxlibs' '--auxcflags') \
+$('fastjet-config' '--cxxflags' '--libs') \
+$('pythia8-config' '--cxxflags' '--ldflags' '--libs') \
+$('lhapdf-config' '--libs' '--cflags') \
+$('echo' '-lDelphes -lHepMC') '-L../../lib' '-lmxnet'
+
+exit '0'

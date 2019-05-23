@@ -1,0 +1,18 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+('rm' '-rf' './install');
+('./install_dependencies');
+('./everything');
+'mkdir' './install' '/usr/local'
+cd './install'
+('indexer');
+('indexer');
+('indexer');
+('indexer');
+('indexer');
+('indexer');
+('indexer');
+('indexer');
+cd '../'
+('./installscript');
+exit '0'

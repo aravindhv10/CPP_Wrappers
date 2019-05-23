@@ -1,0 +1,13 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'ln' '-vfs' '--' './Full/g++' './'
+cd './Full/'
+'g++' './g++.cc' '-o' './g++'
+'../compile' './g++'
+'../compile' './gcc'
+'../compile' './gfortran'
+cd '../OnluHDD/'
+'../compile' './g++'
+'../compile' './gcc'
+'../compile' './gfortran'
+exit '0'

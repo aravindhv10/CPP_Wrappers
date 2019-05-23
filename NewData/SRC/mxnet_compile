@@ -1,0 +1,4 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+'hepgcc' "${1}" '-I../../include' '-I../../3rdparty/tvm/nnvm/include' '-I../../3rdparty/dmlc-core/include' '-I../include'  '-L../../lib' '-lmxnet' '-o' "${OUT}.exe"
+exit '0'

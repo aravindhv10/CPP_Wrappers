@@ -1,4 +1,0 @@
-The autoencoder found here is far simpler (though it achieves almost the performance we got with a much more complicated one)
-and hence trains much faster... (sadly, donot have a GPU...)
-Need to run "./SRC/MXNET/TRAIN.py" atleast twice after creating the parameters file by running "./SRC/MXNET/START.py"
-This is a new project to study supervised learning with our jet image formation technique...

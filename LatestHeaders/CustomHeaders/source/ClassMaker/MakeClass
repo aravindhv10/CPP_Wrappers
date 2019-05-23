@@ -1,0 +1,7 @@
+#!/bin/bash
+OUTNAME="$('echo' "$('basename' "${1}")" | 'sed' 's@\.root$@@g' )"
+'MakeClassProducer'  "${1}" "${OUTNAME}"
+'MakeClassProcessor' "${OUTNAME}.C"
+'MakeClassProcessor' "${OUTNAME}.h"
+'MakeClassHeader'    "${OUTNAME}"
+exit '0'

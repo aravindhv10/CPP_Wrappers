@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+'mkdir' '-pv' '--' './bin'
+'g++' '-Ofast' '-static' "${OUT}.cc" '-o' "./bin/${OUT}"
+exit '0'

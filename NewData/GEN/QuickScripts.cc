@@ -1,1 +1,1 @@
-../SRC/QuickScripts.cc
+./QuickScriptsNormal/QuickScripts.cc

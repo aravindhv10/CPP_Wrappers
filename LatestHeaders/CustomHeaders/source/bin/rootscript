@@ -1,0 +1,10 @@
+#!/bin/bash
+'tail' '-n' '+7' "${0}" | 'sed' "s@###NUM###@${1}@g" | 'root' '-l'
+'sed' ' s@#ifndef OutReader_h@@g ; s@#define OutReader_h@@g ; s@#endif@@g ; s@#ifdef OutReader_cxx@@g ; s@#include <TROOT.h>@@g ; s@#include <TChain.h>@@g ; s@#include <TFile.h>@@g ; s@#include "TClonesArray.h"@@g ; s@#include "TObject.h"@@g ; s@#include "classes/DelphesClasses.h"@@g ' '-i' './OutReader.h'
+OUT="$('echo' "${1}" | 'sed' 's@\.root$@@g')"
+( 'mv' '-vf' 'OutReader.C' "${OUT}.C" ; 'mv' '-vf' 'OutReader.h' "${OUT}.h" )
+exit '0'
+gSystem->Load("/usr/local/lib/libDelphes.so");
+TFile f0("###NUM###");
+TTree * tree = (TTree*) f0.Get("Delphes");
+tree->MakeClass("OutReader");

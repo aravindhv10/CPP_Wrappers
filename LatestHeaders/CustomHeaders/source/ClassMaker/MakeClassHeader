@@ -1,0 +1,20 @@
+#!/bin/bash
+(
+ 'echo' '#include "TH2.h"' ;
+ 'echo' '#include "TStyle.h"' ;
+ 'echo' '#include "TCanvas.h"' ;
+ 'echo' '#include "TROOT.h"' ;
+ 'echo' '#include "TChain.h"' ;
+ 'echo' '#include "TFile.h"' ;
+ 'echo' '#include "TClonesArray.h"' ;
+ 'echo' '#include "TObject.h"' ;
+ 'echo' '#include "classes/DelphesClasses.h"' ;
+) > "unite.hh"
+'echo' "namespace data${1} {" >> "${1}.hh"
+'grep' "const Int_t kMax" "${1}.h" | 'sed' 's@//*@@g' >> "${1}.hh"
+'sed' 's@^ *const Int_t kMax@// const Int_t kMax@g' "${1}.h" '-i'
+'echo' "#include \"${1}.C\"" >> "${1}.hh"
+'echo' "}" >> "${1}.hh"
+exit '0'
+
+

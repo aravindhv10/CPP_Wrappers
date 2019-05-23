@@ -1,4 +1,8 @@
 #!/bin/bash
 OUT="$('echo' "${1}" | 'sed' 's@\.cc$@\.exe@g')"
-'g++' '-mtune=native' '-march=native' '-Ofast' "${1}" 'libopenblas.a' '-lpthread' '-lgomp' '-o' "${OUT}"
+#'g++' '-mtune=native' '-march=native' '-Ofast' "${1}" 'libopenblas.a' '-lpthread' '-lgomp' '-o' "${OUT}"
+#'g++'                  '-mtune=native' '-march=native' '-Ofast' "${1}" 'libblas.a' '-lpthread' '-lgomp' '-o' "${OUT}"
+#'g++'                  '-mtune=native' '-march=native' '-Ofast' "${1}" 'libblas.a' '-lpthread' '-lgomp' '-o' "${OUT}"
+#'g++'                  '-mtune=native' '-march=native' '-Ofast' '-ftemplate-depth=500'  "${1}" '-o' "${OUT}"
+'clang++' '-std=c++14' '-mtune=native' '-march=native' '-Ofast' "${1}" 'libblas.a' '-lpthread' '-lgomp' '-o' "${OUT}"
 exit '0'

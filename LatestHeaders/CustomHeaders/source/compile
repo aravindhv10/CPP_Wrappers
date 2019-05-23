@@ -1,0 +1,4 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+'g++' '-Ofast' '-static' "${1}" '-o' "${OUT}"
+exit '0'

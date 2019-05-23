@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,landscape]{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage{float}
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -8,8 +8,9 @@
 \usepackage{fontenc}
 \usepackage{graphicx}
 \usepackage{ucs}
+\usepackage{enumitem}
 \usepackage[utf8]{inputenc}
-\usepackage[left=1.00cm, right=1.00cm, top=1.00cm, bottom=2.00cm]{geometry}
+\usepackage[left=1.00in, right=1.00in, top=1.00in, bottom=1.00in]{geometry}
 \usepackage{makeidx}
 \usepackage{multicol}
 \usepackage{pst-all}
@@ -18,19 +19,32 @@
 \usepackage{upgreek}
 \usepackage[USenglish]{babel}
 \usepackage[ref,nobreak]{cite}
+\usepackage{setspace}
 \usepackage{xcolor}
 \usepackage{cancel}
 \usepackage{listings}
-\usepackage[colorlinks=true,pagebackref=true,breaklinks=true]{hyperref}
+%\usepackage[colorlinks=true,pagebackref=true,breaklinks=true]{hyperref}
+\usepackage{hyperref}
 
 
 \newcommand {\hsm}          {\ensuremath{H_{\text{SM}}}}
 \newcommand {\chh}          {\ensuremath{H^{\pm}}}
+\newcommand {\ZZ}           {\ensuremath{\mathbb{Z}_{2}}}
+\newcommand {\mch}          {\ensuremath{m_{{H}^{\pm}}}}
 \newcommand {\ttbar}        {\ensuremath{t \bar{t}}}
 \newcommand {\ttbarbbbar}   {\ensuremath{t \bar{t} b \bar{b}}}
 \newcommand {\signalgbth}   {\ensuremath{g b \rightarrow t \chh}}
 \newcommand {\signalggtbh}  {\ensuremath{g g \rightarrow t b \chh}}
 \newcommand {\nmssmtools}   {\tt NMSSMTools-5.0.0}
+
+\newcommand {\Dcthb}        {\ensuremath{ {t} \rightarrow {{H}^{+}} {b} }}
+\newcommand {\Brthb}        {\ensuremath{ \text{Br} \left( {\Dcthb} \right) }}
+
+\newcommand {\Dchtanu}      {\ensuremath{ {{H}^{+}} \rightarrow {\tau}^{+} \nu_{\tau} }}
+\newcommand {\Brhtanu}   {\ensuremath{ \text{Br} \left( {\Dchtanu} \right) }}
+
+\newcommand {\Dchtb}        {\ensuremath{ {{H}^{+}} \rightarrow {t} \bar{b} }}
+\newcommand {\Brhtb}        {\ensuremath{ \text{Br} \left( {\Dchtb} \right) }}
 
 \newcommand {\pythia}       {{\tt PYTHIA8-8.2.26} \cite{Sjostrand:2006za}}
 \newcommand {\pyth}         {\tt PYTHIA8}
@@ -54,12 +68,12 @@
 \definecolor{mPurple}{rgb}{0.58,0,0.82}
 \definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
 
-\definecolor{mred}{rgb}{0.5,0.0,0.0}
-\definecolor{mgreen}{rgb}{0.0,0.5,0.0}
-\definecolor{mblue}{rgb}{0.0,0.0,0.5}
-\definecolor{myellow}{rgb}{0.5,0.5,0.0}
-\definecolor{mpink}{rgb}{0.5,0.0,0.5}
-\definecolor{mcyan}{rgb}{0.0,0.5,0.5}
+\definecolor{mred}{rgb}{0.4,0.0,0.0}
+\definecolor{mgreen}{rgb}{0.0,0.4,0.0}
+\definecolor{mblue}{rgb}{0.0,0.0,0.4}
+\definecolor{myellow}{rgb}{0.4,0.4,0.0}
+\definecolor{mpink}{rgb}{0.4,0.0,0.4}
+\definecolor{mcyan}{rgb}{0.0,0.4,0.4}
 \definecolor{mblack}{rgb}{0.0,0.0,0.0}
 
 \lstdefinestyle{CStyle}{
@@ -81,3 +95,9 @@
 	tabsize=2,
 	language=C
 }
+
+\hypersetup{pagebackref=true,pdfpagemode=FullScreen,colorlinks=true,linkcolor=mblue,anchorcolor=mgreen,citecolor=mred,filecolor=myellow,menucolor=mcyan,runcolor=mcyan,urlcolor=mpink}
+\onehalfspacing
+
+\setlength{\parskip}{0.3cm}
+\setlength{\parindent}{0cm}

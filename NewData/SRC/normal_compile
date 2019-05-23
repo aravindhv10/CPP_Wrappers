@@ -1,0 +1,4 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+'hepgcc' "${1}" '-o' "${OUT}.exe"
+exit '0'

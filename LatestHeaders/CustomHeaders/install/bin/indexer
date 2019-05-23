@@ -1,0 +1,5 @@
+#!/bin/bash
+'mkdir' '-pv' '--' './list'
+DIR="$('basename' '--'  "$(cd '../'&&'/bin/pwd')")"
+'find' '.' > "list/${DIR}"
+exit '0'

@@ -1,0 +1,12 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'rm' '-rf' '--' './build'
+'cp' '-apf' '--' './source' './build'
+'cp' './everything' './build'
+cd './build'
+'configopts' './everything' | 'tr' '\n' ' ' | '/bin/bash'
+'make' '-j4'
+'make' '-j4' 'install'
+exit '0'
+#@!	'./configure'	!@#
+#@!	"--prefix=$(cd '../'&&'/bin/pwd')/install"	!@#

@@ -1,5 +1,5 @@
 #!/bin/bash
 cd "$('dirname' '--' "${0}")"
 './compile' 'QuickScript.cc'
-'./QuickScript.exe'
+time './QuickScript.exe'
 exit '0'
