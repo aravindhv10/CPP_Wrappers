@@ -934,12 +934,12 @@ namespace NewHEPHeaders /* Fastjet easy jet cluster: */ {
 		; //
 
 		using InputArrayType =
-			Tensors::NN::N2D_ARRAY
+			Tensors::Array::N2D_ARRAY
 				<N,N,TYPE_DATA>
 		; //
 
 		using FlatArrayType =
-			Tensors::NN::ND_ARRAY <
+			Tensors::Array::ND_ARRAY <
 				InputArrayType::SIZE(),
 				TYPE_DATA
 			>

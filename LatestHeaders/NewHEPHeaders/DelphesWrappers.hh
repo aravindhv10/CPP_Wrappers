@@ -9,6 +9,7 @@
 #include "TObject.h"
 #include "classes/DelphesClasses.h"
 namespace NewHEPHeaders /* The Delphes part: */ {
+
     template <typename T> class DelphesReader : public T {
     public:
         typedef DelphesReader<T> TYPE_Self ;
@@ -28,6 +29,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
             }
         }
     } ;
+
     template < typename TR=double, typename TI=int >
     class DelphesVectorsList : public std::vector <VECTORS::DelphesVectors<TR,TI>> {
     public:
@@ -141,6 +143,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
             }
         }
     } ;
+
     template < typename TR=double, typename TI=int >
     class FullDelphesReader : public DelphesVectorsList <TR,TI> {
     public:
@@ -161,4 +164,5 @@ namespace NewHEPHeaders /* The Delphes part: */ {
             }
         }
     } ;
+
 }

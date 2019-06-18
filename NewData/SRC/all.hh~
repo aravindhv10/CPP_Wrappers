@@ -1,5 +1,5 @@
 #define USE_ALL
-#include "./LatestHeaders/NewHEPHeaders10.hh"
+#include "./LatestHeaders/NewHEPHeaders/main.hh"
 #include "./HEPTopTagger/main.hh"
 ////////////////////////////////////////////////////////////////
 namespace NoBoost {
@@ -679,11 +679,11 @@ namespace MISC {
 			<TYPE_DATA>
 	; //
 	using TYPE_NSub =
-		Tensors::NN::ND_ARRAY
+		Tensors::Array::ND_ARRAY
 			<5,TYPE_DATA>
 	; //
 	using TYPE_PREDICT =
-		Tensors::NN::ND_ARRAY <
+		Tensors::Array::ND_ARRAY <
 			ImageResolution*ImageResolution,
 			TYPE_DATA
 		>
@@ -1227,6 +1227,70 @@ namespace MISC {
         //
     } ;
     //
+    class Plot2D_1 {
+    public:
+        //
+        using FileReader =
+            CPPFileIO::FullFileReader
+                <imagetype>
+        ; //
+        //
+        std::string histname ;
+        //
+        TH2F Hist ;
+        //
+        inline void
+        operator () (
+            std::string filename
+        ) {
+            FileReader reader (filename) ;
+
+            for (size_t i=0;(i<reader())&&(i<1);i++) {
+                TYPE_DATA sum = 0 ;
+                for (size_t y=0;y<ImageResolution;y++)
+                for (size_t x=0;x<ImageResolution;x++) {
+                    Hist.Fill (
+                        x , y ,
+                        reader(i)
+                            .Image[y][x]
+                    ) ; //
+                    sum +=
+                        reader(i)
+                            .Image[y][x]
+                    ; //
+                }
+                //printf("DEBUG: %e\n",sum);
+            }
+        }
+        //
+        Plot2D_1 (
+            std::string filename
+        ) :
+        Hist (
+            &(filename[0]) ,
+            &(filename[0]) ,
+            ImageResolution , 0 , ImageResolution ,
+            ImageResolution , 0 , ImageResolution
+        ) { histname = filename ; }
+        //
+        ~Plot2D_1(){
+            mkdir("./OUTS/",0755);
+            mkdir("./OUTS/GRAPHS/",0755);
+            std::string outfilename("./OUTS/GRAPHS/");
+            outfilename =
+                outfilename +
+                histname +
+                ".pdf"
+            ; //
+            TCanvas C;
+            Hist.Draw("colz");
+            C.SaveAs(
+                &(outfilename[0])
+            );
+        }
+        //
+    } ;
+    //
     class ROC_ELEMENT {
     public:
         //
@@ -1632,6 +1696,43 @@ namespace STEP1_GENERATION {
 
 	}
 
+
+	inline void
+	PlotImages_1 () {
+
+		/* TRAIN */ if(true) {
+
+			/* NORMAL */ {
+				Plot2D_1
+					tmp("QCD_TRAIN_IMAGES_1")
+				; /* Record the file names: */ {
+					tmp("./OUTS/QCD/TRAIN/0/image");
+				}
+			}
+
+			/* UNBOOSTED */ {
+				Plot2D_1
+					tmp("QCD_TRAIN_IMAGES_UNBOOSTED_1")
+				; /* Record the file names: */ {
+					tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
+				}
+			}
+
+			/* NOGRAMSCHMIDT */ {
+				Plot2D_1
+					tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT_1")
+				; /* Record the file names: */ {
+					tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
+				}
+			}
+
+		}
+
+	}
+
+
+
+
     inline void
     PlotNsub () {
         //
@@ -1944,11 +2045,12 @@ namespace STEP2_GENERATEWBS {
         }
     }
     //
-    inline void
-    PlotImages () {
-        //
-        /* TRAIN */ if(true) {
-            /* NORMAL */ {
+	inline void
+	PlotImages () {
+
+		/* TRAIN */ if(true) {
+
+            /* NORMAL */ if(true) {
                 Plot2D tmp("WBS_TRAIN_IMAGES");
                 tmp("./OUTS/WBS/TRAIN/0/image");
                 tmp("./OUTS/WBS/TRAIN/1/image");
@@ -1959,23 +2061,74 @@ namespace STEP2_GENERATEWBS {
                 tmp("./OUTS/WBS/TRAIN/6/image");
                 tmp("./OUTS/WBS/TRAIN/7/image");
             }
+
+			/* UNBOOSTED */ if(true) {
+				Plot2D tmp("WBS_TRAIN_IMAGES_UNBOOSTED");
+				tmp("./OUTS/WBS/TRAIN/0/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/1/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/2/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/3/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/4/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/5/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/6/UnBoostedimage");
+				tmp("./OUTS/WBS/TRAIN/7/UnBoostedimage");
+			}
+
+			/* NOGRAMSCHMIDT */ if(true) {
+				Plot2D tmp("WBS_TRAIN_IMAGES_NOGRAMSCHMIDT");
+				tmp("./OUTS/WBS/TRAIN/0/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/1/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/2/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/3/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/4/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/5/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/6/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TRAIN/7/NoGramSchmidtImageType");
+			}
+
         }
-        //
-        /* TEST */ if(true) {
-            /* NORMAL */ {
-                Plot2D tmp("WBS_TEST_IMAGES");
-                tmp("./OUTS/WBS/TEST/0/image");
-                tmp("./OUTS/WBS/TEST/1/image");
-                tmp("./OUTS/WBS/TEST/2/image");
-                tmp("./OUTS/WBS/TEST/3/image");
-                tmp("./OUTS/WBS/TEST/4/image");
-                tmp("./OUTS/WBS/TEST/5/image");
-                tmp("./OUTS/WBS/TEST/6/image");
-                tmp("./OUTS/WBS/TEST/7/image");
-            }
-        }
-        //
-    }
+
+		/* TEST */ if(true) {
+
+			/* NORMAL */ if(true) {
+				Plot2D tmp("WBS_TEST_IMAGES");
+				tmp("./OUTS/WBS/TEST/0/image");
+				tmp("./OUTS/WBS/TEST/1/image");
+				tmp("./OUTS/WBS/TEST/2/image");
+				tmp("./OUTS/WBS/TEST/3/image");
+				tmp("./OUTS/WBS/TEST/4/image");
+				tmp("./OUTS/WBS/TEST/5/image");
+				tmp("./OUTS/WBS/TEST/6/image");
+				tmp("./OUTS/WBS/TEST/7/image");
+			}
+
+			/* UNBOOSTED */ if(true) {
+				Plot2D tmp("WBS_TEST_IMAGES_UNBOOSTED");
+				tmp("./OUTS/WBS/TEST/0/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/1/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/2/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/3/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/4/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/5/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/6/UnBoostedimage");
+				tmp("./OUTS/WBS/TEST/7/UnBoostedimage");
+			}
+
+			/* NOGRAMSCHMIDT */ if(true) {
+				Plot2D tmp("WBS_TEST_IMAGES_NOGRAMSCHMIDT");
+				tmp("./OUTS/WBS/TEST/0/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/1/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/2/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/3/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/4/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/5/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/6/NoGramSchmidtImageType");
+				tmp("./OUTS/WBS/TEST/7/NoGramSchmidtImageType");
+			}
+
+		}
+
+	}
     //
     inline void
     PlotNsub () {
@@ -2457,35 +2610,90 @@ namespace STEP3_GENERATETOP {
         }
     }
     //
-    inline void
-    PlotImages () {
-        /* TRAIN */ if(true) {
-            /* NORMAL */ {
-                Plot2D tmp("TOP_TRAIN_IMAGES");
-                tmp("./OUTS/TOP/TRAIN/0/image");
-                tmp("./OUTS/TOP/TRAIN/1/image");
-                tmp("./OUTS/TOP/TRAIN/2/image");
-                tmp("./OUTS/TOP/TRAIN/3/image");
-                tmp("./OUTS/TOP/TRAIN/4/image");
-                tmp("./OUTS/TOP/TRAIN/5/image");
-                tmp("./OUTS/TOP/TRAIN/6/image");
-                tmp("./OUTS/TOP/TRAIN/7/image");
-            }
-        }
-        /* TEST */ if(true) {
-            /* NORMAL */ {
-                Plot2D tmp("TOP_TEST_IMAGES");
-                tmp("./OUTS/TOP/TEST/0/image");
-                tmp("./OUTS/TOP/TEST/1/image");
-                tmp("./OUTS/TOP/TEST/2/image");
-                tmp("./OUTS/TOP/TEST/3/image");
-                tmp("./OUTS/TOP/TEST/4/image");
-                tmp("./OUTS/TOP/TEST/5/image");
-                tmp("./OUTS/TOP/TEST/6/image");
-                tmp("./OUTS/TOP/TEST/7/image");
-            }
-        }
-    }
+	inline void
+	PlotImages () {
+
+		if(true) /* TRAIN */ {
+
+			if(true) /* NORMAL */ {
+				Plot2D tmp("TOP_TRAIN_IMAGES");
+				tmp("./OUTS/TOP/TRAIN/0/image");
+				tmp("./OUTS/TOP/TRAIN/1/image");
+				tmp("./OUTS/TOP/TRAIN/2/image");
+				tmp("./OUTS/TOP/TRAIN/3/image");
+				tmp("./OUTS/TOP/TRAIN/4/image");
+				tmp("./OUTS/TOP/TRAIN/5/image");
+				tmp("./OUTS/TOP/TRAIN/6/image");
+				tmp("./OUTS/TOP/TRAIN/7/image");
+			}
+
+			if(true) /* NOGRAMSCHMIDT */ {
+				Plot2D tmp("TOP_TRAIN_IMAGES_NOGRAMSCHMIDT");
+				tmp("./OUTS/TOP/TRAIN/0/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/1/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/2/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/3/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/4/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/5/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/6/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TRAIN/7/NoGramSchmidtImageType");
+			}
+
+			if(true) /* NOBOOST */ {
+				Plot2D tmp("TOP_TRAIN_IMAGES_NOBOOST");
+				tmp("./OUTS/TOP/TRAIN/0/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/1/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/2/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/3/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/4/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/5/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/6/UnBoostedimage");
+				tmp("./OUTS/TOP/TRAIN/7/UnBoostedimage");
+			}
+
+		}
+
+		if(true) /* TEST */ {
+
+			if(true) /* NORMAL */ {
+				Plot2D tmp("TOP_TEST_IMAGES");
+				tmp("./OUTS/TOP/TEST/0/image");
+				tmp("./OUTS/TOP/TEST/1/image");
+				tmp("./OUTS/TOP/TEST/2/image");
+				tmp("./OUTS/TOP/TEST/3/image");
+				tmp("./OUTS/TOP/TEST/4/image");
+				tmp("./OUTS/TOP/TEST/5/image");
+				tmp("./OUTS/TOP/TEST/6/image");
+				tmp("./OUTS/TOP/TEST/7/image");
+			}
+
+			if(true) /* NOGRAMSCHMIDT */ {
+				Plot2D tmp("TOP_TEST_IMAGES_NOGRAMSCHMIDT");
+				tmp("./OUTS/TOP/TEST/0/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/1/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/2/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/3/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/4/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/5/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/6/NoGramSchmidtImageType");
+				tmp("./OUTS/TOP/TEST/7/NoGramSchmidtImageType");
+			}
+
+			if(true) /* NOBOOST */ {
+				Plot2D tmp("TOP_TEST_IMAGES_NOBOOST");
+				tmp("./OUTS/TOP/TEST/0/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/1/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/2/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/3/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/4/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/5/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/6/UnBoostedimage");
+				tmp("./OUTS/TOP/TEST/7/UnBoostedimage");
+			}
+
+		}
+
+	}
     //
 }
 ////////////////////////////////////////////////////////////////
@@ -2502,8 +2710,8 @@ namespace STEP4_UNITEDATA {
     //
     inline void
     DataMixer (
-        std::string src1 ,
-        std::string src2 ,
+        std::string src1	,
+        std::string src2	,
         std::string dst
     ) {
         CPPFileIO::FileVector
@@ -3127,13 +3335,13 @@ namespace STEP6_PLOTLOSSES {
     //
 }
 ////////////////////////////////////////////////////////////////
-namespace STEP7_CNN_RESPONSE {
+namespace STEP7_CNN_RESPONSE_SUPERVISED_CLASSIFICATION {
     using namespace MISC ;
     //
     inline void
     Plotter () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3229,7 +3437,7 @@ namespace STEP7_CNN_RESPONSE {
     inline void
     PlotterDCGAN () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3325,7 +3533,7 @@ namespace STEP7_CNN_RESPONSE {
     inline void
     PlotterQCDWBS () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3441,7 +3649,7 @@ namespace STEP7_CNN_RESPONSE {
         background.Branch ( "cnnres" , & cnnres ) ;
         background.Branch ( "random" , & random ) ;
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ; //
         /* TEST: */ {
@@ -3620,4 +3828,391 @@ namespace STEP8_HTT_Compare {
             "./OUTS/ROC/HTT.txt"
         ) ; //
     }
+}
+////////////////////////////////////////////////////////////////
+namespace STEP9_CNN_AE_RESPONSE_PLOT {
+
+	using namespace
+		MISC
+	; //
+
+	class CNN_LOSS_ROC {
+	public:
+
+		using ROC_OUT_DATA =
+			Tensors::Array::ND_ARRAY
+			<2,TYPE_DATA>
+		;
+
+		using names =
+			std::vector <
+				std::string
+			>
+		;
+
+		static inline void
+		QCD_TRAIN_NAME_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/QCD/TRAIN/0/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/1/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/2/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/3/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/4/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/5/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/6/loss_cnn");
+			in.push_back("./OUTS/QCD/TRAIN/7/loss_cnn");
+		}
+
+		static inline void
+		QCD_TRAIN_VECTOR_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/QCD/TRAIN/0/vector");
+			in.push_back("./OUTS/QCD/TRAIN/1/vector");
+			in.push_back("./OUTS/QCD/TRAIN/2/vector");
+			in.push_back("./OUTS/QCD/TRAIN/3/vector");
+			in.push_back("./OUTS/QCD/TRAIN/4/vector");
+			in.push_back("./OUTS/QCD/TRAIN/5/vector");
+			in.push_back("./OUTS/QCD/TRAIN/6/vector");
+			in.push_back("./OUTS/QCD/TRAIN/7/vector");
+		}
+
+		static inline void
+		TOP_TRAIN_NAME_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/TOP/TRAIN/0/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/1/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/2/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/3/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/4/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/5/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/6/loss_cnn");
+			in.push_back("./OUTS/TOP/TRAIN/7/loss_cnn");
+		}
+
+		static inline void
+		TOP_TRAIN_VECTOR_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/TOP/TRAIN/0/vector");
+			in.push_back("./OUTS/TOP/TRAIN/1/vector");
+			in.push_back("./OUTS/TOP/TRAIN/2/vector");
+			in.push_back("./OUTS/TOP/TRAIN/3/vector");
+			in.push_back("./OUTS/TOP/TRAIN/4/vector");
+			in.push_back("./OUTS/TOP/TRAIN/5/vector");
+			in.push_back("./OUTS/TOP/TRAIN/6/vector");
+			in.push_back("./OUTS/TOP/TRAIN/7/vector");
+		}
+
+		static inline void
+		QCD_TEST_NAME_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/QCD/TEST/0/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/1/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/2/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/3/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/4/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/5/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/6/loss_cnn");
+			in.push_back("./OUTS/QCD/TEST/7/loss_cnn");
+		}
+
+		static inline void
+		QCD_TEST_VECTOR_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/QCD/TEST/0/vector");
+			in.push_back("./OUTS/QCD/TEST/1/vector");
+			in.push_back("./OUTS/QCD/TEST/2/vector");
+			in.push_back("./OUTS/QCD/TEST/3/vector");
+			in.push_back("./OUTS/QCD/TEST/4/vector");
+			in.push_back("./OUTS/QCD/TEST/5/vector");
+			in.push_back("./OUTS/QCD/TEST/6/vector");
+			in.push_back("./OUTS/QCD/TEST/7/vector");
+		}
+
+		static inline void
+		TOP_TEST_VECTOR_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/TOP/TEST/0/vector");
+			in.push_back("./OUTS/TOP/TEST/1/vector");
+			in.push_back("./OUTS/TOP/TEST/2/vector");
+			in.push_back("./OUTS/TOP/TEST/3/vector");
+			in.push_back("./OUTS/TOP/TEST/4/vector");
+			in.push_back("./OUTS/TOP/TEST/5/vector");
+			in.push_back("./OUTS/TOP/TEST/6/vector");
+			in.push_back("./OUTS/TOP/TEST/7/vector");
+		}
+
+		static inline void
+		TOP_TEST_NAME_LIST (
+			names & in
+		) {
+			in.clear();
+			in.push_back("./OUTS/TOP/TEST/0/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/1/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/2/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/3/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/4/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/5/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/6/loss_cnn");
+			in.push_back("./OUTS/TOP/TEST/7/loss_cnn");
+		}
+
+		inline void
+		StoreTOP () {
+			ROC_OUT_DATA Results ;
+			Results[0] = mass ;
+			Results[1] = loss ;
+			TOP_Writer.push_back(Results);
+			Hists.Fill<1>(loss);
+			signalTree->Fill();
+		}
+
+		inline void
+		StoreQCD () {
+			ROC_OUT_DATA Results ;
+			Results[0] = mass ;
+			Results[1] = loss ;
+			QCD_Writer.push_back(Results);
+			Hists.Fill<0>(loss);
+			background->Fill();
+		}
+
+		inline void
+		PLOT_QCD () {
+
+			names list , list2 ;
+			QCD_TEST_NAME_LIST		(list)	;
+			QCD_TEST_VECTOR_LIST	(list2)	;
+
+			for(size_t j=0;j<list.size();j++){
+
+				CPPFileIO::FullFileReader
+					<TYPE_DATA>
+					Reader (list[j])
+				; //
+
+				CPPFileIO::FullFileReader
+					<outvector4>
+					Reader2 (list2[j])
+				; //
+
+				size_t const min =
+					CPPFileIO::mymin (
+						Reader()	,
+						Reader2()
+					)
+				; //
+
+				for(size_t i=0;i<min;i++) {
+					loss = Reader(i) ;
+					mass = Reader2(i).m() ;
+					StoreQCD () ;
+				}
+
+			}
+
+		}
+
+		inline void
+		PLOT_TOP () {
+
+			names list , list2 ;
+			TOP_TEST_NAME_LIST		(list)	;
+			TOP_TEST_VECTOR_LIST	(list2)	;
+
+			for(size_t j=0;j<list.size();j++){
+
+				CPPFileIO::FullFileReader
+					<TYPE_DATA>
+					Reader (list[j])
+				; //
+
+				CPPFileIO::FullFileReader
+					<outvector4>
+					Reader2 (list2[j])
+				; //
+
+				size_t const min =
+					CPPFileIO::mymin (
+						Reader()	,
+						Reader2()
+					)
+				; //
+
+				for(size_t i=0;i<min;i++) {
+					loss = Reader(i) ;
+					mass = Reader2(i).m() ;
+					StoreTOP () ;
+				}
+
+			}
+		}
+
+
+		inline void
+		PLOT_QCD_TRAIN () {
+
+			names list , list2 ;
+			QCD_TRAIN_NAME_LIST		(list)	;
+			QCD_TRAIN_VECTOR_LIST	(list2)	;
+
+			for(size_t j=0;j<list.size();j++){
+
+				CPPFileIO::FullFileReader
+					<TYPE_DATA>
+					Reader (list[j])
+				; //
+
+				CPPFileIO::FullFileReader
+					<outvector4>
+					Reader2 (list2[j])
+				; //
+
+				size_t const min =
+					CPPFileIO::mymin (
+						Reader()	,
+						Reader2()
+					)
+				; //
+
+				for(size_t i=0;i<min;i++) {
+					loss = Reader(i) ;
+					mass = Reader2(i).m() ;
+					Hists.Fill<2>(loss);
+				}
+
+			}
+
+		}
+
+		inline void
+		PLOT_TOP_TRAIN () {
+
+			names list , list2 ;
+			TOP_TRAIN_NAME_LIST		(list)	;
+			TOP_TRAIN_VECTOR_LIST	(list2)	;
+
+			for(size_t j=0;j<list.size();j++){
+
+				CPPFileIO::FullFileReader
+					<TYPE_DATA>
+					Reader (list[j])
+				; //
+
+				CPPFileIO::FullFileReader
+					<outvector4>
+					Reader2 (list2[j])
+				; //
+
+				size_t const min =
+					CPPFileIO::mymin (
+						Reader()	,
+						Reader2()
+					)
+				; //
+
+				for(size_t i=0;i<min;i++) {
+					loss = Reader(i) ;
+					mass = Reader2(i).m() ;
+					Hists.Fill<3>(loss);
+				}
+
+			}
+
+		}
+
+
+		CNN_LOSS_ROC () :
+		Hists ("Losses",100,-0.01,1.01) ,
+		QCD_Writer ("./OUTS/ROC/QCD_CNN_DATA") ,
+		TOP_Writer ("./OUTS/ROC/TOP_CNN_DATA") {
+
+			/* Prepare the directories: */ {
+				mkdir("./OUTS/",0755);
+				mkdir("./OUTS/TMP/",0755);
+				mkdir("./OUTS/TMP/tmva/",0755);
+			}
+
+			/* PREPARE ROOT FILE: */ {
+				Outfile =
+					new TFile (
+						"./OUTS/TMP/tmva/CNN_LOSS_NORMAL.root",
+						"RECREATE"
+					)
+				;
+			}
+
+			/* PREPARE BACKGROUND TREE: */ {
+				background =
+					new TTree (
+						"TreeB",
+						"TreeB"
+					)
+				;
+				background->Branch ( "mass" , & mass ) ;
+				background->Branch ( "loss" , & loss ) ;
+			}
+
+			/* PREPARE SIGNAL TREE: */ {
+				signalTree =
+					new TTree (
+						"TreeS",
+						"TreeS"
+					)
+				;
+
+				signalTree->Branch ( "mass" , & mass ) ;
+				signalTree->Branch ( "loss" , & loss ) ;
+			}
+
+			PLOT_QCD();
+			PLOT_TOP();
+			PLOT_QCD_TRAIN();
+			PLOT_TOP_TRAIN();
+
+		}
+
+		~CNN_LOSS_ROC(){
+			signalTree->Write()	;
+			background->Write()	;
+			delete signalTree	;
+			delete background	;
+			delete Outfile		;
+		}
+
+		MyHistN <4,true>
+			Hists
+		; //
+
+		TFile *	Outfile		;
+		TTree *	signalTree	;
+        TTree *	background	;
+		float	loss		;
+		float	mass		;
+
+		CPPFileIO::FileVector
+		<ROC_OUT_DATA>
+			QCD_Writer	,
+			TOP_Writer
+		;
+
+		static inline void
+		WORK ()
+		{ CNN_LOSS_ROC tmp ; }
+
+	} ;
+
 }

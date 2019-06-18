@@ -1,0 +1,4 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
+'hepgcc' "${1}" '-o' "${OUT}.exe" '-lc10' '-lcaffe2_detectron_ops' '-lcaffe2_module_test_dynamic' '-lcaffe2' '-lfoxi' '-lonnxifi' '-ltorch' '-lpthread'
+exit '0'

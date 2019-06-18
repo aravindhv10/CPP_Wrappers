@@ -1,8 +1,8 @@
-STEP1_GENERATION::Generate_Test();
-STEP1_GENERATION::Generate_Train();
-STEP3_GENERATETOP::Generate_Test_Top();
-STEP3_GENERATETOP::Generate_Train_Top();
-STEP1_GENERATION::PlotImages();
+//STEP1_GENERATION::Generate_Test();
+//STEP1_GENERATION::Generate_Train();
+//STEP3_GENERATETOP::Generate_Test_Top();
+//STEP3_GENERATETOP::Generate_Train_Top();
+//STEP1_GENERATION::PlotImages_1();
 //STEP1_GENERATION::PlotNsub();
 
 //STEP3_GENERATETOP::Generate_Test_Top();
@@ -46,3 +46,5 @@ STEP1_GENERATION::PlotImages();
 //MXNET_CHECK::MainNet::START();
 //MXNET_CHECK::MainNet::TRAIN();
 //printf("Back to main program...\n");
+
+STEP9_CNN_AE_RESPONSE_PLOT::CNN_LOSS_ROC::WORK();

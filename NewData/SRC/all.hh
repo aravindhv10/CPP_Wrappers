@@ -1,701 +1,701 @@
 #define USE_ALL
-#include "./LatestHeaders/NewHEPHeaders10.hh"
+#include "./LatestHeaders/NewHEPHeaders/main.hh"
 #include "./HEPTopTagger/main.hh"
 ////////////////////////////////////////////////////////////////
 namespace NoBoost {
 
-	template <
-		size_t		N	,
-		typename	Tf	=	float
-	> class BoxImageGen {
-	public:
-		//
-		using TYPE_DATA =
-			Tf
-		;
-		//
-		using vector4  =
-			fastjet::PseudoJet
-		; //
-		//
-		using vector4s =
-			std::vector
-				<fastjet::PseudoJet>
-		; //
-		//
-		TYPE_DATA Image[N][N] ;
-		//
-		static inline double
-		norm4 (
-			vector4 const &
-				a
-		) {
-			double ret =
-				(a[3]*a[3]) -
-				(a[2]*a[2]) -
-				(a[1]*a[1]) -
-				(a[0]*a[0])
-			;
-			return
-				sqrt(ret)
-			; //
-		}
-		//
-		static inline double
-		norm3 (
-			vector4 const &
-				a
-		) {
-			double ret =
-				(a[2]*a[2]) +
-				(a[1]*a[1]) +
-				(a[0]*a[0])
-			;
-			return
-				sqrt(ret)
-			; //
-		}
-		//
-		static inline double
-		dot3 (
-			vector4 const & a ,
-			vector4 const & b
-		) {
-			return
-				(a[0]*b[0]) +
-				(a[1]*b[1]) +
-				(a[2]*b[2])
-			; //
-		}
-		//
-		static inline double
-		dot4 (
-			vector4 const & a ,
-			vector4 const & b
-		) {
-			return
-				(a[3]*b[3]) -
-				dot3(a,b)
-			; //
-		}
-		//
-		inline void ZeroImage () {
-			for(size_t x=0;x<N;x++){
-				for(size_t y=0;y<N;y++){
-					Image[x][y] = 0.0 ;
-				}
-			}
-		}
-		//
-		inline void
-		Rescale2Box (
-			double & X ,
-			double & Y
-		) {
-			double ScalingFactor =
-				(
-					CPPFileIO::mymod(X) +
-					CPPFileIO::mymod(Y)
-				) /
-				sqrt (
-					(X*X) +
-					(Y*Y)
-				)
-			;
-			X *= ScalingFactor ;
-			Y *= ScalingFactor ;
-		}
-		//
-		inline bool Eval (
-			vector4s	const	& 	invectors
-		) {
-			if(invectors.size()>2){
-				ZeroImage();
-				fastjet::JetAlgorithm algo =
-					fastjet::kt_algorithm
-				; //
-				fastjet::JetDefinition
-					jet_def (
-						algo ,
-						100.0
-					)
-				; //
-				fastjet::ClusterSequence
-					clust_seq (
-						invectors ,
-						jet_def
-					)
-				; //
-				vector4s basis =
-					fastjet::sorted_by_pt (
-						clust_seq.exclusive_jets (3)
-					)
-				; //
-				if(basis.size()>2){
-					vector4
-						eZ, eY, eX
-					; //
-					eZ =
-						basis[0] +
-						basis[1] +
-						basis[2]
-					; //
-					const double EJ =
-						eZ[3]
-					; /* Orthonormalize the basis: */ {
-						eZ /=
-							norm3 (eZ)
-						; //
-						eX =
-							basis[0] -
-							(eZ*dot3(basis[0],eZ))
-						; //
-						eX /=
-							norm3 (eX)
-						; //
-						eY =
-							basis[1] -
-							(eZ*dot3(basis[1],eZ)) -
-							(eX*dot3(basis[1],eX))
-						; //
-						eY /=
-							norm3 (eY)
-						; //
-					}
-					for(
-						size_t i=0;
-						i<invectors.size();
-						i++
-					) {
-						double
-							cX	,	cY	,	eI
-						; /* Evaluate the values: */ {
-							vector4 tmp =
-								invectors[i]
-							; //
-							eI = tmp[3] ;
-							/* Evaluate the projections: */ {
-								double pX =
-									dot3 (tmp,eX)
-								; //
-								double pY =
-									dot3 (tmp,eY)
-								; //
-								cX = pX / eI ;
-								cY = pY / eI ;
-							}
-							/* Rescale to get a box: */ {
-								Rescale2Box(cX,cY);
-							}
-						} /* Evaluate the bins: */ {
-							size_t N_X =
-								static_cast<size_t>(
-									static_cast<double>(N) *
-									(cX+1.0) / 2.0
-								)
-							; //
-							size_t N_Y =
-								static_cast<size_t>(
-									static_cast<double>(N) *
-									(cY+1.0) / 2.0
-								)
-							; //
-							if(N_X>=N){N_X=N-1;}
-							if(N_Y>=N){N_Y=N-1;}
-							Image[N_Y][N_X] +=
-								eI / EJ
-							; //
-						}
-					}
+    template <
+        size_t		N	,
+        typename	Tf	=	float
+    > class BoxImageGen {
+    public:
+        //
+        using TYPE_DATA =
+            Tf
+        ;
+        //
+        using vector4  =
+            fastjet::PseudoJet
+        ; //
+        //
+        using vector4s =
+            std::vector
+                <fastjet::PseudoJet>
+        ; //
+        //
+        TYPE_DATA Image[N][N] ;
+        //
+        static inline double
+        norm4 (
+            vector4 const &
+                a
+        ) {
+            double ret =
+                (a[3]*a[3]) -
+                (a[2]*a[2]) -
+                (a[1]*a[1]) -
+                (a[0]*a[0])
+            ;
+            return
+                sqrt(ret)
+            ; //
+        }
+        //
+        static inline double
+        norm3 (
+            vector4 const &
+                a
+        ) {
+            double ret =
+                (a[2]*a[2]) +
+                (a[1]*a[1]) +
+                (a[0]*a[0])
+            ;
+            return
+                sqrt(ret)
+            ; //
+        }
+        //
+        static inline double
+        dot3 (
+            vector4 const & a ,
+            vector4 const & b
+        ) {
+            return
+                (a[0]*b[0]) +
+                (a[1]*b[1]) +
+                (a[2]*b[2])
+            ; //
+        }
+        //
+        static inline double
+        dot4 (
+            vector4 const & a ,
+            vector4 const & b
+        ) {
+            return
+                (a[3]*b[3]) -
+                dot3(a,b)
+            ; //
+        }
+        //
+        inline void ZeroImage () {
+            for(size_t x=0;x<N;x++){
+                for(size_t y=0;y<N;y++){
+                    Image[x][y] = 0.0 ;
+                }
+            }
+        }
+        //
+        inline void
+        Rescale2Box (
+            double & X ,
+            double & Y
+        ) {
+            double ScalingFactor =
+                (
+                    CPPFileIO::mymod(X) +
+                    CPPFileIO::mymod(Y)
+                ) /
+                sqrt (
+                    (X*X) +
+                    (Y*Y)
+                )
+            ;
+            X *= ScalingFactor ;
+            Y *= ScalingFactor ;
+        }
+        //
+        inline bool Eval (
+            vector4s	const	& 	invectors
+        ) {
+            if(invectors.size()>2){
+                ZeroImage();
+                fastjet::JetAlgorithm algo =
+                    fastjet::kt_algorithm
+                ; //
+                fastjet::JetDefinition
+                    jet_def (
+                        algo ,
+                        100.0
+                    )
+                ; //
+                fastjet::ClusterSequence
+                    clust_seq (
+                        invectors ,
+                        jet_def
+                    )
+                ; //
+                vector4s basis =
+                    fastjet::sorted_by_pt (
+                        clust_seq.exclusive_jets (3)
+                    )
+                ; //
+                if(basis.size()>2){
+                    vector4
+                        eZ, eY, eX
+                    ; //
+                    eZ =
+                        basis[0] +
+                        basis[1] +
+                        basis[2]
+                    ; //
+                    const double EJ =
+                        eZ[3]
+                    ; /* Orthonormalize the basis: */ {
+                        eZ /=
+                            norm3 (eZ)
+                        ; //
+                        eX =
+                            basis[0] -
+                            (eZ*dot3(basis[0],eZ))
+                        ; //
+                        eX /=
+                            norm3 (eX)
+                        ; //
+                        eY =
+                            basis[1] -
+                            (eZ*dot3(basis[1],eZ)) -
+                            (eX*dot3(basis[1],eX))
+                        ; //
+                        eY /=
+                            norm3 (eY)
+                        ; //
+                    }
+                    for(
+                        size_t i=0;
+                        i<invectors.size();
+                        i++
+                    ) {
+                        double
+                            cX	,	cY	,	eI
+                        ; /* Evaluate the values: */ {
+                            vector4 tmp =
+                                invectors[i]
+                            ; //
+                            eI = tmp[3] ;
+                            /* Evaluate the projections: */ {
+                                double pX =
+                                    dot3 (tmp,eX)
+                                ; //
+                                double pY =
+                                    dot3 (tmp,eY)
+                                ; //
+                                cX = pX / eI ;
+                                cY = pY / eI ;
+                            }
+                            /* Rescale to get a box: */ {
+                                Rescale2Box(cX,cY);
+                            }
+                        } /* Evaluate the bins: */ {
+                            size_t N_X =
+                                static_cast<size_t>(
+                                    static_cast<double>(N) *
+                                    (cX+1.0) / 2.0
+                                )
+                            ; //
+                            size_t N_Y =
+                                static_cast<size_t>(
+                                    static_cast<double>(N) *
+                                    (cY+1.0) / 2.0
+                                )
+                            ; //
+                            if(N_X>=N){N_X=N-1;}
+                            if(N_Y>=N){N_Y=N-1;}
+                            Image[N_Y][N_X] +=
+                                eI / EJ
+                            ; //
+                        }
+                    }
 
-					if(false){
-						double sum = 0 ;
-						for(size_t x=0;x<N;x++)
-						for(size_t y=0;y<N;y++){
-							sum += Image[y][x] ;
-						}
-						printf("The Norm of the image: %e\n",sum);
-					}
+                    if(false){
+                        double sum = 0 ;
+                        for(size_t x=0;x<N;x++)
+                        for(size_t y=0;y<N;y++){
+                            sum += Image[y][x] ;
+                        }
+                        printf("The Norm of the image: %e\n",sum);
+                    }
 
-					return true;
-				}
-				else{return false;}
-			}
-			else{return false;}
-		}
-		//
-		inline bool
-		operator () (
-			vector4s const &
-				invectors
-		) {
-			return
-				Eval (
-					invectors
-				)
-			; //
-		}
-		//
-		BoxImageGen (
-			vector4s const &
-				invectors
-		) {
-			Eval(invectors);
-		}
-		//
-		BoxImageGen(){}
-		//
-		~BoxImageGen(){}
-		//
-	} ;
+                    return true;
+                }
+                else{return false;}
+            }
+            else{return false;}
+        }
+        //
+        inline bool
+        operator () (
+            vector4s const &
+                invectors
+        ) {
+            return
+                Eval (
+                    invectors
+                )
+            ; //
+        }
+        //
+        BoxImageGen (
+            vector4s const &
+                invectors
+        ) {
+            Eval(invectors);
+        }
+        //
+        BoxImageGen(){}
+        //
+        ~BoxImageGen(){}
+        //
+    } ;
 
 }
 ////////////////////////////////////////////////////////////////
 namespace NoGramSchmidt {
 
-	template <
-		size_t 		N 				,
-		typename	Tf		= float	,
-		bool		boxify	= true
-	> class BoxImageGen {
-	public:
-		//
-		using TYPE_DATA =
-			Tf
-		; //
-		using vector4  =
-			fastjet::PseudoJet
-		; //
-		using vector4s =
-			std::vector
-				<fastjet::PseudoJet>
-		; //
-		//
-		TYPE_DATA
-			Image[N][N]
-		; //
-		//
-		static inline double
-		norm4 (
-			vector4 const &
-				a
-		) {
-			double ret =
-				(a[3]*a[3]) -
-				(a[2]*a[2]) -
-				(a[1]*a[1]) -
-				(a[0]*a[0])
-			;
-			return
-				sqrt(ret)
-			; //
-		} //
+    template <
+        size_t 		N 				,
+        typename	Tf		= float	,
+        bool		boxify	= true
+    > class BoxImageGen {
+    public:
+        //
+        using TYPE_DATA =
+            Tf
+        ; //
+        using vector4  =
+            fastjet::PseudoJet
+        ; //
+        using vector4s =
+            std::vector
+                <fastjet::PseudoJet>
+        ; //
+        //
+        TYPE_DATA
+            Image[N][N]
+        ; //
+        //
+        static inline double
+        norm4 (
+            vector4 const &
+                a
+        ) {
+            double ret =
+                (a[3]*a[3]) -
+                (a[2]*a[2]) -
+                (a[1]*a[1]) -
+                (a[0]*a[0])
+            ;
+            return
+                sqrt(ret)
+            ; //
+        } //
 
-		static inline double
-		norm3 (
-			vector4 const &
-				a
-		) {
-			double ret =
-				(a[2]*a[2]) +
-				(a[1]*a[1]) +
-				(a[0]*a[0])
-			;
-			return
-				sqrt(ret)
-			; //
-		} //
+        static inline double
+        norm3 (
+            vector4 const &
+                a
+        ) {
+            double ret =
+                (a[2]*a[2]) +
+                (a[1]*a[1]) +
+                (a[0]*a[0])
+            ;
+            return
+                sqrt(ret)
+            ; //
+        } //
 
-		static inline double
-		dot3 (
-			vector4 const & a ,
-			vector4 const & b
-		) {
-			return
-				(a[0]*b[0]) +
-				(a[1]*b[1]) +
-				(a[2]*b[2])
-			; //
-		} //
+        static inline double
+        dot3 (
+            vector4 const & a ,
+            vector4 const & b
+        ) {
+            return
+                (a[0]*b[0]) +
+                (a[1]*b[1]) +
+                (a[2]*b[2])
+            ; //
+        } //
 
-		static inline double
-		dot4 (
-			vector4 const & a ,
-			vector4 const & b
-		) {
-			return
-				(a[3]*b[3]) -
-				dot3(a,b)
-			; //
-		} //
+        static inline double
+        dot4 (
+            vector4 const & a ,
+            vector4 const & b
+        ) {
+            return
+                (a[3]*b[3]) -
+                dot3(a,b)
+            ; //
+        } //
 
-		inline void
-		ZeroImage () {
-			for(size_t x=0;x<N;x++){
-				for(size_t y=0;y<N;y++){
-					Image[x][y] = 0.0 ;
-				}
-			}
-		} //
+        inline void
+        ZeroImage () {
+            for(size_t x=0;x<N;x++){
+                for(size_t y=0;y<N;y++){
+                    Image[x][y] = 0.0 ;
+                }
+            }
+        } //
 
-		inline void
-		Rescale2Box (
-			double & X ,
-			double & Y
-		) {
-			double ScalingFactor =
-				(
-					CPPFileIO::mymod(X) +
-					CPPFileIO::mymod(Y)
-				) /
-				sqrt (
-					(X*X) +
-					(Y*Y)
-				)
-			;
-			X *= ScalingFactor ;
-			Y *= ScalingFactor ;
-		} //
+        inline void
+        Rescale2Box (
+            double & X ,
+            double & Y
+        ) {
+            double ScalingFactor =
+                (
+                    CPPFileIO::mymod(X) +
+                    CPPFileIO::mymod(Y)
+                ) /
+                sqrt (
+                    (X*X) +
+                    (Y*Y)
+                )
+            ;
+            X *= ScalingFactor ;
+            Y *= ScalingFactor ;
+        } //
 
-		inline vector4
-		OrthoNormalize (
-			vector4	&	V1	,
-			vector4	&	V2	,
-			vector4	&	V3
-		) {
-			vector4 ret =
-				V1 + V2 + V3
-			; /* Prepare the basis vectors: */ {
-				vector4 X (1,0,0,1) ;
-				vector4 Y (0,1,0,1) ;
-				vector4 B[3] =
-					{ ret , X , Y }
-				; //
-				/* The 1st basis vector: */ {
-					B[0] /=
-						norm3 (B[0])
-					; //
-					V1 = B[0] ;
-				}
-				/* The 2nd Basis Vector: */ {
-					B[1] = B[1]
-						- ( B[0] * dot3(B[0],B[1]) )
-					; //
-					B[1] /=
-						norm3 (B[1])
-					; //
-					V2 = B[1] ;
-				}
-				/* The 3rd Basis Vector: */ {
-					B[2] = B[2]
-						- ( B[1] * dot3(B[2],B[1]) )
-						- ( B[0] * dot3(B[2],B[0]) )
-					; //
-					B[2] /=
-						norm3 (B[2])
-					; //
-					V3 = B[2] ;
-				}
-			}
-			return
-				ret
-			; //
-		}
+        inline vector4
+        OrthoNormalize (
+            vector4	&	V1	,
+            vector4	&	V2	,
+            vector4	&	V3
+        ) {
+            vector4 ret =
+                V1 + V2 + V3
+            ; /* Prepare the basis vectors: */ {
+                vector4 X (1,0,0,1) ;
+                vector4 Y (0,1,0,1) ;
+                vector4 B[3] =
+                    { ret , X , Y }
+                ; //
+                /* The 1st basis vector: */ {
+                    B[0] /=
+                        norm3 (B[0])
+                    ; //
+                    V1 = B[0] ;
+                }
+                /* The 2nd Basis Vector: */ {
+                    B[1] = B[1]
+                        - ( B[0] * dot3(B[0],B[1]) )
+                    ; //
+                    B[1] /=
+                        norm3 (B[1])
+                    ; //
+                    V2 = B[1] ;
+                }
+                /* The 3rd Basis Vector: */ {
+                    B[2] = B[2]
+                        - ( B[1] * dot3(B[2],B[1]) )
+                        - ( B[0] * dot3(B[2],B[0]) )
+                    ; //
+                    B[2] /=
+                        norm3 (B[2])
+                    ; //
+                    V3 = B[2] ;
+                }
+            }
+            return
+                ret
+            ; //
+        }
 
-		inline bool
-		Eval (
-			vector4s const &
-				invectors  ,
-			double const
-				M0 = 0.5
-		) {
-			if(invectors.size()>2){
+        inline bool
+        Eval (
+            vector4s const &
+                invectors  ,
+            double const
+                M0 = 0.5
+        ) {
+            if(invectors.size()>2){
 
-				ZeroImage();
+                ZeroImage();
 
-				const double E0 =
-					1.0
-				; //
-				const double P0 =
-					sqrt(
-						(E0*E0) -
-						(M0*M0)
-					)
-				; //
+                const double E0 =
+                    1.0
+                ; //
+                const double P0 =
+                    sqrt(
+                        (E0*E0) -
+                        (M0*M0)
+                    )
+                ; //
 
-				fastjet::JetAlgorithm algo =
-					fastjet::kt_algorithm
-				; //
-				fastjet::JetDefinition
-					jet_def (
-						algo ,
-						100.0
-					)
-				; //
-				fastjet::ClusterSequence
-					clust_seq (
-						invectors ,
-						jet_def
-					)
-				; //
-				vector4s basis =
-					fastjet::sorted_by_pt (
-						clust_seq.exclusive_jets (3)
-					)
-				; //
+                fastjet::JetAlgorithm algo =
+                    fastjet::kt_algorithm
+                ; //
+                fastjet::JetDefinition
+                    jet_def (
+                        algo ,
+                        100.0
+                    )
+                ; //
+                fastjet::ClusterSequence
+                    clust_seq (
+                        invectors ,
+                        jet_def
+                    )
+                ; //
+                vector4s basis =
+                    fastjet::sorted_by_pt (
+                        clust_seq.exclusive_jets (3)
+                    )
+                ; //
 
-				if(basis.size()>2){
+                if(basis.size()>2){
 
-					vector4
-						eZ = basis[0] ,
-						eX = basis[1] ,
-						eY = basis[2]
-					; //
+                    vector4
+                        eZ = basis[0] ,
+                        eX = basis[1] ,
+                        eY = basis[2]
+                    ; //
 
-					vector4 const P_MU_J =
-						OrthoNormalize
-							(eZ,eX,eY)
-					;
+                    vector4 const P_MU_J =
+                        OrthoNormalize
+                            (eZ,eX,eY)
+                    ;
 
-					const double EJ =
-						P_MU_J[3]
-					; //
-					const double PJ =
-						norm3 (P_MU_J)
-					; //
-					const double MJ =
-						norm4 (P_MU_J)
-					; //
-					const double Factor =
-						(M0/MJ)
-					; //
+                    const double EJ =
+                        P_MU_J[3]
+                    ; //
+                    const double PJ =
+                        norm3 (P_MU_J)
+                    ; //
+                    const double MJ =
+                        norm4 (P_MU_J)
+                    ; //
+                    const double Factor =
+                        (M0/MJ)
+                    ; //
 
-					double GM =
-						( (EJ*E0) - (PJ*P0) ) /
-						(MJ*M0)
-					; //
-					if(GM<1.0000000001){
-						GM=1.0000000001;
-					}
+                    double GM =
+                        ( (EJ*E0) - (PJ*P0) ) /
+                        (MJ*M0)
+                    ; //
+                    if(GM<1.0000000001){
+                        GM=1.0000000001;
+                    }
 
-					double BT =
-						sqrt(
-							1.0 - (1.0/(GM*GM))
-						)
-					; //
-					if ((EJ/MJ)<(E0/M0)) {
-						BT = -BT ;
-					}
+                    double BT =
+                        sqrt(
+                            1.0 - (1.0/(GM*GM))
+                        )
+                    ; //
+                    if ((EJ/MJ)<(E0/M0)) {
+                        BT = -BT ;
+                    }
 
-					/* Orthonormalize the basis: */ if(false) {
-						eZ /=
-							norm3 (eZ)
-						; //
-						eX =
-							basis[0] -
-							(eZ*dot3(basis[0],eZ))
-						; //
-						eX /=
-							norm3 (eX)
-						; //
-						eY =
-							basis[1] -
-							(eZ*dot3(basis[1],eZ)) -
-							(eX*dot3(basis[1],eX))
-						; //
-						eY /=
-							norm3 (eY)
-						; //
-					}
+                    /* Orthonormalize the basis: */ if(false) {
+                        eZ /=
+                            norm3 (eZ)
+                        ; //
+                        eX =
+                            basis[0] -
+                            (eZ*dot3(basis[0],eZ))
+                        ; //
+                        eX /=
+                            norm3 (eX)
+                        ; //
+                        eY =
+                            basis[1] -
+                            (eZ*dot3(basis[1],eZ)) -
+                            (eX*dot3(basis[1],eX))
+                        ; //
+                        eY /=
+                            norm3 (eY)
+                        ; //
+                    }
 
-					if (false) {
-						auto newtmp =
-							sorted_by_E(invectors)
-						; //
-						eX =
-							newtmp[0] -
-							(eZ*dot3(newtmp[0],eZ))
-						; //
-						eX /=
-							norm3 (eX)
-						; //
-						eY =
-							newtmp[1] -
-							(eZ*dot3(newtmp[1],eZ)) -
-							(eX*dot3(newtmp[1],eX))
-						; //
-						eY /=
-							norm3 (eY)
-						; //
-					}
+                    if (false) {
+                        auto newtmp =
+                            sorted_by_E(invectors)
+                        ; //
+                        eX =
+                            newtmp[0] -
+                            (eZ*dot3(newtmp[0],eZ))
+                        ; //
+                        eX /=
+                            norm3 (eX)
+                        ; //
+                        eY =
+                            newtmp[1] -
+                            (eZ*dot3(newtmp[1],eZ)) -
+                            (eX*dot3(newtmp[1],eX))
+                        ; //
+                        eY /=
+                            norm3 (eY)
+                        ; //
+                    }
 
-					for(
-						size_t i=0;
-						i<invectors.size();
-						i++
-					) {
+                    for(
+                        size_t i=0;
+                        i<invectors.size();
+                        i++
+                    ) {
 
-						vector4 tmp =
-							invectors[i] *
-							Factor
-						; //
+                        vector4 tmp =
+                            invectors[i] *
+                            Factor
+                        ; //
 
-						double	cX	,	cY		;
-						double	eI	=	tmp[3]	;
+                        double	cX	,	cY		;
+                        double	eI	=	tmp[3]	;
 
-						/* Evaluate the components */ {
-							double	const	pX	=
-								dot3 (tmp,eX)
-							;
-							double	const	pY	=
-								dot3 (tmp,eY)
-							;
-							double	const	pZ	=
-								dot3 (tmp,eZ)
-							;
-							eI	=
-								GM * ( eI - (BT*pZ) )
-							;
-							cX	=
-								pX / eI
-							;
-							cY	=
-								pY / eI
-							;
-						}
+                        /* Evaluate the components */ {
+                            double	const	pX	=
+                                dot3 (tmp,eX)
+                            ;
+                            double	const	pY	=
+                                dot3 (tmp,eY)
+                            ;
+                            double	const	pZ	=
+                                dot3 (tmp,eZ)
+                            ;
+                            eI	=
+                                GM * ( eI - (BT*pZ) )
+                            ;
+                            cX	=
+                                pX / eI
+                            ;
+                            cY	=
+                                pY / eI
+                            ;
+                        }
 
-						/* Rescale to get a box: */ if (boxify) {
-							Rescale2Box(cX,cY);
-						}
+                        /* Rescale to get a box: */ if (boxify) {
+                            Rescale2Box(cX,cY);
+                        }
 
-						/* Rescale to get a box: */ if(false) {
-							double ScalingFactor =
-								(
-									CPPFileIO::mymod(cX) +
-									CPPFileIO::mymod(cY)
-								) /
-								sqrt (
-									(cX*cX) +
-									(cY*cY)
-								)
-							; //
-							cX *= ScalingFactor ;
-							cY *= ScalingFactor ;
-						}
+                        /* Rescale to get a box: */ if(false) {
+                            double ScalingFactor =
+                                (
+                                    CPPFileIO::mymod(cX) +
+                                    CPPFileIO::mymod(cY)
+                                ) /
+                                sqrt (
+                                    (cX*cX) +
+                                    (cY*cY)
+                                )
+                            ; //
+                            cX *= ScalingFactor ;
+                            cY *= ScalingFactor ;
+                        }
 
-						/* Fill the Bins: */ {
-							size_t N_X =
-								static_cast<size_t>(
-									static_cast<double>(N) *
-									(cX+1.0) / 2.0
-								)
-							; //
-							size_t N_Y =
-								static_cast<size_t>(
-									static_cast<double>(N) *
-									(cY+1.0) / 2.0
-								)
-							;
-							if(N_X>=N){N_X=N-1;}
-							if(N_Y>=N){N_Y=N-1;}
-							Image[N_Y][N_X] += eI ;
-						}
+                        /* Fill the Bins: */ {
+                            size_t N_X =
+                                static_cast<size_t>(
+                                    static_cast<double>(N) *
+                                    (cX+1.0) / 2.0
+                                )
+                            ; //
+                            size_t N_Y =
+                                static_cast<size_t>(
+                                    static_cast<double>(N) *
+                                    (cY+1.0) / 2.0
+                                )
+                            ;
+                            if(N_X>=N){N_X=N-1;}
+                            if(N_Y>=N){N_Y=N-1;}
+                            Image[N_Y][N_X] += eI ;
+                        }
 
-					}
-					return true;
-				}
-				else{return false;}
-			}
-			else{return false;}
-		}
-		//
-		inline bool
-		operator () (
-			vector4s const &
-				invectors  ,
-			double const
-				M0 = 0.5
-		) {
-			return
-				Eval (
-					invectors,
-					M0
-				)
-			; //
-		}
-		//
-		BoxImageGen (
-			vector4s const &
-				invectors  ,
-			double const
-				M0 = 0.5
-		) {
-			Eval(invectors,M0);
-		}
-		//
-		BoxImageGen(){}
-		//
-		~BoxImageGen(){}
-		//
-	} ;
+                    }
+                    return true;
+                }
+                else{return false;}
+            }
+            else{return false;}
+        }
+        //
+        inline bool
+        operator () (
+            vector4s const &
+                invectors  ,
+            double const
+                M0 = 0.5
+        ) {
+            return
+                Eval (
+                    invectors,
+                    M0
+                )
+            ; //
+        }
+        //
+        BoxImageGen (
+            vector4s const &
+                invectors  ,
+            double const
+                M0 = 0.5
+        ) {
+            Eval(invectors,M0);
+        }
+        //
+        BoxImageGen(){}
+        //
+        ~BoxImageGen(){}
+        //
+    } ;
 
 }
 ////////////////////////////////////////////////////////////////
 namespace MISC {
-	//
-	size_t constexpr
-		ImageResolution =
-			40
-	; //
-	using TYPE_DATA =
-		float
-	; //
-	using UnBoostedImageType =
-		NoBoost::BoxImageGen <
-			ImageResolution	,
-			TYPE_DATA
-		>
-	; //
-	using NoGramSchmidtImageType =
-		NoGramSchmidt::BoxImageGen <
-			ImageResolution	,
-			TYPE_DATA
-		>
-	; //
-	using imagetype =
-		NewHEPHeaders::BoxImageGen <
-			ImageResolution	,
-			TYPE_DATA
-		>
-	; //
-	using imagetypeflip =
-		NewHEPHeaders::ImageGenFlip <
-			ImageResolution	,
-			TYPE_DATA
-		>
-	; //
-	using outvector4 =
-		NewHEPHeaders::VECTORS::lorentz4vector
-			<TYPE_DATA>
-	; //
-	using TYPE_NSub =
-		Tensors::NN::ND_ARRAY
-			<5,TYPE_DATA>
-	; //
-	using TYPE_PREDICT =
-		Tensors::NN::ND_ARRAY <
-			ImageResolution*ImageResolution,
-			TYPE_DATA
-		>
-	; //
-	using vector4  =
-		fastjet::PseudoJet
-	; //
-	using vector4s =
-		std::vector
-			<fastjet::PseudoJet>
-	; //
-	//
+    //
+    size_t constexpr
+        ImageResolution =
+            40
+    ; //
+    using TYPE_DATA =
+        float
+    ; //
+    using UnBoostedImageType =
+        NoBoost::BoxImageGen <
+            ImageResolution	,
+            TYPE_DATA
+        >
+    ; //
+    using NoGramSchmidtImageType =
+        NoGramSchmidt::BoxImageGen <
+            ImageResolution	,
+            TYPE_DATA
+        >
+    ; //
+    using imagetype =
+        NewHEPHeaders::BoxImageGen <
+            ImageResolution	,
+            TYPE_DATA
+        >
+    ; //
+    using imagetypeflip =
+        NewHEPHeaders::ImageGenFlip <
+            ImageResolution	,
+            TYPE_DATA
+        >
+    ; //
+    using outvector4 =
+        NewHEPHeaders::VECTORS::lorentz4vector
+            <TYPE_DATA>
+    ; //
+    using TYPE_NSub =
+        Tensors::Array::ND_ARRAY
+            <5,TYPE_DATA>
+    ; //
+    using TYPE_PREDICT =
+        Tensors::Array::ND_ARRAY <
+            ImageResolution*ImageResolution,
+            TYPE_DATA
+        >
+    ; //
+    using vector4  =
+        fastjet::PseudoJet
+    ; //
+    using vector4s =
+        std::vector
+            <fastjet::PseudoJet>
+    ; //
+    //
     inline void
     Executor (
         std::string
@@ -1000,15 +1000,15 @@ namespace MISC {
                     (img)
                 ; //
             }
-			/* Evaluate NoGramSchmidt Image : */ {
-				NoGramSchmidtImageType img (
-					injet.constituents() ,
-					0.5
-				) ; //
-				NoGramSchmidtImageWriter.push_back
-					(img)
-				; //
-			}
+            /* Evaluate NoGramSchmidt Image : */ {
+                NoGramSchmidtImageType img (
+                    injet.constituents() ,
+                    0.5
+                ) ; //
+                NoGramSchmidtImageWriter.push_back
+                    (img)
+                ; //
+            }
             /* Write Top Tagged bool   : */ {
                 TopTagWriter.push_back(
                     CheckTopTag (
@@ -1078,6 +1078,9 @@ namespace MISC {
         bool logscale ;
     public:
         template <size_t Ii> inline void Fill (double a) { if (a>-90.0) {Hists[Ii]->Fill(a);} }
+
+        inline void Fill (double a,size_t Ii) { if (a>-90.0) {Hists[Ii]->Fill(a);} }
+
         inline void NormalizeHist (TH1F * inhist) { inhist->Scale(1.0/inhist->Integral()); inhist->SetLineWidth(3); }
         inline void DeleteAll () { for (size_t ii=0;ii<Num;ii++) { delete Hists[ii] ; } }
         inline void Write () {
@@ -1210,6 +1213,70 @@ namespace MISC {
         ) { histname = filename ; }
         //
         ~Plot2D(){
+            mkdir("./OUTS/",0755);
+            mkdir("./OUTS/GRAPHS/",0755);
+            std::string outfilename("./OUTS/GRAPHS/");
+            outfilename =
+                outfilename +
+                histname +
+                ".pdf"
+            ; //
+            TCanvas C;
+            Hist.Draw("colz");
+            C.SaveAs(
+                &(outfilename[0])
+            );
+        }
+        //
+    } ;
+    //
+    class Plot2D_1 {
+    public:
+        //
+        using FileReader =
+            CPPFileIO::FullFileReader
+                <imagetype>
+        ; //
+        //
+        std::string histname ;
+        //
+        TH2F Hist ;
+        //
+        inline void
+        operator () (
+            std::string filename
+        ) {
+            FileReader reader (filename) ;
+
+            for (size_t i=0;(i<reader())&&(i<1);i++) {
+                TYPE_DATA sum = 0 ;
+                for (size_t y=0;y<ImageResolution;y++)
+                for (size_t x=0;x<ImageResolution;x++) {
+                    Hist.Fill (
+                        x , y ,
+                        reader(i)
+                            .Image[y][x]
+                    ) ; //
+                    sum +=
+                        reader(i)
+                            .Image[y][x]
+                    ; //
+                }
+                //printf("DEBUG: %e\n",sum);
+            }
+        }
+        //
+        Plot2D_1 (
+            std::string filename
+        ) :
+        Hist (
+            &(filename[0]) ,
+            &(filename[0]) ,
+            ImageResolution , 0 , ImageResolution ,
+            ImageResolution , 0 , ImageResolution
+        ) { histname = filename ; }
+        //
+        ~Plot2D_1(){
             mkdir("./OUTS/",0755);
             mkdir("./OUTS/GRAPHS/",0755);
             std::string outfilename("./OUTS/GRAPHS/");
@@ -1365,7 +1432,7 @@ namespace STEP1_GENERATION {
         size_t      random_seed = 123    ,
         size_t      N_Events    = 100000
     ) {
-		CPPFileIO::SetCPUAffinity(index);
+        CPPFileIO::SetCPUAffinity(index);
         std::string prefixname ;
         /* Make the directories: */ {
             std::string dirname = "./OUTS/" ;
@@ -1387,8 +1454,8 @@ namespace STEP1_GENERATION {
             )
         ; //
         MyPythia
-			pythia
-		; /* Configure pythia: */ {
+            pythia
+        ; /* Configure pythia: */ {
             pythia.readString ( "Beams:eCM = 13000"         ) ;
             pythia.readString ( "PhaseSpace:pTHatMin = 750" ) ;
             pythia.readString ( "PhaseSpace:pTHatMax = 950" ) ;
@@ -1529,108 +1596,145 @@ namespace STEP1_GENERATION {
         }
     }
 
-	inline void
-	PlotImages () {
+    inline void
+    PlotImages () {
 
-		/* TRAIN */ if(true) {
+        /* TRAIN */ if(true) {
 
-			/* NORMAL */ {
-				Plot2D
-					tmp("QCD_TRAIN_IMAGES")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TRAIN/0/image");
-					tmp("./OUTS/QCD/TRAIN/1/image");
-					tmp("./OUTS/QCD/TRAIN/2/image");
-					tmp("./OUTS/QCD/TRAIN/3/image");
-					tmp("./OUTS/QCD/TRAIN/4/image");
-					tmp("./OUTS/QCD/TRAIN/5/image");
-					tmp("./OUTS/QCD/TRAIN/6/image");
-					tmp("./OUTS/QCD/TRAIN/7/image");
-				}
-			}
+            /* NORMAL */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/image");
+                    tmp("./OUTS/QCD/TRAIN/1/image");
+                    tmp("./OUTS/QCD/TRAIN/2/image");
+                    tmp("./OUTS/QCD/TRAIN/3/image");
+                    tmp("./OUTS/QCD/TRAIN/4/image");
+                    tmp("./OUTS/QCD/TRAIN/5/image");
+                    tmp("./OUTS/QCD/TRAIN/6/image");
+                    tmp("./OUTS/QCD/TRAIN/7/image");
+                }
+            }
 
-			/* UNBOOSTED */ {
-				Plot2D
-					tmp("QCD_TRAIN_IMAGES_UNBOOSTED")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/1/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/2/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/3/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/4/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/5/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/6/UnBoostedimage");
-					tmp("./OUTS/QCD/TRAIN/7/UnBoostedimage");
-				}
-			}
+            /* UNBOOSTED */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES_UNBOOSTED")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/1/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/2/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/3/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/4/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/5/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/6/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/7/UnBoostedimage");
+                }
+            }
 
-			/* NOGRAMSCHMIDT */ {
-				Plot2D
-					tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/1/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/2/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/3/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/4/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/5/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/6/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TRAIN/7/NoGramSchmidtImageType");
-				}
-			}
+            /* NOGRAMSCHMIDT */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/1/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/2/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/3/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/4/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/5/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/6/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/7/NoGramSchmidtImageType");
+                }
+            }
 
-		}
+        }
 
-		/* TEST */ if(true) {
+        /* TEST */ if(true) {
 
-			/* NORMAL */ {
-				Plot2D
-					tmp("QCD_TEST_IMAGES")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TEST/0/image");
-					tmp("./OUTS/QCD/TEST/1/image");
-					tmp("./OUTS/QCD/TEST/2/image");
-					tmp("./OUTS/QCD/TEST/3/image");
-					tmp("./OUTS/QCD/TEST/4/image");
-					tmp("./OUTS/QCD/TEST/5/image");
-					tmp("./OUTS/QCD/TEST/6/image");
-					tmp("./OUTS/QCD/TEST/7/image");
-				}
-			}
+            /* NORMAL */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/image");
+                    tmp("./OUTS/QCD/TEST/1/image");
+                    tmp("./OUTS/QCD/TEST/2/image");
+                    tmp("./OUTS/QCD/TEST/3/image");
+                    tmp("./OUTS/QCD/TEST/4/image");
+                    tmp("./OUTS/QCD/TEST/5/image");
+                    tmp("./OUTS/QCD/TEST/6/image");
+                    tmp("./OUTS/QCD/TEST/7/image");
+                }
+            }
 
-			/* UNBOOSTED */ {
-				Plot2D
-					tmp("QCD_TEST_IMAGES_UNBOOSTED")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TEST/0/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/1/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/2/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/3/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/4/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/5/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/6/UnBoostedimage");
-					tmp("./OUTS/QCD/TEST/7/UnBoostedimage");
-				}
-			}
+            /* UNBOOSTED */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES_UNBOOSTED")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/1/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/2/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/3/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/4/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/5/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/6/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/7/UnBoostedimage");
+                }
+            }
 
-			/* NOGRAMSCHMIDT */ {
-				Plot2D
-					tmp("QCD_TEST_IMAGES_NOGRAMSCHMIDT")
-				; /* Record the file names: */ {
-					tmp("./OUTS/QCD/TEST/0/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/1/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/2/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/3/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/4/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/5/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/6/NoGramSchmidtImageType");
-					tmp("./OUTS/QCD/TEST/7/NoGramSchmidtImageType");
-				}
-			}
+            /* NOGRAMSCHMIDT */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES_NOGRAMSCHMIDT")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/1/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/2/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/3/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/4/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/5/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/6/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/7/NoGramSchmidtImageType");
+                }
+            }
 
-		}
+        }
 
-	}
+    }
+
+
+    inline void
+    PlotImages_1 () {
+
+        /* TRAIN */ if(true) {
+
+            /* NORMAL */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/image");
+                }
+            }
+
+            /* UNBOOSTED */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_UNBOOSTED_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
+                }
+            }
+
+            /* NOGRAMSCHMIDT */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
+                }
+            }
+
+        }
+
+    }
+
+
+
 
     inline void
     PlotNsub () {
@@ -1746,7 +1850,7 @@ namespace STEP2_GENERATEWBS {
         size_t      random_seed = 123    ,
         size_t      N_Events    = 100000
     ) {
-		CPPFileIO::SetCPUAffinity(index);
+        CPPFileIO::SetCPUAffinity(index);
         std::string prefixname ;
         /* Make the directories: */ {
             std::string dirname = "./OUTS/" ;
@@ -1946,9 +2050,10 @@ namespace STEP2_GENERATEWBS {
     //
     inline void
     PlotImages () {
-        //
+
         /* TRAIN */ if(true) {
-            /* NORMAL */ {
+
+            /* NORMAL */ if(true) {
                 Plot2D tmp("WBS_TRAIN_IMAGES");
                 tmp("./OUTS/WBS/TRAIN/0/image");
                 tmp("./OUTS/WBS/TRAIN/1/image");
@@ -1959,10 +2064,36 @@ namespace STEP2_GENERATEWBS {
                 tmp("./OUTS/WBS/TRAIN/6/image");
                 tmp("./OUTS/WBS/TRAIN/7/image");
             }
+
+            /* UNBOOSTED */ if(true) {
+                Plot2D tmp("WBS_TRAIN_IMAGES_UNBOOSTED");
+                tmp("./OUTS/WBS/TRAIN/0/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/1/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/2/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/3/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/4/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/5/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/6/UnBoostedimage");
+                tmp("./OUTS/WBS/TRAIN/7/UnBoostedimage");
+            }
+
+            /* NOGRAMSCHMIDT */ if(true) {
+                Plot2D tmp("WBS_TRAIN_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/WBS/TRAIN/0/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/1/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/2/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/3/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/4/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/5/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/6/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TRAIN/7/NoGramSchmidtImageType");
+            }
+
         }
-        //
+
         /* TEST */ if(true) {
-            /* NORMAL */ {
+
+            /* NORMAL */ if(true) {
                 Plot2D tmp("WBS_TEST_IMAGES");
                 tmp("./OUTS/WBS/TEST/0/image");
                 tmp("./OUTS/WBS/TEST/1/image");
@@ -1973,8 +2104,33 @@ namespace STEP2_GENERATEWBS {
                 tmp("./OUTS/WBS/TEST/6/image");
                 tmp("./OUTS/WBS/TEST/7/image");
             }
+
+            /* UNBOOSTED */ if(true) {
+                Plot2D tmp("WBS_TEST_IMAGES_UNBOOSTED");
+                tmp("./OUTS/WBS/TEST/0/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/1/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/2/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/3/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/4/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/5/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/6/UnBoostedimage");
+                tmp("./OUTS/WBS/TEST/7/UnBoostedimage");
+            }
+
+            /* NOGRAMSCHMIDT */ if(true) {
+                Plot2D tmp("WBS_TEST_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/WBS/TEST/0/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/1/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/2/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/3/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/4/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/5/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/6/NoGramSchmidtImageType");
+                tmp("./OUTS/WBS/TEST/7/NoGramSchmidtImageType");
+            }
+
         }
-        //
+
     }
     //
     inline void
@@ -2091,7 +2247,7 @@ namespace STEP3_GENERATETOP {
         size_t      random_seed = 123    ,
         size_t      N_Events    = 100000
     ) {
-		CPPFileIO::SetCPUAffinity(index);
+        CPPFileIO::SetCPUAffinity(index);
         std::string prefixname ;
         /* Make the directories: */ {
             std::string dirname = "./OUTS/" ;
@@ -2459,8 +2615,10 @@ namespace STEP3_GENERATETOP {
     //
     inline void
     PlotImages () {
-        /* TRAIN */ if(true) {
-            /* NORMAL */ {
+
+        if(true) /* TRAIN */ {
+
+            if(true) /* NORMAL */ {
                 Plot2D tmp("TOP_TRAIN_IMAGES");
                 tmp("./OUTS/TOP/TRAIN/0/image");
                 tmp("./OUTS/TOP/TRAIN/1/image");
@@ -2471,9 +2629,36 @@ namespace STEP3_GENERATETOP {
                 tmp("./OUTS/TOP/TRAIN/6/image");
                 tmp("./OUTS/TOP/TRAIN/7/image");
             }
+
+            if(true) /* NOGRAMSCHMIDT */ {
+                Plot2D tmp("TOP_TRAIN_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/TOP/TRAIN/0/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/1/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/2/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/3/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/4/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/5/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/6/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TRAIN/7/NoGramSchmidtImageType");
+            }
+
+            if(true) /* NOBOOST */ {
+                Plot2D tmp("TOP_TRAIN_IMAGES_NOBOOST");
+                tmp("./OUTS/TOP/TRAIN/0/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/1/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/2/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/3/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/4/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/5/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/6/UnBoostedimage");
+                tmp("./OUTS/TOP/TRAIN/7/UnBoostedimage");
+            }
+
         }
-        /* TEST */ if(true) {
-            /* NORMAL */ {
+
+        if(true) /* TEST */ {
+
+            if(true) /* NORMAL */ {
                 Plot2D tmp("TOP_TEST_IMAGES");
                 tmp("./OUTS/TOP/TEST/0/image");
                 tmp("./OUTS/TOP/TEST/1/image");
@@ -2484,7 +2669,33 @@ namespace STEP3_GENERATETOP {
                 tmp("./OUTS/TOP/TEST/6/image");
                 tmp("./OUTS/TOP/TEST/7/image");
             }
+
+            if(true) /* NOGRAMSCHMIDT */ {
+                Plot2D tmp("TOP_TEST_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/TOP/TEST/0/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/1/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/2/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/3/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/4/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/5/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/6/NoGramSchmidtImageType");
+                tmp("./OUTS/TOP/TEST/7/NoGramSchmidtImageType");
+            }
+
+            if(true) /* NOBOOST */ {
+                Plot2D tmp("TOP_TEST_IMAGES_NOBOOST");
+                tmp("./OUTS/TOP/TEST/0/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/1/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/2/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/3/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/4/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/5/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/6/UnBoostedimage");
+                tmp("./OUTS/TOP/TEST/7/UnBoostedimage");
+            }
+
         }
+
     }
     //
 }
@@ -2502,8 +2713,8 @@ namespace STEP4_UNITEDATA {
     //
     inline void
     DataMixer (
-        std::string src1 ,
-        std::string src2 ,
+        std::string src1	,
+        std::string src2	,
         std::string dst
     ) {
         CPPFileIO::FileVector
@@ -3127,13 +3338,13 @@ namespace STEP6_PLOTLOSSES {
     //
 }
 ////////////////////////////////////////////////////////////////
-namespace STEP7_CNN_RESPONSE {
+namespace STEP7_CNN_RESPONSE_SUPERVISED_CLASSIFICATION {
     using namespace MISC ;
     //
     inline void
     Plotter () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3229,7 +3440,7 @@ namespace STEP7_CNN_RESPONSE {
     inline void
     PlotterDCGAN () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3325,7 +3536,7 @@ namespace STEP7_CNN_RESPONSE {
     inline void
     PlotterQCDWBS () {
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ;
         std::vector
@@ -3441,7 +3652,7 @@ namespace STEP7_CNN_RESPONSE {
         background.Branch ( "cnnres" , & cnnres ) ;
         background.Branch ( "random" , & random ) ;
         using TYPE_RESPONSE =
-            Tensors::NN::ND_ARRAY
+            Tensors::Array::ND_ARRAY
                 <2,TYPE_DATA>
         ; //
         /* TEST: */ {
@@ -3620,4 +3831,391 @@ namespace STEP8_HTT_Compare {
             "./OUTS/ROC/HTT.txt"
         ) ; //
     }
+}
+////////////////////////////////////////////////////////////////
+namespace STEP9_CNN_AE_RESPONSE_PLOT {
+
+    using namespace
+        MISC
+    ; //
+
+    class CNN_LOSS_ROC {
+    public:
+
+        using ROC_OUT_DATA =
+            Tensors::Array::ND_ARRAY
+            <2,TYPE_DATA>
+        ;
+
+        using names =
+            std::vector <
+                std::string
+            >
+        ;
+
+        static inline void
+        QCD_TRAIN_NAME_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/QCD/TRAIN/0/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/1/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/2/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/3/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/4/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/5/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/6/loss_cnn");
+            in.push_back("./OUTS/QCD/TRAIN/7/loss_cnn");
+        }
+
+        static inline void
+        QCD_TRAIN_VECTOR_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/QCD/TRAIN/0/vector");
+            in.push_back("./OUTS/QCD/TRAIN/1/vector");
+            in.push_back("./OUTS/QCD/TRAIN/2/vector");
+            in.push_back("./OUTS/QCD/TRAIN/3/vector");
+            in.push_back("./OUTS/QCD/TRAIN/4/vector");
+            in.push_back("./OUTS/QCD/TRAIN/5/vector");
+            in.push_back("./OUTS/QCD/TRAIN/6/vector");
+            in.push_back("./OUTS/QCD/TRAIN/7/vector");
+        }
+
+        static inline void
+        TOP_TRAIN_NAME_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/TOP/TRAIN/0/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/1/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/2/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/3/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/4/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/5/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/6/loss_cnn");
+            in.push_back("./OUTS/TOP/TRAIN/7/loss_cnn");
+        }
+
+        static inline void
+        TOP_TRAIN_VECTOR_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/TOP/TRAIN/0/vector");
+            in.push_back("./OUTS/TOP/TRAIN/1/vector");
+            in.push_back("./OUTS/TOP/TRAIN/2/vector");
+            in.push_back("./OUTS/TOP/TRAIN/3/vector");
+            in.push_back("./OUTS/TOP/TRAIN/4/vector");
+            in.push_back("./OUTS/TOP/TRAIN/5/vector");
+            in.push_back("./OUTS/TOP/TRAIN/6/vector");
+            in.push_back("./OUTS/TOP/TRAIN/7/vector");
+        }
+
+        static inline void
+        QCD_TEST_NAME_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/QCD/TEST/0/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/1/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/2/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/3/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/4/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/5/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/6/loss_cnn");
+            in.push_back("./OUTS/QCD/TEST/7/loss_cnn");
+        }
+
+        static inline void
+        QCD_TEST_VECTOR_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/QCD/TEST/0/vector");
+            in.push_back("./OUTS/QCD/TEST/1/vector");
+            in.push_back("./OUTS/QCD/TEST/2/vector");
+            in.push_back("./OUTS/QCD/TEST/3/vector");
+            in.push_back("./OUTS/QCD/TEST/4/vector");
+            in.push_back("./OUTS/QCD/TEST/5/vector");
+            in.push_back("./OUTS/QCD/TEST/6/vector");
+            in.push_back("./OUTS/QCD/TEST/7/vector");
+        }
+
+        static inline void
+        TOP_TEST_VECTOR_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/TOP/TEST/0/vector");
+            in.push_back("./OUTS/TOP/TEST/1/vector");
+            in.push_back("./OUTS/TOP/TEST/2/vector");
+            in.push_back("./OUTS/TOP/TEST/3/vector");
+            in.push_back("./OUTS/TOP/TEST/4/vector");
+            in.push_back("./OUTS/TOP/TEST/5/vector");
+            in.push_back("./OUTS/TOP/TEST/6/vector");
+            in.push_back("./OUTS/TOP/TEST/7/vector");
+        }
+
+        static inline void
+        TOP_TEST_NAME_LIST (
+            names & in
+        ) {
+            in.clear();
+            in.push_back("./OUTS/TOP/TEST/0/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/1/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/2/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/3/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/4/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/5/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/6/loss_cnn");
+            in.push_back("./OUTS/TOP/TEST/7/loss_cnn");
+        }
+
+        inline void
+        StoreTOP () {
+            ROC_OUT_DATA Results ;
+            Results[0] = mass ;
+            Results[1] = loss ;
+            TOP_Writer.push_back(Results);
+            Hists.Fill<1>(loss);
+            signalTree->Fill();
+        }
+
+        inline void
+        StoreQCD () {
+            ROC_OUT_DATA Results ;
+            Results[0] = mass ;
+            Results[1] = loss ;
+            QCD_Writer.push_back(Results);
+            Hists.Fill<0>(loss);
+            background->Fill();
+        }
+
+        inline void
+        PLOT_QCD () {
+
+            names list , list2 ;
+            QCD_TEST_NAME_LIST		(list)	;
+            QCD_TEST_VECTOR_LIST	(list2)	;
+
+            for(size_t j=0;j<list.size();j++){
+
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                    Reader (list[j])
+                ; //
+
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                    Reader2 (list2[j])
+                ; //
+
+                size_t const min =
+                    CPPFileIO::mymin (
+                        Reader()	,
+                        Reader2()
+                    )
+                ; //
+
+                for(size_t i=0;i<min;i++) {
+                    loss = Reader(i) ;
+                    mass = Reader2(i).m() ;
+                    StoreQCD () ;
+                }
+
+            }
+
+        }
+
+        inline void
+        PLOT_TOP () {
+
+            names list , list2 ;
+            TOP_TEST_NAME_LIST		(list)	;
+            TOP_TEST_VECTOR_LIST	(list2)	;
+
+            for(size_t j=0;j<list.size();j++){
+
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                    Reader (list[j])
+                ; //
+
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                    Reader2 (list2[j])
+                ; //
+
+                size_t const min =
+                    CPPFileIO::mymin (
+                        Reader()	,
+                        Reader2()
+                    )
+                ; //
+
+                for(size_t i=0;i<min;i++) {
+                    loss = Reader(i) ;
+                    mass = Reader2(i).m() ;
+                    StoreTOP () ;
+                }
+
+            }
+        }
+
+
+        inline void
+        PLOT_QCD_TRAIN () {
+
+            names list , list2 ;
+            QCD_TRAIN_NAME_LIST		(list)	;
+            QCD_TRAIN_VECTOR_LIST	(list2)	;
+
+            for(size_t j=0;j<list.size();j++){
+
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                    Reader (list[j])
+                ; //
+
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                    Reader2 (list2[j])
+                ; //
+
+                size_t const min =
+                    CPPFileIO::mymin (
+                        Reader()	,
+                        Reader2()
+                    )
+                ; //
+
+                for(size_t i=0;i<min;i++) {
+                    loss = Reader(i) ;
+                    mass = Reader2(i).m() ;
+                    Hists.Fill<2>(loss);
+                }
+
+            }
+
+        }
+
+        inline void
+        PLOT_TOP_TRAIN () {
+
+            names list , list2 ;
+            TOP_TRAIN_NAME_LIST		(list)	;
+            TOP_TRAIN_VECTOR_LIST	(list2)	;
+
+            for(size_t j=0;j<list.size();j++){
+
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                    Reader (list[j])
+                ; //
+
+                CPPFileIO::FullFileReader
+                    <outvector4>
+                    Reader2 (list2[j])
+                ; //
+
+                size_t const min =
+                    CPPFileIO::mymin (
+                        Reader()	,
+                        Reader2()
+                    )
+                ; //
+
+                for(size_t i=0;i<min;i++) {
+                    loss = Reader(i) ;
+                    mass = Reader2(i).m() ;
+                    Hists.Fill<3>(loss);
+                }
+
+            }
+
+        }
+
+
+        CNN_LOSS_ROC () :
+        Hists ("Losses",100,-0.01,1.01) ,
+        QCD_Writer ("./OUTS/ROC/QCD_CNN_DATA") ,
+        TOP_Writer ("./OUTS/ROC/TOP_CNN_DATA") {
+
+            /* Prepare the directories: */ {
+                mkdir("./OUTS/",0755);
+                mkdir("./OUTS/TMP/",0755);
+                mkdir("./OUTS/TMP/tmva/",0755);
+            }
+
+            /* PREPARE ROOT FILE: */ {
+                Outfile =
+                    new TFile (
+                        "./OUTS/TMP/tmva/CNN_LOSS_NORMAL.root",
+                        "RECREATE"
+                    )
+                ;
+            }
+
+            /* PREPARE BACKGROUND TREE: */ {
+                background =
+                    new TTree (
+                        "TreeB",
+                        "TreeB"
+                    )
+                ;
+                background->Branch ( "mass" , & mass ) ;
+                background->Branch ( "loss" , & loss ) ;
+            }
+
+            /* PREPARE SIGNAL TREE: */ {
+                signalTree =
+                    new TTree (
+                        "TreeS",
+                        "TreeS"
+                    )
+                ;
+
+                signalTree->Branch ( "mass" , & mass ) ;
+                signalTree->Branch ( "loss" , & loss ) ;
+            }
+
+            PLOT_QCD();
+            PLOT_TOP();
+            PLOT_QCD_TRAIN();
+            PLOT_TOP_TRAIN();
+
+        }
+
+        ~CNN_LOSS_ROC(){
+            signalTree->Write()	;
+            background->Write()	;
+            delete signalTree	;
+            delete background	;
+            delete Outfile		;
+        }
+
+        MyHistN <4,true>
+            Hists
+        ; //
+
+        TFile *	Outfile		;
+        TTree *	signalTree	;
+        TTree *	background	;
+        float	loss		;
+        float	mass		;
+
+        CPPFileIO::FileVector
+        <ROC_OUT_DATA>
+            QCD_Writer	,
+            TOP_Writer
+        ;
+
+        static inline void
+        WORK ()
+        { CNN_LOSS_ROC tmp ; }
+
+    } ;
+
 }

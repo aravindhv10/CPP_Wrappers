@@ -16,7 +16,7 @@ sizeoftype = num_inputs*4
 PARAM_NAME = "./OUTS/PARS/net_params"
 mx.random.seed(1)
 os.system("taskset -a -p 0xFFFFFFFF %d" % os.getpid())
-sizes = [ 40*40 , 24*24 , 10*10 ]
+sizes = [ 40*40 , 24*24 , 8*8 ]
 num_outputs = num_inputs
 
 class CenteredLayer(mx.gluon.nn.HybridSequential):
@@ -64,7 +64,7 @@ def TrainOnFile(filename):
             trainer.step(data.shape[0])
             inst_loss = nd.sum(loss).asscalar()
             cumulative_loss += inst_loss
-#            print("    ",inst_loss)
+            print("    ",inst_loss)
             #net.save_parameters(PARAM_NAME)
         print(cumulative_loss);
         net.save_parameters(PARAM_NAME)
