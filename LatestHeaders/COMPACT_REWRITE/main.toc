@@ -1,0 +1,7 @@
+\babel@toc {USenglish}{}
+\contentsline {section}{\numberline {1}Output Back Propagation}{2}{section.1}% 
+\contentsline {subsection}{\numberline {1.1}Activation Layer}{2}{subsection.1.1}% 
+\contentsline {subsection}{\numberline {1.2}Linear Multiplication Layer}{3}{subsection.1.2}% 
+\contentsline {section}{\numberline {2}Gradient Back Propagation}{4}{section.2}% 
+\contentsline {subsection}{\numberline {2.1}Activation Layer}{4}{subsection.2.1}% 
+\contentsline {subsection}{\numberline {2.2}Linear Multiplication Layer}{5}{subsection.2.2}% 

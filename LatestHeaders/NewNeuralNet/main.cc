@@ -20,7 +20,8 @@ namespace Tensors {
 
 			constexpr TYPE_DATA Var =
 				2.0 /
-				static_cast<TYPE_DATA>(SIZE_X+SIZE_Y)
+				static_cast<TYPE_DATA>
+					(SIZE_X+SIZE_Y)
 			; //
 
 			std::normal_distribution
@@ -53,7 +54,8 @@ namespace Tensors {
 
 			constexpr TYPE_DATA Var =
 				2.0 /
-				static_cast<TYPE_DATA>(SIZE)
+				static_cast<TYPE_DATA>
+					(SIZE)
 			; //
 
 			std::normal_distribution
@@ -98,9 +100,9 @@ namespace Tensors {
 			static inline TYPE_DATA constexpr
 			EPS () { return 0.0000001 ; }
 
-			using TYPE_ARRAY =
+			using TYPE_ARRAY	=
 				ND_ARRAY <
-					SIZE()	,
+					SIZE()		,
 					TYPE_DATA
 				>
 			;
@@ -111,10 +113,12 @@ namespace Tensors {
 			EVAL_M () {
 
 				for(size_t i=0;i<SIZE();i++){
+
 					M[i] =
 						(M[i]*BETA_1()) +
 						((1.0-BETA_1())*DP[0][i])
-					;
+					; //
+
 				}
 
 			}
@@ -123,10 +127,12 @@ namespace Tensors {
 			EVAL_V () {
 
 				for(size_t i=0;i<SIZE();i++){
+
 					V[i] =
 						(V[i]*BETA_2()) +
 						((1.0-BETA_2())*DP_2[0][i])
-					;
+					; //
+
 				}
 
 			}
@@ -143,12 +149,16 @@ namespace Tensors {
 				EVAL_V () ;
 
 				for(size_t i=0;i<SIZE();i++){
+
 					P[0][i] =
 						P[0][i] - (
-							eta * M[i] /
-							( EPS() + std::sqrt(V[i]) )
+							( eta * M[i] ) / (
+								EPS() +
+								std::sqrt(V[i])
+							)
 						)
 					; //
+
 				}
 
 			}
@@ -162,10 +172,18 @@ namespace Tensors {
 				M = a ;
 			}
 
-			AdamTrainer(){V=0;M=0;}
+			AdamTrainer(){
+				V = 0 ;
+				M = 0 ;
+			}
+
 			~AdamTrainer(){}
 
+		private:
+
 			TYPE_ARRAY V, M ;
+
+		public:
 
 			TYPE_ARRAY			* P		;
 			TYPE_ARRAY const	* DP	;
@@ -227,16 +245,22 @@ namespace Tensors {
 				TYPE_DATA const
 					inval
 			) {
+
 				if (inval<0) {
+
 					return
 						inval /
 						(1.0-inval)
 					; //
+
 				} else {
+
 					return
 						inval
 					; //
+
 				}
+
 			}
 
 			static inline TYPE_DATA const
@@ -244,12 +268,19 @@ namespace Tensors {
 				TYPE_DATA const
 					inval
 			) {
+
 				if (inval<0) {
+
 					return
 						1.0 /
-						std::pow ( (1.0-inval) , 2 )
+						std::pow (
+							(1.0-inval) ,
+							2
+						)
 					; //
+
 				} else { return 1 ; }
+
 			}
 
 			static inline TYPE_DATA const
@@ -257,12 +288,19 @@ namespace Tensors {
 				TYPE_DATA const
 					inval
 			) {
+
 				if (inval<0) {
+
 					return
 						2.0 /
-						std::pow ( (1.0-inval) , 3 )
-					;
+						std::pow (
+							(1.0-inval) ,
+							3
+						)
+					; //
+
 				} else { return 0 ; }
+
 			}
 
 			inline void
@@ -279,10 +317,12 @@ namespace Tensors {
 			BACKWARD () {
 
 				for(size_t i=0;i<SIZE();i++){
+
 					DI1.FLATTEN()[i] =
 						DO1->FLATTEN()[i] *
 						D_Activate(I1->FLATTEN()[i])
 					; //
+
 				}
 
 			}
@@ -292,8 +332,10 @@ namespace Tensors {
 				TYPE_DATA const
 					a
 			) {
+
 				O1	=	a	;
 				DI1	=	a	;
+
 			}
 
 			template <typename T>
@@ -301,8 +343,10 @@ namespace Tensors {
 			ATTACH_FORWARD (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				DO1			= & Layer.DI1	;
+
 			}
 
 			template <typename T>
@@ -310,8 +354,10 @@ namespace Tensors {
 			ATTACH_BACKWARD (
 				T & Layer
 			) {
+
 				I1			= & Layer.O1	;
 				Layer.DO1	= & DI1			;
+
 			}
 
 			template <typename T>
@@ -319,8 +365,10 @@ namespace Tensors {
 			ATTACH_TEACHER (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				DO1			= & Layer.O1	;
+
 			}
 
 			SoftLRU(){}
@@ -329,14 +377,19 @@ namespace Tensors {
 			template <typename T>
 			static inline TYPE_SELF
 			FROM_LAYER (T & in) {
+
 				TYPE_SELF
 					ret
 				; /* Attach the layer: */ {
-					ret.ATTACH_BACKWARD(in);
+					ret.ATTACH_BACKWARD
+						(in)
+					; //
 				}
+
 				return
 					ret
-				;
+				; //
+
 			}
 
 			TYPE_O1				O1	;
@@ -384,8 +437,8 @@ namespace Tensors {
 
 			using TYPE_NEXT_ACTIVATOR =
 				SoftLRU <
-					SIZE_B(),
-					SIZE_Y(),
+					SIZE_B()	,
+					SIZE_Y()	,
 					TYPE_DATA
 				>
 			; //
@@ -393,8 +446,8 @@ namespace Tensors {
 			// O
 			using TYPE_O1 =
 				N2D_ARRAY <
-					SIZE_B(),
-					SIZE_Y(),
+					SIZE_B()	,
+					SIZE_Y()	,
 					TYPE_DATA
 				>
 			;
@@ -402,8 +455,8 @@ namespace Tensors {
 			// I
 			using TYPE_I1 =
 				N2D_ARRAY <
-					SIZE_B(),
-					SIZE_X(),
+					SIZE_B()	,
+					SIZE_X()	,
 					TYPE_DATA
 				>
 			;
@@ -411,8 +464,8 @@ namespace Tensors {
 			// W
 			using TYPE_I2 =
 				N2D_ARRAY <
-					SIZE_Y(),
-					SIZE_X(),
+					SIZE_Y()	,
+					SIZE_X()	,
 					TYPE_DATA
 				>
 			;
@@ -420,7 +473,7 @@ namespace Tensors {
 			// B
 			using TYPE_I3 =
 				ND_ARRAY <
-					SIZE_Y(),
+					SIZE_Y()	,
 					TYPE_DATA
 				>
 			;
@@ -442,18 +495,17 @@ namespace Tensors {
 		private:
 
 			inline void
+			PREPARE () {
+				DO1_2.GET_SQUARED	(DO1[0])	;
+				I1_2.GET_SQUARED	(I1[0])		;
+			}
+
+			inline void
 			EVAL_O1 () {
-
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t y=0;y<SIZE_Y();y++) {
-					O1[b][y] =
-						(
-							I2[0][y] *
-							I1[0][b]
-						) + I3[0][y]
-					; //
-				}
-
+				( O1 = I3[0] ) +=
+					I1[0] *
+					I2->TRANSPOSE()
+				; //
 			}
 
 			inline void
@@ -475,33 +527,76 @@ namespace Tensors {
 			}
 
 			inline void
-			Eval_DI3 () {
+			EVAL_DI3 () {
 
 				DI3		= 0 ;
 				DI3_2	= 0 ;
 
 				for(size_t y=0;y<SIZE_Y();y=y+SKIP_SIZE)
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t y2=y;(y2<(SKIP_SIZE+y))&&(y2<SIZE_Y());y2++){
-					DI3[y2] +=
-						DO1[0][b][y2]
+				for(size_t b=0;b<SIZE_B();b++) {
+
+					size_t const
+						limit_y2 =
+							CPPFileIO::mymin (
+								SIZE_Y()	,
+								SKIP_SIZE+y
+							)
 					; //
+
+					for(size_t y2=y;y2<limit_y2;y2++) {
+
+						DI3[y2] +=
+							DO1[0][b][y2]
+						; //
+
+					}
 				}
 
 				for(size_t y=0;y<SIZE_Y();y=y+SKIP_SIZE)
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t y2=y;(y2<(SKIP_SIZE+y))&&(y2<SIZE_Y());y2++){
-					DI3_2[y2] +=
-						DO1_2[b][y2]
+				for(size_t b=0;b<SIZE_B();b++) {
+
+					size_t const
+						limit_y2 =
+							CPPFileIO::mymin (
+								SIZE_Y()	,
+								SKIP_SIZE+y
+							)
 					; //
+
+					for(size_t y2=y;y2<limit_y2;y2++) {
+
+						DI3_2[y2] +=
+							DO1_2[b][y2]
+						; //
+
+					}
 				}
 
 			}
 
 			inline void
-			PREPARE () {
-				DO1_2.GET_SQUARED	(DO1[0])	;
-				I1_2.GET_SQUARED	(I1[0])		;
+			EVAL_DI1 () {
+
+				DI1 =
+					DO1[0] *
+					I2[0]
+				; //
+
+			}
+
+			inline void
+			EVAL_DI2 () {
+
+				DI2 =
+					DO1->TRANSPOSE() *
+					I1[0]
+				; //
+
+				DI2_2 =
+					DO1_2.TRANSPOSE() *
+					I1_2
+				; //
+
 			}
 
 		public:
@@ -519,22 +614,8 @@ namespace Tensors {
 
 #ifndef CBLAS_H
 
-				DI1		= 0 ;
-				DI1.MULTIPLY (
-					DO1[0], I2[0]
-				) ; //
-
-				DI2		= 0 ;
-				DI2.MULTIPLY (
-					DO1->MARK_TRANSPOSED(),
-					I1[0]
-				) ; //
-
-				DI2_2	= 0 ;
-				DI2_2.MULTIPLY (
-					DO1_2.MARK_TRANSPOSED(),
-					I1_2
-				) ; //
+				EVAL_DI1 () ;
+				EVAL_DI2 () ;
 
 #endif
 
@@ -557,7 +638,7 @@ namespace Tensors {
 
 #endif
 
-				Eval_DI3();
+				EVAL_DI3();
 
 			}
 
@@ -566,6 +647,7 @@ namespace Tensors {
 				TYPE_DATA const
 					a = 0
 			) {
+
 				O1		= a ;
 				DI1		= a ;
 				DI2		= a ;
@@ -574,6 +656,7 @@ namespace Tensors {
 				DI3_2	= a ;
 				DO1_2	= a ;
 				I1_2	= a ;
+
 			}
 
 			inline void
@@ -587,8 +670,10 @@ namespace Tensors {
 			ATTACH_FORWARD (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				DO1			= & Layer.DI1	;
+
 			}
 
 			template <typename T>
@@ -596,8 +681,10 @@ namespace Tensors {
 			ATTACH_BACKWARD (
 				T & Layer
 			) {
+
 				I1			= & Layer.O1	;
 				Layer.DO1	= & DI1			;
+
 			}
 
 			template <typename T>
@@ -605,8 +692,10 @@ namespace Tensors {
 			ATTACH_TEACHER (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				DO1			= & Layer.O1	;
+
 			}
 
 			LinearLayer(){}
@@ -615,14 +704,21 @@ namespace Tensors {
 			template <typename T>
 			static inline TYPE_SELF
 			FROM_LAYER (T & in) {
+
 				TYPE_SELF
 					ret
 				; /* Attach the layer: */ {
-					ret.ATTACH_BACKWARD(in);
+
+					ret.ATTACH_BACKWARD
+						(in)
+					; //
+
 				}
+
 				return
 					ret
-				;
+				; //
+
 			}
 
 			TYPE_O1				O1		;
@@ -663,10 +759,12 @@ namespace Tensors {
 
 			inline static size_t constexpr
 			SIZE() {
+
 				return
 					SIZE_1()	*
 					SIZE_2()
-				;
+				; //
+
 			}
 
 			using TYPE_SELF =
@@ -710,8 +808,10 @@ namespace Tensors {
 			ATTACH_BACKWARD (
 				T & Layer
 			) {
+
 				I1			= & Layer.O1	;
 				Layer.DO1	= & O1			;
+
 			}
 
 			L2Teacher(){}
@@ -720,14 +820,19 @@ namespace Tensors {
 			template <typename T>
 			static inline TYPE_SELF
 			FROM_LAYER (T & in) {
+
 				TYPE_SELF
 					ret
 				; /* Attach the layer: */ {
-					ret.ATTACH_BACKWARD(in);
+					ret.ATTACH_BACKWARD
+						(in)
+					; //
 				}
+
 				return
 					ret
-				;
+				; //
+
 			}
 
 			TYPE_O1				O1	;
@@ -759,13 +864,17 @@ namespace Tensors {
 
 			inline static size_t constexpr
 			SIZE () {
+
 				return
 					SIZE_Y() *
 					SIZE_B()
 				; //
+
 			}
 
-			using TYPE_DATA = TF ;
+			using TYPE_DATA =
+				TF
+			; //
 
 			using TYPE_O1 =
 				N2D_ARRAY <
@@ -773,7 +882,7 @@ namespace Tensors {
 					SIZE_Y(),
 					TYPE_DATA
 				>
-			;
+			; //
 
 			using TYPE_OD1 =
 				N3D_ARRAY <
@@ -782,31 +891,31 @@ namespace Tensors {
 					SIZE_Y(),
 					TYPE_DATA
 				>
-			;
+			; //
 
 			using TYPE_ID1 =
 				TYPE_OD1
-			;
+			; //
 
 			using TYPE_DOD1 =
 				TYPE_OD1
-			;
+			; //
 
 			using TYPE_DID1 =
 				TYPE_DOD1
-			;
+			; //
 
 			using TYPE_I1 =
 				TYPE_O1
-			;
+			; //
 
 			using TYPE_DO1 =
 				TYPE_O1
-			;
+			; //
 
 			using TYPE_DI1 =
 				TYPE_I1
-			;
+			; //
 
 			using TYPE_PARENT =
 				NN::SoftLRU <
@@ -814,7 +923,7 @@ namespace Tensors {
 					SIZE_Y(),
 					TYPE_DATA
 				>
-			;
+			; //
 
 		private:
 
@@ -823,43 +932,88 @@ namespace Tensors {
 
 				auto const	& in	= I1->FLATTEN	() ;
 				auto		& out	= O1.FLATTEN	() ;
-				for (size_t i=0;i<TYPE_O1::SIZE();i++)
-				{ out[i] = TYPE_PARENT::Activate(in[i]) ; }
+
+				for (size_t i=0;i<TYPE_O1::SIZE();i++) {
+
+					out[i] =
+						TYPE_PARENT::Activate
+							(in[i])
+					; //
+
+				}
 
 			}
 
 			inline void
 			EVAL_OD1 () {
-				auto const	& in	= ID1->FLATTEN	() ;
-				auto		& out	= OD1.FLATTEN	() ;
-				for (size_t i=0;i<TYPE_OD1::SIZE();i++)
-				{ out[i] = TYPE_PARENT::D_Activate(in[i]) ; }
+
+				if (IS_FIRST_LAYER()) {
+
+					OD1 = 0 ;
+
+					for (size_t b=0;b<SIZE_B();b++)
+					for (size_t y=0;y<SIZE_Y();y++) {
+
+						OD1[b][y][y] =
+							TYPE_PARENT::D_Activate
+								(I1[0][b][y])
+						; //
+
+					}
+
+				} else {
+
+					for(size_t b=0;b<SIZE_B();b++)
+					for(size_t z=0;z<SIZE_Z();z++)
+					for(size_t y=0;y<SIZE_Y();y++){
+
+						OD1[b][z][y] =
+
+							ID1[0][b][z][y] *
+
+							TYPE_PARENT::D_Activate
+								(I1[0][b][y])
+
+						; //
+
+					}
+
+				}
+
 			}
 
 			inline void
 			EVAL_DI1 () {
 
 				/* Simple Part: */ {
-					auto const & in1 = DO1->FLATTEN	() ;
-					auto const & in2 = I1->FLATTEN	() ;
-					auto const & out = DI1.FLATTEN	() ;
+
+					auto const	& in1 = DO1->FLATTEN	() ;
+					auto const	& in2 = I1->FLATTEN	() ;
+					auto		& out = DI1.FLATTEN	() ;
+
 					for(size_t i=0;i<SIZE();i++){
+
 						out[i] =
 							in1[i] *
 							TYPE_PARENT::D_Activate(in2[i])
-						;
+						; //
+
 					}
+
 				}
 
 				/* Complicated Part: */ {
+
 					for(size_t b=0;b<SIZE_B();b++)
 					for(size_t z=0;z<SIZE_Z();z++)
 					for(size_t y=0;y<SIZE_Y();y++) {
+
 						DI1[b][y] +=
 							DOD1[0][b][z][y] *
 							TYPE_PARENT::D2_Activate(I1[0][b][y]) *
 							ID1[0][b][z][y]
-						;
+						; //
+
 					}
 				}
 
@@ -869,13 +1023,20 @@ namespace Tensors {
 			EVAL_DID1 () {
 
 				DID1 = 0 ;
+
 				for(size_t b=0;b<SIZE_B();b++)
 				for(size_t z=0;z<SIZE_Z();z++)
 				for(size_t y=0;y<SIZE_Y();y++) {
+
 					DID1[b][z][y] +=
+
 						DOD1[0][b][z][y] *
-						TYPE_PARENT::D_Activate(I1[0][b][y])
-					;
+
+						TYPE_PARENT::D_Activate
+							(I1[0][b][y])
+
+					; //
+
 				}
 
 			}
@@ -903,10 +1064,12 @@ namespace Tensors {
 			ATTACH_FORWARD (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				Layer.ID1	= & OD1			;
 				DO1			= & Layer.DI1	;
 				DOD1		= & Layer.DID1	;
+
 			}
 
 			template <typename T>
@@ -914,10 +1077,12 @@ namespace Tensors {
 			ATTACH_BACKWARD (
 				T & Layer
 			) {
+
 				I1			= & Layer.O1	;
 				ID1			= & Layer.OD1	;
 				Layer.DO1	= & DI1			;
 				Layer.DOD1	= & DID1		;
+
 			}
 
 			template <typename T>
@@ -925,26 +1090,50 @@ namespace Tensors {
 			ATTACH_TEACHER (
 				T & Layer
 			) {
+
 				Layer.I1	= & O1			;
 				Layer.ID1	= & OD1			;
 				DO1			= & Layer.O1	;
 				DOD1		= & Layer.OD1	;
+
 			}
 
-			SoftLRU(){}
+			inline bool
+			IS_FIRST_LAYER () {
+
+				return
+
+					CPPFileIO::is_junked
+						(ID1)
+
+				; //
+
+			}
+
+			inline void
+			MAKE_FIRST_LAYER () {
+
+				ID1 =
+					CPPFileIO::get_junk
+						<TYPE_ID1>()
+				; //
+
+			}
+
+			SoftLRU()
+			{MAKE_FIRST_LAYER();}
+
 			~SoftLRU(){}
 
 			TYPE_O1					O1		;
-			TYPE_I1		const	*	I1		;
-
 			TYPE_OD1				OD1		;
-			TYPE_ID1	const	*	ID1		;
-
-			TYPE_DO1	const	*	DO1		;
 			TYPE_DI1				DI1		;
-
-			TYPE_DOD1	const	*	DOD1	;
 			TYPE_DID1				DID1	;
+
+			TYPE_I1		const	*	I1		;
+			TYPE_ID1	const	*	ID1		;
+			TYPE_DO1	const	*	DO1		;
+			TYPE_DOD1	const	*	DOD1	;
 
 		} ;
 
@@ -1046,22 +1235,24 @@ namespace Tensors {
 
 			inline void
 			PREPARE () {
-				DO1_2.GET_SQUARED(DO1[0]);
-				I1_2.GET_SQUARED(I1[0]);
+
+				DO1_2.GET_SQUARED
+					(DO1[0])
+				; //
+
+				I1_2.GET_SQUARED
+					(I1[0])
+				; //
+
 			}
 
 			inline void
 			EVAL_O1 () {
 
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t y=0;y<SIZE_Y();y++) {
-					O1[b][y] =
-						(
-							I2[0][y] *
-							I1[0][b]
-						) + I3[0][y]
-					; //
-				}
+				( O1 = I3[0] ) +=
+					I1[0] *
+					I2->TRANSPOSE()
+				; //
 
 			}
 
@@ -1086,13 +1277,44 @@ namespace Tensors {
 			inline void
 			EVAL_OD1 () {
 
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t z=0;z<SIZE_Z();z++)
-				for(size_t y=0;y<SIZE_Y();y++) {
-					OD1[b][z][y] =
-						I2[0][y] *
-						ID1[0][b][z]
-					;
+				if (SIZE_Z()==SIZE_X()) {
+
+					if (IS_FIRST_LAYER()) {
+
+						using TYPE_WEIGHT =
+							N2D_ARRAY <
+								SIZE_Y () ,
+								SIZE_Z () ,
+								TYPE_DATA
+							>
+						; //
+
+						auto tmp =
+							reinterpret_cast
+								<TYPE_WEIGHT const *>
+									(I2)
+						; //
+
+						OD1[0] =
+							tmp->TRANSPOSE()
+						; //
+
+						for (size_t b=1;b<SIZE_B();b++)
+						{ OD1[b] = OD1[0] ; }
+
+					}
+
+				} else {
+
+					for (size_t b=0;b<SIZE_B();b++) {
+
+						OD1[b] =
+							ID1[0][b] *
+							I2->TRANSPOSE()
+						; //
+
+					}
+
 				}
 
 			}
@@ -1100,17 +1322,24 @@ namespace Tensors {
 			inline void
 			EVAL_DI1 () {
 
-				DI1 = 0 ;
-				DI1.MULTIPLY (DO1[0],I2[0]) ;
+				DI1 =
+					DO1[0] *
+					I2[0]
+				;
 
 			}
 
 			inline void
 			EVAL_DID1 () {
 
-				DID1 = 0 ;
-				for(size_t b=0;b<SIZE_B();b++)
-				{ DID1[b].MULTIPLY(DOD1[0][b],I2[0]); }
+				for(size_t b=0;b<SIZE_B();b++) {
+
+					DID1[b] =
+						DOD1[0][b] *
+						I2[0]
+					; //
+
+				}
 
 			}
 
@@ -1119,22 +1348,30 @@ namespace Tensors {
 			inline void
 			EVAL_DI2 () {
 
-				DI2		= 0 ;
-				DI2_2	= 0 ;
+				DI2		=
+					DO1->TRANSPOSE()	*
+					I1[0]
+				; //
 
-				DI2.MULTIPLY(DO1->MARK_TRANSPOSED(),I1[0]);
-				DI2_2.MULTIPLY(DO1_2.MARK_TRANSPOSED(),I1_2);
+				DI2_2	=
+					DO1_2.TRANSPOSE()	*
+					I1_2
+				; //
 
 				for(size_t b=0;b<SIZE_B();b++) {
 
-					DI2_TMP = 0 ;
-					DI2_TMP[b].MULTIPLY (
-						DOD1[0][b].MARK_TRANSPOSED(),
+					DI2_TMP =
+						DOD1[0][b].TRANSPOSE()	*
 						ID1[0][b]
-					) ;
+					; //
 
-					DI2.FLATTEN() += DI2_TMP.FLATTEN() ;
-					DI2_2.ADD_SQUARED(DI2_TMP);
+					DI2.FLATTEN() +=
+						DI2_TMP.FLATTEN()
+					; //
+
+					DI2_2.ADD_SQUARED
+						(DI2_TMP)
+					; //
 
 				}
 
@@ -1209,30 +1446,55 @@ namespace Tensors {
 				DOD1		= & Layer.OD1	;
 			}
 
-			LinearLayer(){}
+			inline bool
+			IS_FIRST_LAYER () {
+
+				return
+
+					CPPFileIO::is_junked
+						(ID1)
+
+				; //
+
+			}
+
+			inline void
+			MAKE_FIRST_LAYER () {
+
+				ID1 =
+					CPPFileIO::get_junk
+						<TYPE_ID1>()
+				; //
+
+			}
+
+			LinearLayer()
+			{MAKE_FIRST_LAYER();}
+
 			~LinearLayer(){}
 
-			TYPE_O1					O1		;
-			TYPE_DO1	const	*	DO1		;
+		private:
+
 			TYPE_DO1				DO1_2	;
-
-			TYPE_OD1				OD1		;
-			TYPE_DOD1	const	*	DOD1	;
-
-			TYPE_I1		const	*	I1		;
 			TYPE_I1					I1_2	;
+
+		public:
+
+			TYPE_O1					O1		;
+			TYPE_OD1				OD1		;
 			TYPE_DI1				DI1		;
-
-			TYPE_ID1	const	*	ID1		;
 			TYPE_DID1				DID1	;
-
-			TYPE_I2		const	*	I2		;
 			TYPE_DI2				DI2		;
-			TYPE_DI2				DI2_2	;
-
-			TYPE_I3		const	*	I3		;
 			TYPE_DI3				DI3		;
+			TYPE_DI2				DI2_2	;
 			TYPE_DI3				DI3_2	;
+
+			TYPE_DO1	const	*	DO1		;
+			TYPE_DOD1	const	*	DOD1	;
+			TYPE_I1		const	*	I1		;
+			TYPE_ID1	const	*	ID1		;
+			TYPE_I2		const	*	I2		;
+			TYPE_I3		const	*	I3		;
 
 		} ;
 
@@ -1277,15 +1539,15 @@ namespace Tensors {
 
 				auto const & in1 =
 					I1->FLATTEN()
-				;
+				; //
 
 				auto const & in2 =
 					I2->FLATTEN()
-				;
+				; //
 
 				auto & out =
 					O1.FLATTEN()
-				;
+				; //
 
 				for(size_t i=0;i<TYPE_2D_ARRAY::SIZE();i++)
 				{ out[i] = in1[i] - in2[i] ; }
@@ -1297,15 +1559,15 @@ namespace Tensors {
 
 				auto const & in1 =
 					ID1->FLATTEN()
-				;
+				; //
 
 				auto const & in2 =
 					ID2->FLATTEN()
-				;
+				; //
 
 				auto & out =
 					OD1.FLATTEN()
-				;
+				; //
 
 				for(size_t i=0;i<TYPE_3D_ARRAY::SIZE();i++)
 				{ out[i] = in1[i] - in2[i] ; }
@@ -1323,16 +1585,15 @@ namespace Tensors {
 			L2Teacher(){}
 			~L2Teacher(){}
 
-			TYPE_2D_ARRAY	const	*	I1	;
-			TYPE_2D_ARRAY	const	*	I2	;
 			TYPE_2D_ARRAY				O1	;
-
-			TYPE_3D_ARRAY	const	*	ID1	;
-			TYPE_3D_ARRAY	const	*	ID2	;
 			TYPE_3D_ARRAY				OD1	;
 
-		} ;
+			TYPE_2D_ARRAY	const	*	I1	;
+			TYPE_2D_ARRAY	const	*	I2	;
+			TYPE_3D_ARRAY	const	*	ID1	;
+			TYPE_3D_ARRAY	const	*	ID2	;
 
+		} ;
 
 	}
 
@@ -1415,11 +1676,16 @@ namespace Tensors {
 				>
 			; //
 
+		private:
+
 			inline void UPDATE (
+
 				size_t const
 					t			,
+
 				TF const
 					eta = 0.001
+
 			) {
 				L_W.DP		= &(DW[t][0]->FLATTEN()) ;
 				L_W.DP_2	= &(DW[t][1]->FLATTEN()) ;
@@ -1428,6 +1694,8 @@ namespace Tensors {
 				L_W.UPDATE (eta) ;
 				L_B.UPDATE (eta) ;
 			}
+
+		public:
 
 			inline void
 			UPDATE (
@@ -1438,13 +1706,15 @@ namespace Tensors {
 				{ UPDATE (t,eta) ; }
 			}
 
-
 			template <typename T>
 			inline void
 			TO_LAYER (
+
 				size_t const
 					t			,
+
 				T & Layer
+
 			) {
 				Layer.I2	= & W			;
 				Layer.I3	= & B			;
@@ -1456,16 +1726,21 @@ namespace Tensors {
 
 			template <typename T>
 			static inline TYPE_SELF
-			GET_PARS (T & in) {
+			GET_PARS (
+				T & in
+			) {
+
 				TYPE_SELF
 					ret
 				; /* Initialize the layer: */ {
 					for(size_t t=0;t<SIZE_T();t++)
 					{ ret.TO_LAYER (t,in[t]) ; }
 				}
+
 				return
 					ret
 				;
+
 			}
 
 			Sample_Pars(){
@@ -1551,7 +1826,7 @@ namespace X2_2 {
 	SIZE_T () {return 4;}
 
 	inline size_t constexpr
-	SIZE_B () {return 100000;}
+	SIZE_B () {return 10000;}
 
 	using TYPE_DATA = float ;
 
@@ -1600,7 +1875,7 @@ namespace X2_2 {
 				sizes[0]	,
 				TYPE_DATA
 			>
-		;
+		; //
 
 		using TYPE_OUTPUT =
 			Tensors::Array::N2D_ARRAY <
@@ -1608,11 +1883,12 @@ namespace X2_2 {
 				sizes[2]	,
 				TYPE_DATA
 			>
-		;
+		; //
 
 		inline TYPE_OUTPUT const &
 		FORWARD (
-			TYPE_INPUT const & in
+			TYPE_INPUT const &
+				in
 		) {
 			L1.I1 = & in ;
 			L1.FORWARD() ;
@@ -1623,7 +1899,8 @@ namespace X2_2 {
 
 		inline void
 		BACKWARD (
-			TYPE_OUTPUT const & in
+			TYPE_OUTPUT const &
+				in
 		) {
 			L4.I2 = & in ;
 			L4.BACKWARD();
@@ -1686,28 +1963,33 @@ namespace X2_2 {
 
 		inline TYPE_DATA const
 		GET_VAL (size_t const n) {
-			size_t		constexpr N		= SIZE_T()*SIZE_B() ;
-			TYPE_DATA	constexpr x2	= 10 ;
-			TYPE_DATA	constexpr x1	= -10 ;
-			TYPE_DATA	constexpr dx	= (x2-x1) / static_cast<TYPE_DATA>(N) ;
+
+			size_t		constexpr N		= SIZE_T() * SIZE_B()					;
+			TYPE_DATA	constexpr x2	= 10									;
+			TYPE_DATA	constexpr x1	= -10									;
+			TYPE_DATA	constexpr dx	= (x2-x1) / static_cast<TYPE_DATA>(N)	;
+
 			return
 				x1 +
 				(n*dx)
-			;
+			; //
+
 		}
 
 		inline void
 		SETUP_DATA () {
 
-			TYPE_DATA	const x1	= -10										;
-			TYPE_DATA	const x2	= 10										;
-			size_t		const N		= TYPE_INPUT::SIZE()						;
-			TYPE_DATA	const dx	= ( x2 - x1 ) / static_cast<TYPE_DATA>(N)	;
-
-			for(size_t t=0;t<SIZE_T();t++){
-				for(size_t b=0;b<SIZE_B();b++){
-					size_t const N = (SIZE_T()*b) + t ;
-					INPUT[t][b][0] = GET_VAL(N) ;
+			if (false) {
+				for(size_t t=0;t<SIZE_T();t++){
+					for(size_t b=0;b<SIZE_B();b++){
+						size_t const N = (SIZE_T()*b) + t ;
+						INPUT[t][b][0] = GET_VAL(N) ;
+					}
+				}
+			} else {
+				auto & tmp = INPUT.FLATTEN() ;
+				for(size_t i=0;i<tmp.SIZE();i++){
+					tmp[i] = GET_VAL(i) ;
 				}
 			}
 
@@ -1807,19 +2089,256 @@ namespace X2_2 {
 
 }
 
+//#ifdef asd
+namespace Log_X {
+
+	inline size_t constexpr
+	SIZE_T () {return 4;}
+
+	inline size_t constexpr
+	SIZE_B () {return 500;}
+
+	using TYPE_DATA = float ;
+
+	class Pars {
+	public:
+
+		Tensors::Threaded_NN::Sample_Pars
+			<SIZE_T (),30,1,TYPE_DATA>
+			P1
+		; //
+
+		Tensors::Threaded_NN::Sample_Pars
+			<SIZE_T (),1,30,TYPE_DATA>
+			P3
+		; //
+
+		inline void
+		UPDATE (
+			TYPE_DATA const
+				eta = 0.001
+		) {
+			return ;
+			P1.UPDATE(eta);
+			P3.UPDATE(eta);
+		}
+
+		Pars(){}
+		~Pars(){}
+	} ;
+
+	class Net {
+	public:
+
+		using TYPE_INPUT =
+			Tensors::Array::N2D_ARRAY
+				<SIZE_B(),1,TYPE_DATA>
+		; //
+
+		using TYPE_OUTPUT =
+			TYPE_INPUT
+		; //
+
+		inline void FORWARD (
+			TYPE_INPUT const &
+				in
+		) {
+			L1.I1 = & in ;
+			L1.FORWARD();
+			L2.FORWARD();
+			L3.FORWARD();
+		}
+
+		inline void BACKWARD (
+			TYPE_OUTPUT const &
+				out
+		) {
+			L4.I2 = & out	;
+			L4.BACKWARD ()	;
+			L3.BACKWARD ()	;
+			L2.BACKWARD ()	;
+			L1.BACKWARD ()	;
+			printf (
+				"ERROR = %e\n"	,
+				L4.O1.L2_NORM()
+			) ; //
+		}
+
+		inline void
+		TO_LAYER (
+			size_t	const	t		,
+			Pars	&		InPars
+		) {
+			InPars.P1.TO_LAYER(t,L1);
+			InPars.P3.TO_LAYER(t,L3);
+		}
+
+		inline void ATTACH_ALL () {
+			L1.ATTACH_FORWARD(L2);
+			L2.ATTACH_FORWARD(L3);
+			L3.ATTACH_TEACHER(L4);
+			L4.ID2 = L4.ID1 ;
+			L1.MAKE_FIRST_LAYER();
+		}
+
+		Net () {ATTACH_ALL();}
+
+		~Net(){}
+
+		Tensors::NN_GRAD::LinearLayer
+			<SIZE_B(),1,30,1,TYPE_DATA>
+				L1
+		; //
+
+		Tensors::NN_GRAD::SoftLRU
+			<SIZE_B(),1,30,TYPE_DATA>
+				L2
+		; //
+
+		Tensors::NN_GRAD::LinearLayer
+			<SIZE_B(),1,1,30,TYPE_DATA>
+				L3
+		; //
+
+		Tensors::NN_GRAD::L2Teacher
+			<SIZE_B(),1,1,TYPE_DATA>
+				L4
+		; //
+
+	} ;
+
+	class NetAll {
+	public:
+
+		using TYPE_INPUT =
+			Tensors::Array::N3D_ARRAY <
+				SIZE_T()	,
+				SIZE_B()	,
+				1			,
+				TYPE_DATA
+			>
+		; //
+
+		using TYPE_OUTPUT =
+			TYPE_INPUT
+		; //
+
+		Net		net[SIZE_T()]	;
+		Pars	p				;
+
+		inline void TRAIN (
+			TYPE_INPUT const &
+				in ,
+
+			TYPE_INPUT const &
+				out
+		) {
+
+			#pragma omp parallel for
+			for(size_t i=0;i<4;i++){
+				net[i].FORWARD(in[i]);
+				net[i].BACKWARD(out[i]);
+			}
+
+			p.UPDATE(0.0);
+
+		}
+
+		NetAll(){
+			net[0].TO_LAYER(0,p);
+			net[1].TO_LAYER(1,p);
+			net[2].TO_LAYER(2,p);
+			net[3].TO_LAYER(3,p);
+		}
+
+		~NetAll(){}
+
+	} ;
+
+	class DataTrainer {
+	public:
+		using TYPE_MATRIX =
+			Tensors::Array::N4D_ARRAY <
+				100 , SIZE_T() ,
+				SIZE_B() , 1 ,
+				TYPE_DATA
+			>
+		; //
+
+		TYPE_MATRIX DATA_IN		;
+		TYPE_MATRIX DATA_OUT	;
+
+		inline void
+		SetUp () {
+
+			TYPE_DATA constexpr x2 = 10.0 ;
+			TYPE_DATA constexpr x1 = -5.0 ;
+
+			TYPE_DATA constexpr dx =
+				( x2 - x1 ) / (
+					static_cast<TYPE_DATA>
+						(TYPE_MATRIX::SIZE())
+				)
+			; //
+
+			auto & tmp =
+				DATA_IN.FLATTEN()
+			; //
+
+			for(size_t i=0;i<tmp.SIZE();i++) {
+				tmp[i] =
+					x1 + (
+						static_cast<TYPE_DATA>(i) *
+						dx
+					)
+				; //
+			}
+
+			DATA_OUT.FLATTEN().GET_SQUARED
+				(DATA_IN.FLATTEN())
+			; //
+
+		}
+
+		NetAll mainnet ;
+
+		inline void TRAIN () {
+			for(size_t i=0;i<1000;i++){
+				mainnet.TRAIN (
+					DATA_IN[i]	,
+					DATA_OUT[i]
+				) ; //
+			}
+		}
+
+		DataTrainer(){SetUp();}
+
+		~DataTrainer(){}
+
+	} ;
+
+}
+//#endif
+
 int main () {
-	X2_2::NetBig * slave =
-		new X2_2::NetBig
-	;
+	if(true){
+		auto * slave = new X2_2::NetBig ;
+		for(size_t i=0;i<1000;i++){
+			slave->TRAIN ( static_cast<float>(0.001) ) ;
+		}
+		delete slave ;
+	}
 
-	for(size_t e=0;e<40;e++)
-	{slave->TRAIN(static_cast<float>(0.0002));}
+	if(false){
+		Log_X::DataTrainer * slave =
+			new Log_X::DataTrainer
+		; //
 
-	for(size_t e=0;e<1000;e++)
-	{slave->TRAIN(static_cast<float>(0.00002));}
+		for(size_t e=0;e<1000;e++)
+		{slave->TRAIN();}
 
-	slave->EVALUATE();
+		delete slave ;
+	}
 
-	delete slave ;
 	return 0 ;
 }

@@ -61,8 +61,6 @@ if(false){
 
 if(true){
 	MXNET_CHECK::MainNet slave ;
-	slave.Start();
-	slave.Train();
+	slave.Start	() ;
+	slave.Train	() ;
 }
-
-

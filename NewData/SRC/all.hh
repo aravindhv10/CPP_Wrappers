@@ -1,679 +1,57 @@
 #define USE_ALL
 #include "./LatestHeaders/NewHEPHeaders/main.hh"
 #include "./HEPTopTagger/main.hh"
-////////////////////////////////////////////////////////////////
-namespace NoBoost {
-
-    template <
-        size_t		N	,
-        typename	Tf	=	float
-    > class BoxImageGen {
-    public:
-        //
-        using TYPE_DATA =
-            Tf
-        ;
-        //
-        using vector4  =
-            fastjet::PseudoJet
-        ; //
-        //
-        using vector4s =
-            std::vector
-                <fastjet::PseudoJet>
-        ; //
-        //
-        TYPE_DATA Image[N][N] ;
-        //
-        static inline double
-        norm4 (
-            vector4 const &
-                a
-        ) {
-            double ret =
-                (a[3]*a[3]) -
-                (a[2]*a[2]) -
-                (a[1]*a[1]) -
-                (a[0]*a[0])
-            ;
-            return
-                sqrt(ret)
-            ; //
-        }
-        //
-        static inline double
-        norm3 (
-            vector4 const &
-                a
-        ) {
-            double ret =
-                (a[2]*a[2]) +
-                (a[1]*a[1]) +
-                (a[0]*a[0])
-            ;
-            return
-                sqrt(ret)
-            ; //
-        }
-        //
-        static inline double
-        dot3 (
-            vector4 const & a ,
-            vector4 const & b
-        ) {
-            return
-                (a[0]*b[0]) +
-                (a[1]*b[1]) +
-                (a[2]*b[2])
-            ; //
-        }
-        //
-        static inline double
-        dot4 (
-            vector4 const & a ,
-            vector4 const & b
-        ) {
-            return
-                (a[3]*b[3]) -
-                dot3(a,b)
-            ; //
-        }
-        //
-        inline void ZeroImage () {
-            for(size_t x=0;x<N;x++){
-                for(size_t y=0;y<N;y++){
-                    Image[x][y] = 0.0 ;
-                }
-            }
-        }
-        //
-        inline void
-        Rescale2Box (
-            double & X ,
-            double & Y
-        ) {
-            double ScalingFactor =
-                (
-                    CPPFileIO::mymod(X) +
-                    CPPFileIO::mymod(Y)
-                ) /
-                sqrt (
-                    (X*X) +
-                    (Y*Y)
-                )
-            ;
-            X *= ScalingFactor ;
-            Y *= ScalingFactor ;
-        }
-        //
-        inline bool Eval (
-            vector4s	const	& 	invectors
-        ) {
-            if(invectors.size()>2){
-                ZeroImage();
-                fastjet::JetAlgorithm algo =
-                    fastjet::kt_algorithm
-                ; //
-                fastjet::JetDefinition
-                    jet_def (
-                        algo ,
-                        100.0
-                    )
-                ; //
-                fastjet::ClusterSequence
-                    clust_seq (
-                        invectors ,
-                        jet_def
-                    )
-                ; //
-                vector4s basis =
-                    fastjet::sorted_by_pt (
-                        clust_seq.exclusive_jets (3)
-                    )
-                ; //
-                if(basis.size()>2){
-                    vector4
-                        eZ, eY, eX
-                    ; //
-                    eZ =
-                        basis[0] +
-                        basis[1] +
-                        basis[2]
-                    ; //
-                    const double EJ =
-                        eZ[3]
-                    ; /* Orthonormalize the basis: */ {
-                        eZ /=
-                            norm3 (eZ)
-                        ; //
-                        eX =
-                            basis[0] -
-                            (eZ*dot3(basis[0],eZ))
-                        ; //
-                        eX /=
-                            norm3 (eX)
-                        ; //
-                        eY =
-                            basis[1] -
-                            (eZ*dot3(basis[1],eZ)) -
-                            (eX*dot3(basis[1],eX))
-                        ; //
-                        eY /=
-                            norm3 (eY)
-                        ; //
-                    }
-                    for(
-                        size_t i=0;
-                        i<invectors.size();
-                        i++
-                    ) {
-                        double
-                            cX	,	cY	,	eI
-                        ; /* Evaluate the values: */ {
-                            vector4 tmp =
-                                invectors[i]
-                            ; //
-                            eI = tmp[3] ;
-                            /* Evaluate the projections: */ {
-                                double pX =
-                                    dot3 (tmp,eX)
-                                ; //
-                                double pY =
-                                    dot3 (tmp,eY)
-                                ; //
-                                cX = pX / eI ;
-                                cY = pY / eI ;
-                            }
-                            /* Rescale to get a box: */ {
-                                Rescale2Box(cX,cY);
-                            }
-                        } /* Evaluate the bins: */ {
-                            size_t N_X =
-                                static_cast<size_t>(
-                                    static_cast<double>(N) *
-                                    (cX+1.0) / 2.0
-                                )
-                            ; //
-                            size_t N_Y =
-                                static_cast<size_t>(
-                                    static_cast<double>(N) *
-                                    (cY+1.0) / 2.0
-                                )
-                            ; //
-                            if(N_X>=N){N_X=N-1;}
-                            if(N_Y>=N){N_Y=N-1;}
-                            Image[N_Y][N_X] +=
-                                eI / EJ
-                            ; //
-                        }
-                    }
-
-                    if(false){
-                        double sum = 0 ;
-                        for(size_t x=0;x<N;x++)
-                        for(size_t y=0;y<N;y++){
-                            sum += Image[y][x] ;
-                        }
-                        printf("The Norm of the image: %e\n",sum);
-                    }
-
-                    return true;
-                }
-                else{return false;}
-            }
-            else{return false;}
-        }
-        //
-        inline bool
-        operator () (
-            vector4s const &
-                invectors
-        ) {
-            return
-                Eval (
-                    invectors
-                )
-            ; //
-        }
-        //
-        BoxImageGen (
-            vector4s const &
-                invectors
-        ) {
-            Eval(invectors);
-        }
-        //
-        BoxImageGen(){}
-        //
-        ~BoxImageGen(){}
-        //
-    } ;
-
-}
-////////////////////////////////////////////////////////////////
-namespace NoGramSchmidt {
-
-    template <
-        size_t 		N 				,
-        typename	Tf		= float	,
-        bool		boxify	= true
-    > class BoxImageGen {
-    public:
-        //
-        using TYPE_DATA =
-            Tf
-        ; //
-        using vector4  =
-            fastjet::PseudoJet
-        ; //
-        using vector4s =
-            std::vector
-                <fastjet::PseudoJet>
-        ; //
-        //
-        TYPE_DATA
-            Image[N][N]
-        ; //
-        //
-        static inline double
-        norm4 (
-            vector4 const &
-                a
-        ) {
-            double ret =
-                (a[3]*a[3]) -
-                (a[2]*a[2]) -
-                (a[1]*a[1]) -
-                (a[0]*a[0])
-            ;
-            return
-                sqrt(ret)
-            ; //
-        } //
-
-        static inline double
-        norm3 (
-            vector4 const &
-                a
-        ) {
-            double ret =
-                (a[2]*a[2]) +
-                (a[1]*a[1]) +
-                (a[0]*a[0])
-            ;
-            return
-                sqrt(ret)
-            ; //
-        } //
-
-        static inline double
-        dot3 (
-            vector4 const & a ,
-            vector4 const & b
-        ) {
-            return
-                (a[0]*b[0]) +
-                (a[1]*b[1]) +
-                (a[2]*b[2])
-            ; //
-        } //
-
-        static inline double
-        dot4 (
-            vector4 const & a ,
-            vector4 const & b
-        ) {
-            return
-                (a[3]*b[3]) -
-                dot3(a,b)
-            ; //
-        } //
-
-        inline void
-        ZeroImage () {
-            for(size_t x=0;x<N;x++){
-                for(size_t y=0;y<N;y++){
-                    Image[x][y] = 0.0 ;
-                }
-            }
-        } //
-
-        inline void
-        Rescale2Box (
-            double & X ,
-            double & Y
-        ) {
-            double ScalingFactor =
-                (
-                    CPPFileIO::mymod(X) +
-                    CPPFileIO::mymod(Y)
-                ) /
-                sqrt (
-                    (X*X) +
-                    (Y*Y)
-                )
-            ;
-            X *= ScalingFactor ;
-            Y *= ScalingFactor ;
-        } //
-
-        inline vector4
-        OrthoNormalize (
-            vector4	&	V1	,
-            vector4	&	V2	,
-            vector4	&	V3
-        ) {
-            vector4 ret =
-                V1 + V2 + V3
-            ; /* Prepare the basis vectors: */ {
-                vector4 X (1,0,0,1) ;
-                vector4 Y (0,1,0,1) ;
-                vector4 B[3] =
-                    { ret , X , Y }
-                ; //
-                /* The 1st basis vector: */ {
-                    B[0] /=
-                        norm3 (B[0])
-                    ; //
-                    V1 = B[0] ;
-                }
-                /* The 2nd Basis Vector: */ {
-                    B[1] = B[1]
-                        - ( B[0] * dot3(B[0],B[1]) )
-                    ; //
-                    B[1] /=
-                        norm3 (B[1])
-                    ; //
-                    V2 = B[1] ;
-                }
-                /* The 3rd Basis Vector: */ {
-                    B[2] = B[2]
-                        - ( B[1] * dot3(B[2],B[1]) )
-                        - ( B[0] * dot3(B[2],B[0]) )
-                    ; //
-                    B[2] /=
-                        norm3 (B[2])
-                    ; //
-                    V3 = B[2] ;
-                }
-            }
-            return
-                ret
-            ; //
-        }
-
-        inline bool
-        Eval (
-            vector4s const &
-                invectors  ,
-            double const
-                M0 = 0.5
-        ) {
-            if(invectors.size()>2){
-
-                ZeroImage();
-
-                const double E0 =
-                    1.0
-                ; //
-                const double P0 =
-                    sqrt(
-                        (E0*E0) -
-                        (M0*M0)
-                    )
-                ; //
-
-                fastjet::JetAlgorithm algo =
-                    fastjet::kt_algorithm
-                ; //
-                fastjet::JetDefinition
-                    jet_def (
-                        algo ,
-                        100.0
-                    )
-                ; //
-                fastjet::ClusterSequence
-                    clust_seq (
-                        invectors ,
-                        jet_def
-                    )
-                ; //
-                vector4s basis =
-                    fastjet::sorted_by_pt (
-                        clust_seq.exclusive_jets (3)
-                    )
-                ; //
-
-                if(basis.size()>2){
-
-                    vector4
-                        eZ = basis[0] ,
-                        eX = basis[1] ,
-                        eY = basis[2]
-                    ; //
-
-                    vector4 const P_MU_J =
-                        OrthoNormalize
-                            (eZ,eX,eY)
-                    ;
-
-                    const double EJ =
-                        P_MU_J[3]
-                    ; //
-                    const double PJ =
-                        norm3 (P_MU_J)
-                    ; //
-                    const double MJ =
-                        norm4 (P_MU_J)
-                    ; //
-                    const double Factor =
-                        (M0/MJ)
-                    ; //
-
-                    double GM =
-                        ( (EJ*E0) - (PJ*P0) ) /
-                        (MJ*M0)
-                    ; //
-                    if(GM<1.0000000001){
-                        GM=1.0000000001;
-                    }
-
-                    double BT =
-                        sqrt(
-                            1.0 - (1.0/(GM*GM))
-                        )
-                    ; //
-                    if ((EJ/MJ)<(E0/M0)) {
-                        BT = -BT ;
-                    }
-
-                    /* Orthonormalize the basis: */ if(false) {
-                        eZ /=
-                            norm3 (eZ)
-                        ; //
-                        eX =
-                            basis[0] -
-                            (eZ*dot3(basis[0],eZ))
-                        ; //
-                        eX /=
-                            norm3 (eX)
-                        ; //
-                        eY =
-                            basis[1] -
-                            (eZ*dot3(basis[1],eZ)) -
-                            (eX*dot3(basis[1],eX))
-                        ; //
-                        eY /=
-                            norm3 (eY)
-                        ; //
-                    }
-
-                    if (false) {
-                        auto newtmp =
-                            sorted_by_E(invectors)
-                        ; //
-                        eX =
-                            newtmp[0] -
-                            (eZ*dot3(newtmp[0],eZ))
-                        ; //
-                        eX /=
-                            norm3 (eX)
-                        ; //
-                        eY =
-                            newtmp[1] -
-                            (eZ*dot3(newtmp[1],eZ)) -
-                            (eX*dot3(newtmp[1],eX))
-                        ; //
-                        eY /=
-                            norm3 (eY)
-                        ; //
-                    }
-
-                    for(
-                        size_t i=0;
-                        i<invectors.size();
-                        i++
-                    ) {
-
-                        vector4 tmp =
-                            invectors[i] *
-                            Factor
-                        ; //
-
-                        double	cX	,	cY		;
-                        double	eI	=	tmp[3]	;
-
-                        /* Evaluate the components */ {
-                            double	const	pX	=
-                                dot3 (tmp,eX)
-                            ;
-                            double	const	pY	=
-                                dot3 (tmp,eY)
-                            ;
-                            double	const	pZ	=
-                                dot3 (tmp,eZ)
-                            ;
-                            eI	=
-                                GM * ( eI - (BT*pZ) )
-                            ;
-                            cX	=
-                                pX / eI
-                            ;
-                            cY	=
-                                pY / eI
-                            ;
-                        }
-
-                        /* Rescale to get a box: */ if (boxify) {
-                            Rescale2Box(cX,cY);
-                        }
-
-                        /* Rescale to get a box: */ if(false) {
-                            double ScalingFactor =
-                                (
-                                    CPPFileIO::mymod(cX) +
-                                    CPPFileIO::mymod(cY)
-                                ) /
-                                sqrt (
-                                    (cX*cX) +
-                                    (cY*cY)
-                                )
-                            ; //
-                            cX *= ScalingFactor ;
-                            cY *= ScalingFactor ;
-                        }
-
-                        /* Fill the Bins: */ {
-                            size_t N_X =
-                                static_cast<size_t>(
-                                    static_cast<double>(N) *
-                                    (cX+1.0) / 2.0
-                                )
-                            ; //
-                            size_t N_Y =
-                                static_cast<size_t>(
-                                    static_cast<double>(N) *
-                                    (cY+1.0) / 2.0
-                                )
-                            ;
-                            if(N_X>=N){N_X=N-1;}
-                            if(N_Y>=N){N_Y=N-1;}
-                            Image[N_Y][N_X] += eI ;
-                        }
-
-                    }
-                    return true;
-                }
-                else{return false;}
-            }
-            else{return false;}
-        }
-        //
-        inline bool
-        operator () (
-            vector4s const &
-                invectors  ,
-            double const
-                M0 = 0.5
-        ) {
-            return
-                Eval (
-                    invectors,
-                    M0
-                )
-            ; //
-        }
-        //
-        BoxImageGen (
-            vector4s const &
-                invectors  ,
-            double const
-                M0 = 0.5
-        ) {
-            Eval(invectors,M0);
-        }
-        //
-        BoxImageGen(){}
-        //
-        ~BoxImageGen(){}
-        //
-    } ;
-
-}
+#include "./BadImageFormer.hh"
 ////////////////////////////////////////////////////////////////
 namespace MISC {
     //
-    size_t constexpr
-        ImageResolution =
-            40
-    ; //
-    using TYPE_DATA =
-        float
-    ; //
-    using UnBoostedImageType =
-        NoBoost::BoxImageGen <
-            ImageResolution	,
-            TYPE_DATA
-        >
-    ; //
-    using NoGramSchmidtImageType =
-        NoGramSchmidt::BoxImageGen <
-            ImageResolution	,
-            TYPE_DATA
-        >
-    ; //
-    using imagetype =
-        NewHEPHeaders::BoxImageGen <
-            ImageResolution	,
-            TYPE_DATA
-        >
-    ; //
-    using imagetypeflip =
-        NewHEPHeaders::ImageGenFlip <
-            ImageResolution	,
-            TYPE_DATA
-        >
-    ; //
+	size_t constexpr
+		ImageResolution =
+			40
+	; //
+
+	using TYPE_DATA =
+		float
+	; //
+
+	using UnBoostedImageType =
+		NoBoost::BoxImageGen <
+			ImageResolution	,
+			TYPE_DATA		,
+			false
+		>
+	; //
+
+	using NoGramSchmidtImageType =
+		NoGramSchmidt::BoxImageGen <
+			ImageResolution	,
+			TYPE_DATA		,
+			false
+		>
+	; //
+
+	using NoGramSchmidtBADImageType =
+		NoGramSchmidt_BAD::BoxImageGen <
+			ImageResolution	,
+			TYPE_DATA		,
+			false
+		>
+	; //
+
+	using imagetype =
+		NewHEPHeaders::BoxImageGen <
+			ImageResolution	,
+			TYPE_DATA
+		>
+	; //
+
+	using imagetypeflip =
+		NewHEPHeaders::ImageGenFlip <
+			ImageResolution	,
+			TYPE_DATA
+		>
+	; //
+
     using outvector4 =
         NewHEPHeaders::VECTORS::lorentz4vector
             <TYPE_DATA>
@@ -1000,6 +378,17 @@ namespace MISC {
                     (img)
                 ; //
             }
+
+            /* Evaluate NoGramSchmidt Image : */ {
+                NoGramSchmidtBADImageType img (
+                    injet.constituents() ,
+                    0.5
+                ) ; //
+                NoGramSchmidtBADImageWriter.push_back
+                    (img)
+                ; //
+            }
+
             /* Evaluate NoGramSchmidt Image : */ {
                 NoGramSchmidtImageType img (
                     injet.constituents() ,
@@ -1033,32 +422,35 @@ namespace MISC {
         ) { Eval (injet) ; }
         //
         std::string prefixname ;
-        //
-        CPPFileIO::FileVector	<	imagetype				>
+
+        CPPFileIO::FileVector	< imagetype					>
             ImageWriter
         ; //
-        CPPFileIO::FileVector	<	UnBoostedImageType		>
+        CPPFileIO::FileVector	< UnBoostedImageType		>
             UnBoostedImageWriter
         ; //
-        CPPFileIO::FileVector	<	NoGramSchmidtImageType	>
+        CPPFileIO::FileVector	< NoGramSchmidtImageType	>
             NoGramSchmidtImageWriter
         ; //
-        CPPFileIO::FileVector	<	outvector4				>
+        CPPFileIO::FileVector	< NoGramSchmidtBADImageType	>
+            NoGramSchmidtBADImageWriter
+        ; //
+        CPPFileIO::FileVector	< outvector4				>
             VectorWriter
         ; //
-        CPPFileIO::FileVector	<	bool					>
+        CPPFileIO::FileVector	< bool						>
             TopTagWriter
         ; //
-        CPPFileIO::FileVector	<	TYPE_NSub				>
+        CPPFileIO::FileVector	< TYPE_NSub					>
             NSubWriter
         ; //
 
-        //
         EventWriter					( std::string _prefixname					) :
         prefixname					( _prefixname								) ,
         ImageWriter					( prefixname + "/image"						) ,
         UnBoostedImageWriter		( prefixname + "/UnBoostedimage"			) ,
         NoGramSchmidtImageWriter	( prefixname + "/NoGramSchmidtImageType"	) ,
+        NoGramSchmidtBADImageWriter	( prefixname + "/NoGramSchmidtBADImageType"	) ,
         VectorWriter				( prefixname + "/vector"					) ,
         TopTagWriter				( prefixname + "/toptag"					) ,
         NSubWriter					( prefixname + "/nsub"						) {}
@@ -1582,19 +974,19 @@ namespace STEP1_GENERATION {
         }
     }
 
-    inline void
-    Generate_Test () {
-        CPPFileIO::ForkMe forker ;
-        for(size_t i=0;i<8;i++)
-        if(forker.InKid()){
-            Generate_QCD (
-                i      ,
-                "TEST" ,
-                456    ,
-                50000
-            ) ; //
-        }
-    }
+	inline void
+	Generate_Test () {
+		CPPFileIO::ForkMe forker ;
+		for(size_t i=0;i<8;i++)
+		if(forker.InKid()){
+			Generate_QCD (
+				i      ,
+				"TEST" ,
+				456    ,
+				50000
+			) ; //
+		}
+	}
 
     inline void
     PlotImages () {
@@ -1695,10 +1087,24 @@ namespace STEP1_GENERATION {
                 }
             }
 
+			/* NOGRAMSCHMIDT_BAD */ {
+				Plot2D
+					tmp("QCD_TEST_IMAGES_NOGRAMSCHMIDT_BAD")
+				; /* Record the file names: */ {
+					tmp("./OUTS/QCD/TEST/0/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/1/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/2/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/3/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/4/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/5/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/6/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/7/NoGramSchmidtBADImageType");
+				}
+			}
+
         }
 
     }
-
 
     inline void
     PlotImages_1 () {
@@ -1732,9 +1138,6 @@ namespace STEP1_GENERATION {
         }
 
     }
-
-
-
 
     inline void
     PlotNsub () {
@@ -2970,9 +2373,6 @@ namespace STEP5_EVALERROR {
     //
     inline void
     MakeLosses () {
-        if (true) {
-            RunPredict () ;
-        }
         CPPFileIO::ForkMe forks ;
         if (true) if (forks.InKid()) {
             EVAL_PREDICT("./OUTS/QCD/TRAIN/0");
@@ -3025,15 +2425,19 @@ namespace STEP6_PLOTLOSSES {
     //
     inline void
     PlotLosses () {
-        MyHistN <4,true>
-            Hists ("Losses",100,-0.01,0.41)
-        ; //
+		MyHistN <4,true>
+			Hists (
+				"Losses",
+				100,
+				-0.01,0.41
+			)
+		; //
         for(size_t i=0;i<8;i++){
             char tmp[512] ;
             /* QCD TRAIN */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/QCD/TRAIN/%ld/loss",
+                    "./OUTS/QCD/TRAIN/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3047,7 +2451,6 @@ namespace STEP6_PLOTLOSSES {
                     Sumloss +=
                         Reader(j)
                     ; //
-                    //Hists.Fill<0>( std::sqrt(Reader(j)) );
                     Hists.Fill<0>(Reader(j));
                 }
                 printf(
@@ -3059,7 +2462,7 @@ namespace STEP6_PLOTLOSSES {
             /* QCD TEST */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/QCD/TEST/%ld/loss",
+                    "./OUTS/QCD/TEST/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3073,7 +2476,6 @@ namespace STEP6_PLOTLOSSES {
                     Sumloss +=
                         Reader(j)
                     ; //
-                    //Hists.Fill<2>(std::sqrt(Reader(j)));
                     Hists.Fill<2>(Reader(j));
                 }
                 printf(
@@ -3085,7 +2487,7 @@ namespace STEP6_PLOTLOSSES {
             /* TOP TRAIN */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/TOP/TRAIN/%ld/loss",
+                    "./OUTS/TOP/TRAIN/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3099,7 +2501,6 @@ namespace STEP6_PLOTLOSSES {
                     Sumloss +=
                         Reader(j)
                     ; //
-                    //Hists.Fill<1>(std::sqrt(Reader(j)));
                     Hists.Fill<1>(Reader(j));
                 }
                 printf(
@@ -3111,7 +2512,7 @@ namespace STEP6_PLOTLOSSES {
             /* TOP TEST */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/TOP/TEST/%ld/loss",
+                    "./OUTS/TOP/TEST/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3125,7 +2526,6 @@ namespace STEP6_PLOTLOSSES {
                     Sumloss +=
                         Reader(j)
                     ; //
-                    //Hists.Fill<3>(std::sqrt(Reader(j)));
                     Hists.Fill<3>(Reader(j));
                 }
                 printf(
@@ -3138,21 +2538,20 @@ namespace STEP6_PLOTLOSSES {
     }
     //
     inline void
-    PlotTestLosses () {
-        MyHistN <2,true>
-            Hists (
-                "Losses",
-                100,-0.01,
-                0.41
-            )
-        ; //
-        ROC_ELEMENTs roclist ;
+    PlotLosses_HPT () {
+		MyHistN <4,true>
+			Hists (
+				"Losses_HPT",
+				100,
+				-0.01,0.41
+			)
+		; //
         for(size_t i=0;i<8;i++){
             char tmp[512] ;
-            /* QCD TEST */ {
+            /* QCD TRAIN */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/QCD/TEST/%ld/loss",
+                    "./OUTS/QCD_HPT/TRAIN/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3161,23 +2560,23 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
-                    ROC_ELEMENT
-                        tmproc (
-                            Reader(j),
-                            false
-                        )
-                    ;
-                    roclist.push_back
-                        (tmproc)
-                    ;
+                    Sumloss +=
+                        Reader(j)
+                    ; //
                     Hists.Fill<0>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
-            /* TOP TEST */ {
+            /* QCD TEST */ if(true) {
                 sprintf (
                     tmp,
-                    "./OUTS/TOP/TEST/%ld/loss",
+                    "./OUTS/QCD_HPT/TEST/%ld/predict",
                     i
                 ) ; //
                 CPPFileIO::FullFileReader
@@ -3186,23 +2585,69 @@ namespace STEP6_PLOTLOSSES {
                             tmp
                         )
                 ; //
+                TYPE_DATA Sumloss = 0 ;
                 for(size_t j=0;j<Reader();j++){
-                    ROC_ELEMENT
-                        tmproc (
-                            Reader(j),
-                            true
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    Hists.Fill<2>(Reader(j));
+                }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
+            }
+            /* TOP TRAIN */ if(true) {
+                sprintf (
+                    tmp,
+                    "./OUTS/TOP/TRAIN/%ld/predict",
+                    i
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        Reader (
+                            tmp
                         )
-                    ;
-                    roclist.push_back
-                        (tmproc)
-                    ;
+                ; //
+                TYPE_DATA Sumloss = 0 ;
+                for(size_t j=0;j<Reader();j++){
+                    Sumloss +=
+                        Reader(j)
+                    ; //
                     Hists.Fill<1>(Reader(j));
                 }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
             }
-            WriteROC (
-                roclist ,
-                "./OUTS/ROC/AE.txt"
-            ) ; //
+            /* TOP TEST */ if(true) {
+                sprintf (
+                    tmp,
+                    "./OUTS/TOP/TEST/%ld/predict",
+                    i
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_DATA>
+                        Reader (
+                            tmp
+                        )
+                ; //
+                TYPE_DATA Sumloss = 0 ;
+                for(size_t j=0;j<Reader();j++){
+                    Sumloss +=
+                        Reader(j)
+                    ; //
+                    Hists.Fill<3>(Reader(j));
+                }
+                printf(
+                    "Final Sum = %e\n",
+                    Sumloss /
+                    ((TYPE_DATA)Reader()))
+                ; //
+            }
         }
     }
     //
@@ -3230,26 +2675,26 @@ namespace STEP6_PLOTLOSSES {
             std::vector <std::string>
                 lossfiles
             ; /* Create the loss list */ {
-                lossfiles.push_back ("./OUTS/QCD/TEST/0/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/1/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/2/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/3/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/4/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/5/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/6/loss") ;
-                lossfiles.push_back ("./OUTS/QCD/TEST/7/loss") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/0/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/1/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/2/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/3/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/4/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/5/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/6/predict") ;
+                lossfiles.push_back ("./OUTS/QCD/TEST/7/predict") ;
             }
             std::vector <std::string>
                 vectfiles
             ; /* Create the vector list: */ {
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/0/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/1/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/2/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/3/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/4/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/5/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/6/vector") ;
-                vectfiles.push_back ("./OUTS/QCD/TRAIN/7/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/0/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/1/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/2/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/3/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/4/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/5/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/6/vector") ;
+                vectfiles.push_back ("./OUTS/QCD/TEST/7/vector") ;
             }
             for(size_t index=0;index<8;index++){
                 CPPFileIO::FullFileReader
@@ -3283,26 +2728,26 @@ namespace STEP6_PLOTLOSSES {
             std::vector <std::string>
                 lossfiles
             ; /* Create the loss list */ {
-                lossfiles.push_back ("./OUTS/TOP/TEST/0/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/1/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/2/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/3/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/4/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/5/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/6/loss") ;
-                lossfiles.push_back ("./OUTS/TOP/TEST/7/loss") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/0/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/1/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/2/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/3/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/4/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/5/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/6/predict") ;
+                lossfiles.push_back ("./OUTS/TOP/TEST/7/predict") ;
             }
             std::vector <std::string>
                 vectfiles
             ; /* Create the vector list: */ {
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/0/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/1/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/2/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/3/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/4/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/5/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/6/vector") ;
-                vectfiles.push_back ("./OUTS/TOP/TRAIN/7/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/0/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/1/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/2/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/3/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/4/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/5/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/6/vector") ;
+                vectfiles.push_back ("./OUTS/TOP/TEST/7/vector") ;
             }
             for(size_t index=0;index<8;index++){
                 CPPFileIO::FullFileReader
@@ -4137,9 +3582,8 @@ namespace STEP9_CNN_AE_RESPONSE_PLOT {
 
         }
 
-
         CNN_LOSS_ROC () :
-        Hists ("Losses",100,-0.01,1.01) ,
+        Hists ("Losses_CNN_AE",100,-0.01,0.3) ,
         QCD_Writer ("./OUTS/ROC/QCD_CNN_DATA") ,
         TOP_Writer ("./OUTS/ROC/TOP_CNN_DATA") {
 
@@ -4164,7 +3608,7 @@ namespace STEP9_CNN_AE_RESPONSE_PLOT {
                         "TreeB",
                         "TreeB"
                     )
-                ;
+                ; //
                 background->Branch ( "mass" , & mass ) ;
                 background->Branch ( "loss" , & loss ) ;
             }
@@ -4175,16 +3619,15 @@ namespace STEP9_CNN_AE_RESPONSE_PLOT {
                         "TreeS",
                         "TreeS"
                     )
-                ;
-
+                ; //
                 signalTree->Branch ( "mass" , & mass ) ;
                 signalTree->Branch ( "loss" , & loss ) ;
             }
 
             PLOT_QCD();
             PLOT_TOP();
-            PLOT_QCD_TRAIN();
-            PLOT_TOP_TRAIN();
+            //PLOT_QCD_TRAIN();
+            //PLOT_TOP_TRAIN();
 
         }
 
@@ -4218,4 +3661,1116 @@ namespace STEP9_CNN_AE_RESPONSE_PLOT {
 
     } ;
 
+}
+////////////////////////////////////////////////////////////////
+namespace STEP10_HIGH_PT_QCD {
+
+    using namespace MISC ;
+
+	inline void
+	Generate_QCD (
+		size_t		index					,
+		std::string	MidName					,
+		size_t		random_seed	= 123		,
+		size_t		N_Events	= 100000
+	) {
+        CPPFileIO::SetCPUAffinity(index);
+        std::string prefixname ;
+        /* Make the directories: */ {
+            std::string dirname = "./OUTS/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            dirname = "./OUTS/QCD_HPT/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            dirname = "./OUTS/QCD_HPT/" + MidName + "/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            char tmp = '0' ;
+            tmp = tmp + ( (char) index ) ;
+            dirname = dirname + tmp + "/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            prefixname = dirname ;
+        }
+        size_t count = 0 ;
+        EventWriter
+            writer (
+                prefixname
+            )
+        ; //
+        MyPythia
+            pythia
+        ; /* Configure pythia: */ {
+			pythia.readString ( "Beams:eCM = 100000"			) ;
+			pythia.readString ( "PhaseSpace:pTHatMin = 9500"	) ;
+			pythia.readString ( "PartonLevel:MPI = off"			) ;
+			pythia.readString ( "Random:setSeed = on"			) ;
+            /* Set the random number Seed */ {
+                char tmp[256] ;
+                sprintf (
+                    tmp                 ,
+                    "Random:seed = %ld" ,
+                    index + random_seed
+                ) ; //
+                pythia.readString
+                    (tmp)
+                ; //
+            }
+            pythia.readString ( "HardQCD:all = on" ) ;
+            pythia.init () ;
+        }
+        while (
+            count<N_Events
+        ) if (
+            pythia.next()
+        ) {
+            vector4s hadrons ;
+            /* Prepare the list of hadrons: */ {
+                for (
+                    size_t i=0;
+                    i<pythia.event.size();
+                    i++
+                ) if (
+                    pythia.event[i]
+                        .isFinal()
+                ) {
+                    int pid =
+                        pythia
+                        .event[i]
+                        .id()
+                    ; //
+                    if (pid<0) {pid=-pid;}
+                    if (
+                        ( pid != 12 ) &&
+                        ( pid != 14 ) &&
+                        ( pid != 16 )
+                    ) {
+                        vector4 tmp (
+                            pythia.event[i].px() ,
+                            pythia.event[i].py() ,
+                            pythia.event[i].pz() ,
+                            pythia.event[i].e()
+                        ) ;
+                        auto tmpeta =
+                            tmp.rapidity()
+                        ; //
+                        if (
+                            ( -2.5     < tmpeta ) &&
+                            ( tmpeta   < 2.5    ) &&
+                            ( tmp.pt() > 0.5    )
+                        ) {
+                            hadrons.push_back
+                                (tmp)
+                            ; //
+                        }
+                    }
+                }
+            }
+            fastjet::JetAlgorithm algo =
+                fastjet::antikt_algorithm
+            ; //
+            fastjet::JetDefinition
+                jet_def (
+                    algo,
+                    1.0
+                )
+            ; //
+            fastjet::ClusterSequence
+                clust_seq (
+                    hadrons,
+                    jet_def
+                )
+            ; //
+            vector4s jets =
+                clust_seq
+                .inclusive_jets
+                    (800.0)
+            ; //
+            if (
+                (jets.size()>0) &&
+                (jets[0].constituents().size()>2)
+            ) {
+                auto tmppt =
+                    jets[0].pt ()
+                ; //
+                auto tmpet =
+                    jets[0].rapidity ()
+                ; //
+                if (
+                    (
+                        ( 10000 < tmppt )
+                    ) && (
+                        ( -2.5 < tmpet ) &&
+                        ( tmpet < 2.5 )
+                    )
+                ) {
+                    writer(jets[0]);
+                    count++ ;
+                }
+            }
+        }
+    }
+
+    inline void
+    Generate_Train () {
+        CPPFileIO::ForkMe forker ;
+        for(size_t i=0;i<8;i++)
+        if(forker.InKid()){
+            Generate_QCD (
+                i       ,
+                "TRAIN" ,
+                123     ,
+                300000
+            ) ; //
+        }
+    }
+
+	inline void
+	Generate_Test () {
+		CPPFileIO::ForkMe forker ;
+		for(size_t i=0;i<8;i++)
+		if(forker.InKid()){
+			Generate_QCD (
+				i      ,
+				"TEST" ,
+				456    ,
+				50000
+			) ; //
+		}
+	}
+
+    inline void
+    PlotImages () {
+
+        /* TRAIN */ if(false) {
+
+            /* NORMAL */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/image");
+                    tmp("./OUTS/QCD/TRAIN/1/image");
+                    tmp("./OUTS/QCD/TRAIN/2/image");
+                    tmp("./OUTS/QCD/TRAIN/3/image");
+                    tmp("./OUTS/QCD/TRAIN/4/image");
+                    tmp("./OUTS/QCD/TRAIN/5/image");
+                    tmp("./OUTS/QCD/TRAIN/6/image");
+                    tmp("./OUTS/QCD/TRAIN/7/image");
+                }
+            }
+
+            /* UNBOOSTED */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES_UNBOOSTED")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/1/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/2/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/3/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/4/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/5/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/6/UnBoostedimage");
+                    tmp("./OUTS/QCD/TRAIN/7/UnBoostedimage");
+                }
+            }
+
+            /* NOGRAMSCHMIDT */ {
+                Plot2D
+                    tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/1/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/2/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/3/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/4/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/5/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/6/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TRAIN/7/NoGramSchmidtImageType");
+                }
+            }
+
+        }
+
+        /* TEST */ if(true) {
+
+            /* NORMAL */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/image");
+                    tmp("./OUTS/QCD/TEST/1/image");
+                    tmp("./OUTS/QCD/TEST/2/image");
+                    tmp("./OUTS/QCD/TEST/3/image");
+                    tmp("./OUTS/QCD/TEST/4/image");
+                    tmp("./OUTS/QCD/TEST/5/image");
+                    tmp("./OUTS/QCD/TEST/6/image");
+                    tmp("./OUTS/QCD/TEST/7/image");
+                }
+            }
+
+            /* UNBOOSTED */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES_UNBOOSTED")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/1/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/2/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/3/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/4/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/5/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/6/UnBoostedimage");
+                    tmp("./OUTS/QCD/TEST/7/UnBoostedimage");
+                }
+            }
+
+            /* NOGRAMSCHMIDT */ {
+                Plot2D
+                    tmp("QCD_TEST_IMAGES_NOGRAMSCHMIDT")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TEST/0/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/1/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/2/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/3/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/4/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/5/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/6/NoGramSchmidtImageType");
+                    tmp("./OUTS/QCD/TEST/7/NoGramSchmidtImageType");
+                }
+            }
+
+			/* NOGRAMSCHMIDT_BAD */ {
+				Plot2D
+					tmp("QCD_TEST_IMAGES_NOGRAMSCHMIDT_BAD")
+				; /* Record the file names: */ {
+					tmp("./OUTS/QCD/TEST/0/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/1/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/2/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/3/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/4/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/5/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/6/NoGramSchmidtBADImageType");
+					tmp("./OUTS/QCD/TEST/7/NoGramSchmidtBADImageType");
+				}
+			}
+
+        }
+
+    }
+
+    inline void
+    PlotImages_1 () {
+
+        /* TRAIN */ if(true) {
+
+            /* NORMAL */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/image");
+                }
+            }
+
+            /* UNBOOSTED */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_UNBOOSTED_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/UnBoostedimage");
+                }
+            }
+
+            /* NOGRAMSCHMIDT */ {
+                Plot2D_1
+                    tmp("QCD_TRAIN_IMAGES_NOGRAMSCHMIDT_1")
+                ; /* Record the file names: */ {
+                    tmp("./OUTS/QCD/TRAIN/0/NoGramSchmidtImageType");
+                }
+            }
+
+        }
+
+    }
+
+    inline void
+    PlotNsub () {
+        //
+        /* TRAIN */ if(true) {
+            MyHistN <5,false>
+                nsubcompare (
+                    "TAU_QCD_TRAIN",100,
+                    -0.01,100.01
+                )
+            ; //
+            for(
+                size_t index=0;
+                index<8;
+                index++
+            ) {
+                char tmp[256] ;
+                sprintf (
+                    tmp,
+                    "./OUTS/QCD/TRAIN/%ld/nsub",
+                    index
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_NSub>
+                        Reader (tmp)
+                ; //
+                for (
+                    size_t i=0;
+                    i<Reader();
+                    i++
+                ) {
+                    //
+                    nsubcompare.Fill<0>
+                        (Reader(i)[0])
+                    ; //
+                    nsubcompare.Fill<1>
+                        (Reader(i)[1])
+                    ; //
+                    nsubcompare.Fill<2>
+                        (Reader(i)[2])
+                    ; //
+                    nsubcompare.Fill<3>
+                        (Reader(i)[3])
+                    ; //
+                    nsubcompare.Fill<4>
+                        (Reader(i)[4])
+                    ; //
+                    //
+                }
+            }
+        }
+        //
+        /* TEST */ if(true) {
+            MyHistN <5,false>
+                nsubcompare (
+                    "TAU_QCD_TEST",100,
+                    -0.01,100.01
+                )
+            ; //
+            for(
+                size_t index=0;
+                index<8;
+                index++
+            ) {
+                char tmp[256] ;
+                sprintf (
+                    tmp,
+                    "./OUTS/QCD/TEST/%ld/nsub",
+                    index
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_NSub>
+                        Reader (tmp)
+                ; //
+                for (
+                    size_t i=0;
+                    i<Reader();
+                    i++
+                ) {
+                    //
+                    nsubcompare.Fill<0>
+                        (Reader(i)[0])
+                    ; //
+                    nsubcompare.Fill<1>
+                        (Reader(i)[1])
+                    ; //
+                    nsubcompare.Fill<2>
+                        (Reader(i)[2])
+                    ; //
+                    nsubcompare.Fill<3>
+                        (Reader(i)[3])
+                    ; //
+                    nsubcompare.Fill<4>
+                        (Reader(i)[4])
+                    ; //
+                    //
+                }
+            }
+        }
+        //
+    }
+
+}
+////////////////////////////////////////////////////////////////
+namespace STEP11_2D_MASS_ERROR {
+
+	using namespace MISC ;
+
+	class Touple {
+	public:
+
+		using TYPE_SELF =
+			Touple
+		;
+
+		inline bool
+		operator > (
+			TYPE_SELF const &
+				other
+		) const {
+			return
+				loss	>
+				other.loss
+			;
+		}
+
+		inline bool
+		operator < (
+			TYPE_SELF const &
+				other
+		) const {
+			return
+				loss	<
+				other.loss
+			;
+		}
+
+		Touple(
+			TYPE_DATA const _loss ,
+			TYPE_DATA const _mass
+		) {
+			loss = _loss ;
+			mass = _mass ;
+		}
+
+		~Touple(){}
+
+		TYPE_DATA
+			loss	,
+			mass
+		; //
+
+	} ;
+
+	class PLOT_LOSS_MASS {
+	public:
+
+		inline void
+		fill_2 (
+			TYPE_DATA	const & U	,
+			outvector4	const & V
+		) {
+			TYPE_DATA M = V.m() ;
+			Hist.Fill(M,U);
+			TYPE_DATA
+				Splits[7]
+			; /* Allocate the splits: */ {
+				if (false) {
+					Splits[0] = 0.000 ;
+					Splits[1] = 0.020 ;
+					Splits[2] = 0.040 ;
+					Splits[3] = 0.060 ;
+					Splits[4] = 0.080 ;
+					Splits[5] = 1.000 ;
+					Splits[6] = 1.020 ;
+				} else {
+					//printf("DEBUG: Came here...\n");
+					Splits[0] = 0.000 ;
+					Splits[1] = 0.017 ;
+					Splits[2] = 0.034 ;
+					Splits[3] = 0.051 ;
+					Splits[4] = 0.068 ;
+					Splits[5] = 0.085 ;
+					Splits[6] = 1.102 ;
+				}
+
+			}
+			if((Splits[0]<=U)&&(U<Splits[1])){LossMassBins.Fill<0>(M);stats[0]++;}
+			else if((Splits[1]<=U)&&(U<Splits[2])){LossMassBins.Fill<1>(M);stats[1]++;}
+			else if((Splits[2]<=U)&&(U<Splits[3])){LossMassBins.Fill<2>(M);stats[2]++;}
+			else if((Splits[3]<=U)&&(U<Splits[4])){LossMassBins.Fill<3>(M);stats[3]++;}
+			else if((Splits[4]<=U)&&(U<Splits[5])){LossMassBins.Fill<4>(M);stats[4]++;}
+			else if((Splits[5]<=U)&&(U<Splits[6])){LossMassBins.Fill<5>(M);stats[5]++;}
+			else if((Splits[6]<=U)){LossMassBins.Fill<6>(M);stats[6]++;}
+		}
+
+		inline void
+		fill (
+			TYPE_DATA	const & U	,
+			outvector4	const & V
+		) {
+			TYPE_DATA M = V.m() ;
+			Touple tmp (U,M) ;
+			list.push_back(tmp);
+		}
+
+//////////////////////////
+#define _MACRO_BINS_1_	\
+	TYPE_DATA const		\
+		sizes[7] = {	\
+			0.00	,	\
+			0.05	,	\
+			0.20	,	\
+			0.50	,	\
+			0.80	,	\
+			0.95	,	\
+			1.00		\
+		}				\
+	;					//
+//////////////////////////
+
+//////////////////////////
+#define _MACRO_BINS_2_	\
+	TYPE_DATA const		\
+		sizes[7] = {	\
+			0.00	,	\
+			0.17	,	\
+			0.34	,	\
+			0.51	,	\
+			0.68	,	\
+			0.85	,	\
+			1.00		\
+		}				\
+	;					//
+//////////////////////////
+
+		inline void
+		fill_all () {
+
+			_MACRO_BINS_2_
+
+			std::sort(
+				list.begin(),
+				list.end()
+			) ; //
+
+			size_t const
+				limit =
+				list.size()
+			; //
+
+			for(size_t i=0;i<limit;i++){
+
+				Hist.Fill(list[i].mass,list[i].loss);
+
+				double const frac =
+					static_cast<double>(i)		/
+					static_cast<double>(limit)
+				; //
+
+				bool constexpr doall = false ;
+
+				if((sizes[0]<=frac)&&(frac<sizes[1])){
+					LossMassBins2.Fill<0>(list[i].mass);
+				}
+				if((sizes[1]<=frac)&&(frac<sizes[2])){
+					if(doall){
+						LossMassBins2.Fill<0>(list[i].mass);
+					}
+					LossMassBins2.Fill<1>(list[i].mass);
+				}
+				if((sizes[2]<=frac)&&(frac<sizes[3])){
+					if(doall){
+						LossMassBins2.Fill<0>(list[i].mass);
+						LossMassBins2.Fill<1>(list[i].mass);
+					}
+					LossMassBins2.Fill<2>(list[i].mass);
+				}
+				if((sizes[3]<=frac)&&(frac<sizes[4])){
+					if(doall){
+						LossMassBins2.Fill<0>(list[i].mass);
+						LossMassBins2.Fill<1>(list[i].mass);
+						LossMassBins2.Fill<2>(list[i].mass);
+					}
+					LossMassBins2.Fill<3>(list[i].mass);
+				}
+				if((sizes[4]<=frac)&&(frac<sizes[5])){
+					if(doall){
+						LossMassBins2.Fill<0>(list[i].mass);
+						LossMassBins2.Fill<1>(list[i].mass);
+						LossMassBins2.Fill<2>(list[i].mass);
+						LossMassBins2.Fill<3>(list[i].mass);
+					}
+					LossMassBins2.Fill<4>(list[i].mass);
+				}
+				if((sizes[5]<=frac)&&(frac<sizes[6])){
+					if(doall){
+						LossMassBins2.Fill<0>(list[i].mass);
+						LossMassBins2.Fill<1>(list[i].mass);
+						LossMassBins2.Fill<2>(list[i].mass);
+						LossMassBins2.Fill<3>(list[i].mass);
+						LossMassBins2.Fill<4>(list[i].mass);
+					}
+					LossMassBins2.Fill<5>(list[i].mass);
+				}
+
+			}
+
+		}
+
+//////////////////////////
+#undef _MACRO_BINS_1_	//
+#undef _MACRO_BINS_2_	//
+//////////////////////////
+
+		inline void
+		fill (
+			std::string const & U ,
+			std::string const & V
+		) {
+			CPPFileIO::FullFileReader
+				<TYPE_DATA>
+					ReaderU (U)
+			; //
+			CPPFileIO::FullFileReader
+				<outvector4>
+					ReaderV (V)
+			; //
+			size_t limit =
+				CPPFileIO::mymin(
+					ReaderU()	,
+					ReaderV()
+				)
+			; //
+			for(size_t i=0;i<limit;i++){
+				fill (
+					ReaderU(i)	,
+					ReaderV(i)
+				) ;
+			}
+		}
+
+		inline void
+		fill (
+			std::vector <std::string> U ,
+			std::vector <std::string> V
+		) {
+			size_t limit =
+				CPPFileIO::mymin(
+					U.size()	,
+					V.size()
+				)
+			; //
+			for(size_t i=0;i<limit;i++)
+			{ fill(U[i],V[i]); }
+		}
+
+
+		PLOT_LOSS_MASS (
+			std::string _histname ,
+			TYPE_DATA const _limit
+		) :
+		histname(_histname) ,
+		Hist (
+			&(histname[0])	,
+			&(histname[0])	,
+			100, -0.01, _limit ,
+			100, -0.01, 0.8
+		) ,
+		LossMassBins (
+			histname+"bins",
+			50, -0.01, _limit
+		) ,
+		LossMassBins2 (
+			histname+"bins2",
+			50, -0.01, _limit
+		) {
+			for(size_t i=0;i<7;i++){
+				stats[i] = 0 ;
+			}
+
+		}
+
+		~PLOT_LOSS_MASS(){
+
+			/* Write out stats: */ {
+				mkdir("./OUTS",0755);
+				mkdir("./OUTS/STATS",0755);
+				std::string dirname("./OUTS/STATS/") ;
+				std::string statname =
+					dirname + histname + "bins"
+				; //
+				FILE *f =
+					fopen (&(statname[0]),"w")
+				; /* Write out the file: */ {
+					for(size_t i=0;i<7;i++){
+						fprintf(f,"%ld\n",stats[i]);
+					}
+				}
+				fclose(f);
+			}
+
+
+			std::string
+				filename(
+					"./OUTS/GRAPHS/"
+				)
+			; /* Prepare the file name: */ {
+				filename =
+					filename +
+					histname + ".pdf"
+				; //
+			}
+
+			fill_all () ;
+
+			TCanvas C ;
+			Hist.Draw("colz");
+			C.SaveAs(&(filename[0]));
+		}
+
+		std::string histname ;
+		TH2F Hist ;
+		MyHistN <7,false> LossMassBins ;
+		MyHistN <6,false> LossMassBins2 ;
+		size_t stats[7] ;
+		std::vector<Touple>list;
+
+
+		static inline void
+		WORK_QCDHPT_TEST () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD_HPT/TEST/0/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/1/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/2/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/3/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/4/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/5/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/6/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/7/predict");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD_HPT/TEST/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCDHPT_TEST" ,
+					8000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		WORK_QCDHPT_TRAIN () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD_HPT/TRAIN/0/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/1/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/2/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/3/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/4/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/5/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/6/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/7/predict");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD_HPT/TRAIN/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCDHPT_TRAIN" ,
+					8000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		WORK_QCDHPT_FULL () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD_HPT/TRAIN/0/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/1/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/2/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/3/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/4/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/5/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/6/predict");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/7/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/0/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/1/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/2/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/3/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/4/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/5/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/6/predict");
+				U.push_back("./OUTS/QCD_HPT/TEST/7/predict");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD_HPT/TRAIN/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/7/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCDHPT_FULL" ,
+					8000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		WORK_QCD_TEST () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD/TEST/0/predict");
+				U.push_back("./OUTS/QCD/TEST/1/predict");
+				U.push_back("./OUTS/QCD/TEST/2/predict");
+				U.push_back("./OUTS/QCD/TEST/3/predict");
+				U.push_back("./OUTS/QCD/TEST/4/predict");
+				U.push_back("./OUTS/QCD/TEST/5/predict");
+				U.push_back("./OUTS/QCD/TEST/6/predict");
+				U.push_back("./OUTS/QCD/TEST/7/predict");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD/TEST/0/vector");
+				V.push_back("./OUTS/QCD/TEST/1/vector");
+				V.push_back("./OUTS/QCD/TEST/2/vector");
+				V.push_back("./OUTS/QCD/TEST/3/vector");
+				V.push_back("./OUTS/QCD/TEST/4/vector");
+				V.push_back("./OUTS/QCD/TEST/5/vector");
+				V.push_back("./OUTS/QCD/TEST/6/vector");
+				V.push_back("./OUTS/QCD/TEST/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCD_TEST" ,
+					1000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		WORK_QCD_TRAIN () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD/TRAIN/0/predict");
+				U.push_back("./OUTS/QCD/TRAIN/1/predict");
+				U.push_back("./OUTS/QCD/TRAIN/2/predict");
+				U.push_back("./OUTS/QCD/TRAIN/3/predict");
+				U.push_back("./OUTS/QCD/TRAIN/4/predict");
+				U.push_back("./OUTS/QCD/TRAIN/5/predict");
+				U.push_back("./OUTS/QCD/TRAIN/6/predict");
+				U.push_back("./OUTS/QCD/TRAIN/7/predict");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD/TRAIN/0/vector");
+				V.push_back("./OUTS/QCD/TRAIN/1/vector");
+				V.push_back("./OUTS/QCD/TRAIN/2/vector");
+				V.push_back("./OUTS/QCD/TRAIN/3/vector");
+				V.push_back("./OUTS/QCD/TRAIN/4/vector");
+				V.push_back("./OUTS/QCD/TRAIN/5/vector");
+				V.push_back("./OUTS/QCD/TRAIN/6/vector");
+				V.push_back("./OUTS/QCD/TRAIN/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCD_TRAIN" ,
+					1000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		CNN_QCD_TRAIN () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD/TRAIN/0/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/1/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/2/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/3/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/4/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/5/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/6/loss_cnn");
+				U.push_back("./OUTS/QCD/TRAIN/7/loss_cnn");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD/TRAIN/0/vector");
+				V.push_back("./OUTS/QCD/TRAIN/1/vector");
+				V.push_back("./OUTS/QCD/TRAIN/2/vector");
+				V.push_back("./OUTS/QCD/TRAIN/3/vector");
+				V.push_back("./OUTS/QCD/TRAIN/4/vector");
+				V.push_back("./OUTS/QCD/TRAIN/5/vector");
+				V.push_back("./OUTS/QCD/TRAIN/6/vector");
+				V.push_back("./OUTS/QCD/TRAIN/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCD_TRAIN_cnn" ,
+					1000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		CNN_QCD_TEST () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD/TEST/0/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/1/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/2/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/3/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/4/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/5/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/6/loss_cnn");
+				U.push_back("./OUTS/QCD/TEST/7/loss_cnn");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD/TEST/0/vector");
+				V.push_back("./OUTS/QCD/TEST/1/vector");
+				V.push_back("./OUTS/QCD/TEST/2/vector");
+				V.push_back("./OUTS/QCD/TEST/3/vector");
+				V.push_back("./OUTS/QCD/TEST/4/vector");
+				V.push_back("./OUTS/QCD/TEST/5/vector");
+				V.push_back("./OUTS/QCD/TEST/6/vector");
+				V.push_back("./OUTS/QCD/TEST/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCD_TEST_cnn" ,
+					1000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		CNN_QCDHPT_FULL () {
+			std::vector <
+				std::string
+			> U ; /* Get Loss name list: */ {
+				U.push_back("./OUTS/QCD_HPT/TRAIN/0/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/1/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/2/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/3/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/4/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/5/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/6/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TRAIN/7/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/0/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/1/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/2/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/3/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/4/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/5/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/6/loss_cnn");
+				U.push_back("./OUTS/QCD_HPT/TEST/7/loss_cnn");
+			}
+
+			std::vector <
+				std::string
+			> V ; /* Get Vector name list: */ {
+				V.push_back("./OUTS/QCD_HPT/TRAIN/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TRAIN/7/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/0/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/1/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/2/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/3/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/4/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/5/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/6/vector");
+				V.push_back("./OUTS/QCD_HPT/TEST/7/vector");
+			}
+
+			PLOT_LOSS_MASS
+				tmp (
+					"Mass_Loss_QCDHPT_FULL_cnn" ,
+					8000.0
+				)
+			; //
+
+			tmp.fill(U,V);
+
+		}
+
+		static inline void
+		WORK_QCD () {
+			WORK_QCD_TEST		() ;
+			WORK_QCD_TRAIN		() ;
+			//WORK_QCDHPT_TEST	() ;
+			//WORK_QCDHPT_TRAIN	() ;
+			WORK_QCDHPT_FULL	() ;
+			CNN_QCD_TRAIN		() ;
+			CNN_QCD_TEST		() ;
+			CNN_QCDHPT_FULL		() ;
+		}
+
+
+	} ;
 }

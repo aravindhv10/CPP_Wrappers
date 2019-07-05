@@ -11,10 +11,10 @@
 
 namespace MXNET_CHECK {
 	//
-    using MISC::TYPE_DATA ;
-    using MISC::imagetype ;
-    using MISC::ImageResolution ;
-	using namespace mxnet::cpp ;
+    using MISC::TYPE_DATA		;
+    using MISC::imagetype		;
+    using MISC::ImageResolution	;
+	using namespace mxnet::cpp	;
     //
     size_t constexpr
         BatchSize =
@@ -252,6 +252,9 @@ namespace MXNET_CHECK {
                     fc1_w, fc1_b, 256
                 )
             ; //
+            Symbol fc1ReLU1 =
+                relu(fc1)
+            ; //
             //
             // FC PART 2 :
             Symbol
@@ -260,15 +263,18 @@ namespace MXNET_CHECK {
             ; //
             Symbol fc2 =
                 FullyConnected (
-                    "fc2", fc1,
+                    "fc2", fc1ReLU1,
                     fc2_w, fc2_b, 2
                 )
+            ; //
+            Symbol fc2ReLU =
+                relu(fc2)
             ; //
             // Final Output :
             Symbol lenet =
                 SoftmaxOutput (
                     "softmax",
-                    fc2, data_label
+                    fc2ReLU, data_label
                 )
             ; //
             return lenet ;
@@ -520,7 +526,7 @@ namespace MXNET_CHECK {
                 ) {
                     for (
                         size_t i=0;
-                        (i<images())&&(i<5000000);
+                        (i<images())&&(i<500000);
                         i++
                     ) {
                         auto dptr =
@@ -3053,7 +3059,6 @@ namespace MXNET_CHECK {
 		}
 		//
 	} ;
-	//
 }
 
 namespace MXNET_CNN_AE {

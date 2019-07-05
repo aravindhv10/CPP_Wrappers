@@ -34,8 +34,10 @@
 		#include "cblas.h"
 	#endif
 
-	#include "Tensors2.hh"
+	#include "Tensors3.hh"
 
+
+	#include "MXNET_WRAPPERS.hh"
 //	#include "NeuralNetwork1.hh"
 
 #endif

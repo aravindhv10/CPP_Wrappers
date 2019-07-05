@@ -6,7 +6,10 @@ namespace NewHEPHeaders /* Pythia to HEPMc part: */ {
         HepMC::Pythia8ToHepMC ToHepMC;
         HepMC::IO_GenEvent ascii_io;
     public:
-        WriteHepmc2Fifo (std::string _name):ascii_io (&(_name[0]), std::ios::out) { name = _name; }
+        WriteHepmc2Fifo (
+			std::string _name
+		):ascii_io (&(_name[0]), std::ios::out) { name = _name; }
+
         ~WriteHepmc2Fifo () {}
         inline void operator  () (Pythia8::Pythia & pythia) {
             HepMC::GenEvent * hepmcevt = new HepMC::GenEvent ();

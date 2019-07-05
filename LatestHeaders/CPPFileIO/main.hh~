@@ -27,15 +27,17 @@
 	#include <random>
 	#include <complex>
 
-	#include "pcg.hh"
+	#include "pcg-cpp/main.hh"
 	#include "Basic.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
 	#endif
 
-	#include "Tensors.hh"
+	#include "Tensors2.hh"
 
-	#include "NeuralNetwork1.hh"
+
+	#include "MXNET_WRAPPERS.hh"
+//	#include "NeuralNetwork1.hh"
 
 #endif

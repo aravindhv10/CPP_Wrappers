@@ -1,5 +1,5 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -21,6 +21,8 @@
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -49,6 +51,7 @@
 \suppress_date false
 \justification true
 \use_refstyle 1
+\use_minted 0
 \index Index
 \shortcut idx
 \color #008000
@@ -57,7 +60,10 @@
 \tocdepth 3
 \paragraph_separation indent
 \paragraph_indentation default
-\quotes_language english
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -114,7 +120,11 @@ O_{by} & = & \sigma\left[I_{by}\right]\\
  &  & +\left[\left(DO1\right)_{by}\right]\left[\delta\left(I3\right)_{y}\right]\\
 \\
 \left(DI1\right)_{bx} & = & \left(DO1\right)_{by}\left(I2\right)_{yx}\\
+\Rightarrow\left(DI1\right) & = & \left(DO1\right)\left(I2\right)\\
+\\
 \left(DI2\right)_{yx} & = & \left(DO1\right)_{by}\left(I1\right)_{bx}\\
+\left(DI2\right)_{yx} & = & \left(DO1\right)^{T}\left(I1\right)\\
+\\
 \left(DI3\right)_{y} & = & \left(DO1\right)_{by}
 \end{eqnarray*}
 
@@ -127,6 +137,8 @@ O_{by} & = & \sigma\left[I_{by}\right]\\
 \begin_inset Formula 
 \begin{eqnarray*}
 \left(DI2^{2}\right)_{yx} & \equiv & \left(DO1^{2}\right)_{by}\left(I1^{2}\right)_{bx}\\
+\left(DI2^{2}\right) & \equiv & \left(DO1^{2}\right)^{T}\left(I1^{2}\right)\\
+\\
 \left(DI3^{2}\right)_{y} & \equiv & \left(DO1^{2}\right)_{by}
 \end{eqnarray*}
 
@@ -145,8 +157,6 @@ O_{by} & = & \sigma\left[I_{by}\right]\\
 +\left[\left(DO1\right)_{by}\right]\left[\delta\left(O1\right)_{by}\right] &  & +\left[\left(DO1\right)_{by}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\delta\left(I1\right)_{by}\right]\\
  &  & +\left[\left(DOD1\right)_{bzy}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\delta\left(ID1\right)_{bzy}\right]\\
 \\
- & = & +\left[\left(DI1\right)_{by}\right]\left[\delta\left(I1\right)_{by}\right]\\
- &  & +\left[\left(DID1\right)_{bzy}\right]\left[\delta\left(ID1\right)_{bzy}\right]
 \end{eqnarray*}
 
 \end_inset
@@ -172,6 +182,8 @@ O_{by} & = & \sigma\left[I_{by}\right]\\
 \begin{eqnarray*}
 \left[\left(O1\right)_{by}\right] & = & \left[\left(I2\right)_{yx}\right]\left[\left(I1\right)_{bx}\right]+\left[\left(I3\right)_{y}\right]\\
 \left[\left(OD1\right)_{bzy}\right] & = & \left[\left(I2\right)_{yx}\right]\left[\left(ID1\right)_{bzx}\right]\\
+\left[\left(OD1\right)_{b}\right] & = & \left[\left(ID1\right)_{b}\right]\left[\left(I2\right)^{T}\right]\\
+\\
 \left[\left(DOD1\right)_{bzy}\right]\left[\delta\left(OD1\right)_{bzy}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(ID1\right)_{bzx}\right]\left[\delta\left(I2\right)_{yx}\right]\\
  &  & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(I2\right)_{yx}\right]\left[\delta\left(ID1\right)_{bzx}\right]\\
 \\

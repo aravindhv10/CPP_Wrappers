@@ -1,0 +1,223 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+O_{by} & = & \sigma\left[I_{by}\right]\\
+\left(\delta O_{by}\right) & = & \delta\sigma\left[I_{by}\right]\\
+\left(\delta O_{by}\right) & = & \sigma^{\prime}\left[I_{by}\right]\left(\delta I_{by}\right)\\
+\left[\left(DO1\right)_{by}\right]\left[\delta\left(O1\right)_{by}\right] & = & \left[\left(DO1\right)_{by}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\delta\left(I1\right)_{by}\right]\\
+\left[\left(DI1\right)_{by}\right] & = & \left[\left(DO1\right)_{by}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\sigma\left[x\right] & = & \frac{x}{1+\left|x\right|}\\
+\text{When: }x<0\Rightarrow\sigma\left[x\right] & = & \frac{x}{1-x}=\frac{1}{1-x}-1\\
+ & = & \left(1-x\right)^{-1}-1\\
+\sigma^{\prime}\left[x\right] & = & \frac{1}{\left(1-x\right)^{2}}\\
+\sigma^{\prime\prime}\left[x\right] & = & 2\left(1-x\right)^{-3}=\frac{2}{\left(1-x\right)^{3}}\\
+\text{When: }x\ge0\Rightarrow\sigma\left[x\right] & = & \frac{x}{1+x}=1-\frac{1}{1+x}\\
+ & = & 1-\left(1+x\right)^{-1}\\
+\sigma^{\prime}\left[x\right] & = & \left(1+x\right)^{-2}=\frac{1}{\left(1+x\right)^{2}}\\
+\sigma^{\prime\prime}\left[x\right] & = & -2\left(1+x\right)^{-3}=\frac{-2}{\left(1+x\right)^{3}}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left(O1\right)_{by} & = & \left(I2\right)_{yx}\left(I1\right)_{bx}+\left(I3\right)_{y}\\
+\left(DO1\right)_{by}\left[\delta\left(O1\right)_{by}\right] & = & \left(DO1\right)_{by}\left(I1\right)_{bx}\left[\delta\left(I2\right)_{yx}\right]+\left(DO1\right)_{by}\left(I2\right)_{yx}\left[\delta\left(I1\right)_{bx}\right]+\left(DO1\right)_{by}\left[\delta\left(I3\right)_{y}\right]\\
+\left[\left(DO1\right)_{by}\right]\left[\delta\left(O1\right)_{by}\right] & = & +\left[\left(DO1\right)_{by}\right]\left[\left(I1\right)_{bx}\right]\left[\delta\left(I2\right)_{yx}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\left(I2\right)_{yx}\right]\left[\delta\left(I1\right)_{bx}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\delta\left(I3\right)_{y}\right]\\
+\\
+\left(DI1\right)_{bx} & = & \left(DO1\right)_{by}\left(I2\right)_{yx}\\
+\Rightarrow\left(DI1\right) & = & \left(DO1\right)\left(I2\right)\\
+\\
+\left(DI2\right)_{yx} & = & \left(DO1\right)_{by}\left(I1\right)_{bx}\\
+\left(DI2\right)_{yx} & = & \left(DO1\right)^{T}\left(I1\right)\\
+\\
+\left(DI3\right)_{y} & = & \left(DO1\right)_{by}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left(DI2^{2}\right)_{yx} & \equiv & \left(DO1^{2}\right)_{by}\left(I1^{2}\right)_{bx}\\
+\\
+\\
+\left(DI3^{2}\right)_{y} & \equiv & \left(DO1^{2}\right)_{by}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left[\left(O1\right)_{by}\right] & = & \left[\sigma\left\{ \left(I1\right)_{by}\right\} \right]\\
+\left[\left(OD1\right)_{bzy}\right] & = & \left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\left(ID1\right)_{bzy}\right]\\
+\\
++\left[\left(DOD1\right)_{bzy}\right]\left[\delta\left(OD1\right)_{bzy}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\sigma^{\prime\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\left(ID1\right)_{bzy}\right]\left[\delta\left(I1\right)_{by}\right]\\
++\left[\left(DO1\right)_{by}\right]\left[\delta\left(O1\right)_{by}\right] &  & +\left[\left(DO1\right)_{by}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\delta\left(I1\right)_{by}\right]\\
+ &  & +\left[\left(DOD1\right)_{bzy}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\delta\left(ID1\right)_{bzy}\right]\\
+\\
+ & = & +\left[\left(DI1\right)_{by}\right]\left[\delta\left(I1\right)_{by}\right]\\
+ &  & +\left[\left(DID1\right)_{bzy}\right]\left[\delta\left(ID1\right)_{bzy}\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left[\left(DI1\right)_{by}\right] & = & \left[\left(DOD1\right)_{bzy}\right]\left[\sigma^{\prime\prime}\left\{ \left(I1\right)_{by}\right\} \right]\left[\left(ID1\right)_{bzy}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]\\
+\left[\left(DID1\right)_{bzy}\right] & = & \left[\left(DOD1\right)_{bzy}\right]\left[\sigma^{\prime}\left\{ \left(I1\right)_{by}\right\} \right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left[\left(O1\right)_{by}\right] & = & \left[\left(I2\right)_{yx}\right]\left[\left(I1\right)_{bx}\right]+\left[\left(I3\right)_{y}\right]\\
+\left[\left(OD1\right)_{bzy}\right] & = & \left[\left(I2\right)_{yx}\right]\left[\left(ID1\right)_{bzx}\right]\\
+\left[\left(OD1\right)_{b}\right] & = & \left[\left(ID1\right)_{b}\right]\left[\left(I2\right)^{T}\right]\\
+\\
+\left[\left(DOD1\right)_{bzy}\right]\left[\delta\left(OD1\right)_{bzy}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(ID1\right)_{bzx}\right]\left[\delta\left(I2\right)_{yx}\right]\\
+ &  & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(I2\right)_{yx}\right]\left[\delta\left(ID1\right)_{bzx}\right]\\
+\\
++\left[\left(DOD1\right)_{bzy}\right]\left[\delta\left(OD1\right)_{bzy}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(ID1\right)_{bzx}\right]\left[\delta\left(I2\right)_{yx}\right]\\
++\left[\left(DO1\right)_{by}\right]\left[\delta\left(O1\right)_{by}\right] &  & +\left[\left(DO1\right)_{by}\right]\left[\left(I1\right)_{bx}\right]\left[\delta\left(I2\right)_{yx}\right]\\
+ &  & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(I2\right)_{yx}\right]\left[\delta\left(ID1\right)_{bzx}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\left(I2\right)_{yx}\right]\left[\delta\left(I1\right)_{bx}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\delta\left(I3\right)_{y}\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left[\left(DID1\right)_{bzx}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(I2\right)_{yx}\right]\\
+\\
+\left[\left(DI2\right)_{yx}\right] & = & +\left[\left(DOD1\right)_{bzy}\right]\left[\left(ID1\right)_{bzx}\right]\\
+ &  & +\left[\left(DO1\right)_{by}\right]\left[\left(I1\right)_{bx}\right]\\
+\\
+\left[\left(DI2\right)_{yx}^{2}\right] & = & +\sum_{b}\left(\sum_{z}\left[\left(\left(DOD1\right)_{b}\right)_{zy}\right]\left[\left(\left(ID1\right)_{b}\right)_{zx}\right]\right)^{2}\\
+ &  & +\left[\left(\left(DO1\right)_{b}\right)_{y}\right]\left[\left(\left(I1\right)_{b}\right)_{x}\right]\\
+\\
+\left[\left(DI2\right)\right] & = & \left[\left(DO1\right)^{T}\right]\left[\left(I1\right)\right]+\left[\left(\left(DOD1\right)_{b}^{T}\right)\right]\left[\left(\left(ID1\right)_{b}\right)\right]\\
+\\
+\left[\left(DI1\right)_{bx}\right] & = & +\left[\left(DO1\right)_{by}\right]\left[\left(I2\right)_{yx}\right]\\
+\\
+\left[\left(DI3\right)_{y}\right] & = & +\left[\left(DO1\right)_{by}\right]\\
+\left[\left(DI3\right)_{y}^{2}\right] & = & +\left[\left(DO1\right)_{by}^{2}\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
