@@ -697,22 +697,44 @@
 				}
 			}
 			inline void
+			ADD_TRANSPOSE (
+				_MACRO_MAT_(SIZE_1(),SIZE_2())
+					in
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_
+					_MACRO_LIMIT_2_
+					_MACRO_T1_ _MACRO_T2_ {
+						this[0][t2][t1] +=
+							in[t1][t2]
+						; //
+					}
+				}
+			}
+			inline void
 			PUT_TRANSPOSE (
 				_MACRO_MAT_(SIZE_1(),SIZE_2())
 					in
 			) const {
-
 				in.GET_TRANSPOSE
 					(this[0])
 				; //
-
-			}
+			} //
 			inline void
 			operator = (
 				_MACRO_M12_ const &
 					in
 			) {
 				GET_TRANSPOSE
+					(in.I1)
+				; //
+			}
+			inline void
+			operator += (
+				_MACRO_M12_ const &
+					in
+			) {
+				ADD_TRANSPOSE
 					(in.I1)
 				; //
 			}

@@ -13,8 +13,8 @@ batch_size = 200
 width = 40
 image_size = width*width
 epochs = 10
-PARAM_NAME = "./net_ae_pars_10"
-sizes = [ 40*40 , 24*24 , 10*10 ]
+PARAM_NAME = "./net_ae_pars_8"
+sizes = [ 40*40 , 24*24 , 8*8 ]
 smoothing_constant = 0.01
 #
 def READ_XZ (filename):
@@ -82,7 +82,7 @@ def EvalOnFile(name_image):
         output = net(input_data_ctx[i])
         diff = (output - input_data_ctx[i]).asnumpy()
         ret += LA.norm(diff) / batch_size
-        print(ret)
+#        print(ret)
     ### LOOP END. ###
 #
     return ret / batches
@@ -111,7 +111,7 @@ def TrainOnFile(name_image,name_image_test):
             loss.backward()
             trainer.step(batch_size)
             inst_loss = nd.sum(loss).asscalar()
-            if((i%100)==0):
+            if((i%500)==0):
                 print(inst_loss)
             cumulative_loss += inst_loss
             curr_loss = inst_loss

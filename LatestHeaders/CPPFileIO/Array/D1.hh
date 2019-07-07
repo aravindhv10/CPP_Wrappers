@@ -194,7 +194,7 @@
             operator [] (size_t x)
             { return DATA[x] ; }
             //
-            inline TYPE_DATA const
+            inline TYPE_DATA const &
             operator [] (size_t x) const
             { return DATA[x] ; }
             //
