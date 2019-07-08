@@ -243,6 +243,7 @@ SET_TRANSPOSE (bool const val) {    						//
 #include "./Array/D2.hh"
 #include "./Array/D3.hh"
 #include "./Array/D4.hh"
+#include "./Array/D5.hh"
 
 	namespace Array /* Transpose a 2D Array */ {
 

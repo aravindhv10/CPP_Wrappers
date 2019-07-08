@@ -91,6 +91,11 @@
 				_MACRO_ATTACH_BACKWARD_C_
 			}
 
+			inline void
+			SHORT () {
+				I2 = I1 ;
+			}
+
 			L2Teacher(){}
 			~L2Teacher(){}
 
@@ -199,6 +204,12 @@
 			BACKWARD () {
 				EVAL_O1		() ;
 				EVAL_OD1	() ;
+			}
+
+			inline void
+			SHORT () {
+				I2 = I1 ;
+				ID2 = ID1 ;
 			}
 
 			L2Teacher(){}

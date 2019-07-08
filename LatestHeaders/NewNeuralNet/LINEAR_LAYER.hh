@@ -551,12 +551,16 @@
 
 			inline void
 			EVAL_DID1 () {
+
 				for(size_t b=0;b<SIZE_B();b++) {
+
 					DID1[b] =
 						DOD1[0][b] *
 						I2[0]
 					; //
+
 				}
+
 			}
 
 			//////////////////
@@ -637,7 +641,7 @@
 			inline void
 			EVAL_DI2 () {
 				EVAL_DI2_A () ;
-				//EVAL_DI2_B () ;
+				EVAL_DI2_B () ;
 			}
 
 			//////////////////
@@ -666,7 +670,7 @@
 			inline void
 			FORWARD () {
 				EVAL_O1		() ;
-				//EVAL_OD1	() ;
+				EVAL_OD1	() ;
 			}
 
 			inline void
@@ -675,7 +679,7 @@
 				EVAL_DI1	() ;
 				EVAL_DI2	() ;
 				EVAL_DI3	() ;
-				//EVAL_DID1	() ;
+				EVAL_DID1	() ;
 			}
 
 			///////////////////
@@ -730,15 +734,9 @@
 
 		public:
 
-			_MACRO_DATA_A_
+			_MACRO_DATA_B_
 
 			_MACRO_DATA_PARAMETERS_
-
-			TYPE_ID1	const	*	ID1		;
-			TYPE_DID1				DID1	;
-
-			TYPE_OD1				OD1		;
-			TYPE_DOD1	const	*	DOD1	;
 
 		} ;
 

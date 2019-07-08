@@ -369,19 +369,40 @@
 			inline void
 			EVAL_DI1_B () {
 
-				for(size_t b=0;b<SIZE_B();b++)
-				for(size_t z=0;z<SIZE_Z();z++)
-				for(size_t y=0;y<SIZE_Y();y++) {
+				if(IS_FIRST_LAYER()){
 
-					DI1[b][y] +=
+					for(size_t b=0;b<SIZE_B();b++)
+					for(size_t y=0;y<SIZE_Y();y++) {
 
-						DOD1[0][b][z][y]			*
+						DI1[b][y] +=
 
-						TYPE_PARENT::D2_Activate
-							(I1[0][b][y])			*
+							DOD1[0][b][y][y]			*
 
-						ID1[0][b][z][y]
-					; //
+							TYPE_PARENT::D2_Activate
+								(I1[0][b][y])
+
+						; //
+
+					}
+
+				} else {
+
+					for(size_t b=0;b<SIZE_B();b++)
+					for(size_t z=0;z<SIZE_Z();z++)
+					for(size_t y=0;y<SIZE_Y();y++) {
+
+						DI1[b][y] +=
+
+							DOD1[0][b][z][y]			*
+
+							TYPE_PARENT::D2_Activate
+								(I1[0][b][y])			*
+
+							ID1[0][b][z][y]
+
+						; //
+
+					}
 
 				}
 
@@ -390,7 +411,7 @@
 			inline void
 			EVAL_DI1 () {
 				EVAL_DI1_A () ;
-				//EVAL_DI1_B () ;
+				EVAL_DI1_B () ;
 			}
 
 			//////////////
@@ -404,13 +425,11 @@
 			inline void
 			EVAL_DID1 () {
 
-				DID1 = 0 ;
-
 				for(size_t b=0;b<SIZE_B();b++)
 				for(size_t z=0;z<SIZE_Z();z++)
 				for(size_t y=0;y<SIZE_Y();y++) {
 
-					DID1[b][z][y] +=
+					DID1[b][z][y] =
 
 						DOD1[0][b][z][y]		*
 
@@ -436,18 +455,14 @@
 
 			inline void
 			FORWARD () {
-
 				EVAL_O1		() ;
-				//EVAL_OD1	() ;
-
+				EVAL_OD1	() ;
 			}
 
 			inline void
 			BACKWARD () {
-
 				EVAL_DI1	() ;
-				//EVAL_DID1	() ;
-
+				EVAL_DID1	() ;
 			}
 
 			///////////////////////

@@ -7,7 +7,7 @@ namespace Tensors {
 //////////////////////////////////////
 #define _MACRO_IS_FIRST_LAYER_		\
 									\
-	if (SIZE_Z()==SIZE_Y()) {		\
+	if (SIZE_Z()==SIZE_X()) {		\
 		return						\
 			CPPFileIO::is_junked	\
 				(ID1)				\
@@ -20,6 +20,7 @@ namespace Tensors {
 
 //////////////////////////////////////
 #define _MACRO_MAKE_FIRST_LAYER_	\
+									\
 	ID1 =							\
 		CPPFileIO::get_junk			\
 			<TYPE_ID1>()			\
@@ -147,6 +148,7 @@ namespace Tensors {
 	#include "./ACTIVATION_LAYER.hh"
 	#include "./LINEAR_LAYER.hh"
 	#include "./TEACHER.hh"
+	#include "./PARAMETERS.hh"
 
 //////////////////////////////////////
 #undef _MACRO_ATTACH_BACKWARD_B_	//

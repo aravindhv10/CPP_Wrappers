@@ -1,7 +1,5 @@
 	namespace NN {
 
-		using namespace Array ;
-
 		template <
 			size_t		I	,
 			typename	TF
