@@ -40,4 +40,25 @@ public:
 
 	}
 
+	template <typename T3>
+	inline MULTIPLY_ADD
+		<T1,T2,T3>
+	operator + (
+		T3 const &
+			I3
+	) const {
+
+		MULTIPLY_ADD
+			<T1,T2,T3>
+				ret (
+					I1,I2,I3
+				)
+		; //
+
+		return
+			ret
+		; //
+
+	}
+
 } ;

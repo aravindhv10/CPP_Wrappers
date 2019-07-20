@@ -146,6 +146,7 @@ namespace Tensors {
 	#include "./RANDOMIZE.hh"
 	#include "./TRAINER.hh"
 	#include "./ACTIVATION_LAYER.hh"
+	#include "./ACTIVATION_LAYER_SOFTSIGN.hh"
 	#include "./LINEAR_LAYER.hh"
 	#include "./TEACHER.hh"
 	#include "./PARAMETERS.hh"
@@ -163,5 +164,7 @@ namespace Tensors {
 #undef _MACRO_MAKE_FIRST_LAYER_		//
 #undef _MACRO_IS_FIRST_LAYER_		//
 //////////////////////////////////////
+
+	#include "./WRAPPERS/main.hh"
 
 }

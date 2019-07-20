@@ -1,59 +1,21 @@
-//////////////////////////////
-#define _MACRO_EVAL_O1_A_	\
-							\
-	( O1 = I3[0] ) +=		\
-		I1[0] *				\
-		I2->TRANSPOSE()		\
-	;						\
-							//
-//////////////////////////////
+//////////////////////////////////////
+#define _MACRO_EVAL_O1_A_			\
+									\
+	O1 =							\
+		( I1[0] * I2->TRANSPOSE() )	\
+		+ I3[0]						\
+	;								\
+									//
+//////////////////////////////////////
 
-//////////////////////////////////////////////////
-#define _MACRO_EVAL_DI3_A_						\
-												\
-	DI3		= 0 ;								\
-	DI3_2	= 0 ;								\
-												\
-	for(size_t b=0;b<SIZE_B();b=b+SKIP_SIZE)	\
-	for(size_t y=0;y<SIZE_Y();y=y+SKIP_SIZE) {	\
-												\
-		size_t const							\
-			limit_y2 =							\
-				CPPFileIO::mymin (				\
-					SIZE_Y()	,				\
-					SKIP_SIZE + y				\
-				)								\
-		;										\
-												\
-		size_t const							\
-			limit_b2 =							\
-				CPPFileIO::mymin (				\
-					SIZE_B()	,				\
-					SKIP_SIZE + b				\
-				)								\
-		;										\
-												\
-		for(size_t b2=b;b2<limit_b2;b2++)		\
-		for(size_t y2=y;y2<limit_y2;y2++) {		\
-												\
-			DI3[y2] +=							\
-				DO1[0][b2][y2]					\
-			;									\
-												\
-		}										\
-												\
-		for(size_t b2=b;b2<limit_b2;b2++)		\
-		for(size_t y2=y;y2<limit_y2;y2++) {		\
-												\
-			DI3_2[y2] +=						\
-				DO1_2[b2][y2]					\
-			;									\
-												\
-		}										\
-												\
-	}											\
-												//
-//////////////////////////////////////////////////
+//////////////////////////////////
+								//
+#define _MACRO_EVAL_DI3_A_		\
+								\
+	DO1->REDUCE_SUM(DI3);		\
+	DO1_2.REDUCE_SUM(DI3_2);	\
+								//
+//////////////////////////////////
 
 //////////////////////////////
 #define _MACRO_EVAL_DI1_A_	\

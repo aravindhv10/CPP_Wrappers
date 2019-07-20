@@ -477,6 +477,12 @@
 #define _MACRO_S1_ _MACRO_OUT_(s1,SIZE_1())	//
 #define _MACRO_S2_ _MACRO_OUT_(s2,SIZE_2())	//
 #define _MACRO_S3_ _MACRO_OUT_(s3,SIZE_3)	//
+//////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////
+#define _MACRO_S3_TMP_ for(size_t s3=1;s3<SIZE_3;s3+=SkipSize())	//
+//////////////////////////////////////////////////////////////////////
+
 //////////////////////////////////////////////////
 #define _MACRO_T1_ for(size_t t1=s1;t1<l1;t1++)	//
 #define _MACRO_T2_ for(size_t t2=s2;t2<l2;t2++)	//
@@ -530,7 +536,32 @@
 				_MACRO_MAT_(SIZE_3,SIZE_2()) I1 ,
 				_MACRO_MAT_(SIZE_1(),SIZE_3) I2
 			) {
-				printf("called MULTIPLY_P21P\n");
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							(
+								I1[0][t2] *
+								I2[t1][0]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S1_ _MACRO_S3_TMP_{
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T1_ _MACRO_T3_ {
+						this[0][t2][t1] +=
+							I1[t3][t2] *
+							I2[t1][t3]
+						;
+					}
+				}
+			} //
+			_MACRO_MULTIPLY_
+			ADD_MULTIPLY_P21P (
+				_MACRO_MAT_(SIZE_3,SIZE_2()) I1 ,
+				_MACRO_MAT_(SIZE_1(),SIZE_3) I2
+			) {
 				_MACRO_S1_ _MACRO_S2_ _MACRO_S3_ {
 					_MACRO_DEFINE_LIMITS_
 					_MACRO_T1_ _MACRO_T2_ _MACRO_T3_ {
@@ -541,6 +572,45 @@
 					}
 				}
 			} //
+			//
+			_MACRO_MULTIPLY_
+			MULTIPLY_P21P_ADD (
+				_MACRO_MAT_(SIZE_3,SIZE_2())	I1 ,
+				_MACRO_MAT_(SIZE_1(),SIZE_3)	I2 ,
+				TYPE_VECTOR_DATA const &		I3
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							I3[t1] + (
+								I1[0][t2] *
+								I2[t1][0]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S1_ _MACRO_S3_TMP_{
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T1_ _MACRO_T3_ {
+						this[0][t2][t1] +=
+							I1[t3][t2] *
+							I2[t1][t3]
+						;
+					}
+				}
+			} //
+			//
+			_MACRO_MULTIPLY_
+			ADD_MULTIPLY (
+				_MACRO_MP2_ const & I1 ,
+				_MACRO_M1P_ const & I2
+			) {
+				ADD_MULTIPLY_P21P (
+					I1.I1 ,
+					I2.I1
+				) ; //
+			} //
 			_MACRO_MULTIPLY_
 			MULTIPLY (
 				_MACRO_MP2_ const & I1 ,
@@ -550,6 +620,30 @@
 					I1.I1 ,
 					I2.I1
 				) ; //
+			} //
+			//
+			_MACRO_MULTIPLY_
+			MULTIPLY_ADD (
+				_MACRO_MP2_			const & I1 ,
+				_MACRO_M1P_			const & I2 ,
+				TYPE_VECTOR_DATA	const & I3
+			) {
+				MULTIPLY_P21P_ADD (
+					I1.I1 ,
+					I2.I1 ,
+					I3
+				) ; //
+			} //
+			//
+			template <size_t P>
+			inline void
+			ADD_MULTIPLY (
+				_MACRO_MATRIX_P_Y_ const & M ,
+				_MACRO_MATRIX_X_P_ const & N
+			) {
+				ADD_MULTIPLY_P21P
+					(M,N)
+				; //
 			} //
 			template <size_t P>
 			inline void
@@ -568,7 +662,7 @@
 			/////////////////
 			// 2PP1 BEGIN: //
 			/////////////////
-			_MACRO_MULTIPLY_  MULTIPLY_2PP1 (
+			_MACRO_MULTIPLY_ ADD_MULTIPLY_2PP1 (
 				_MACRO_MAT_(SIZE_2(),SIZE_3) I1 ,
 				_MACRO_MAT_(SIZE_3,SIZE_1()) I2
 			) {
@@ -582,6 +676,66 @@
 					}
 				}
 			} //
+			_MACRO_MULTIPLY_ MULTIPLY_2PP1 (
+				_MACRO_MAT_(SIZE_2(),SIZE_3)	I1 ,
+				_MACRO_MAT_(SIZE_3,SIZE_1())	I2
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							(
+								I1[t2][0]	*
+								I2[0][t1]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S3_TMP_ _MACRO_S1_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T3_ _MACRO_T1_ {
+						this[0][t2][t1]	+=
+							I1[t2][t3]	*
+							I2[t3][t1]
+						; //
+					}
+				}
+			} //
+			_MACRO_MULTIPLY_  MULTIPLY_2PP1_ADD (
+				_MACRO_MAT_(SIZE_2(),SIZE_3)	I1 ,
+				_MACRO_MAT_(SIZE_3,SIZE_1())	I2 ,
+				TYPE_VECTOR_DATA const &		I3
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							I3[t1] + (
+								I1[t2][0]	*
+								I2[0][t1]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S3_TMP_ _MACRO_S1_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T3_ _MACRO_T1_ {
+						this[0][t2][t1]	+=
+							I1[t2][t3]	*
+							I2[t3][t1]
+						; //
+					}
+				}
+			} //
+			_MACRO_MULTIPLY_
+			ADD_MULTIPLY (
+				_MACRO_M2P_ const & I1 ,
+				_MACRO_MP1_ const & I2
+			) {
+				ADD_MULTIPLY_2PP1
+					(I1,I2)
+				; //
+			} //
 			_MACRO_MULTIPLY_
 			MULTIPLY (
 				_MACRO_M2P_ const & I1 ,
@@ -591,6 +745,16 @@
 					(I1,I2)
 				; //
 			} //
+			_MACRO_MULTIPLY_
+			MULTIPLY_ADD (
+				_MACRO_M2P_			const & I1 ,
+				_MACRO_MP1_			const & I2 ,
+				 TYPE_VECTOR_DATA	const & I3
+			) {
+				MULTIPLY_2PP1_ADD
+					(I1,I2,I3)
+				; //
+			} //
 			///////////////
 			// 2PP1 END. //
 			///////////////
@@ -598,7 +762,7 @@
 			/////////////////
 			// 2P1P BEGIN: //
 			/////////////////
-			_MACRO_MULTIPLY_ MULTIPLY_2P1P (
+			_MACRO_MULTIPLY_ ADD_MULTIPLY_2P1P (
 				_MACRO_MAT_(SIZE_2(),SIZE_3) I1 ,
 				_MACRO_MAT_(SIZE_1(),SIZE_3) I2
 			) {
@@ -612,6 +776,67 @@
 					}
 				}
 			} //
+			_MACRO_MULTIPLY_ MULTIPLY_2P1P (
+				_MACRO_MAT_(SIZE_2(),SIZE_3)	I1 ,
+				_MACRO_MAT_(SIZE_1(),SIZE_3)	I2
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							(
+								I1[t2][0]	*
+								I2[t1][0]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S1_ _MACRO_S3_TMP_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T1_ _MACRO_T3_ {
+						this[0][t2][t1]	+=
+							I1[t2][t3]	*
+							I2[t1][t3]
+						; //
+					}
+				}
+			} //
+			_MACRO_MULTIPLY_ MULTIPLY_2P1P_ADD (
+				_MACRO_MAT_(SIZE_2(),SIZE_3)	I1 ,
+				_MACRO_MAT_(SIZE_1(),SIZE_3)	I2 ,
+				TYPE_VECTOR_DATA const &		I3
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							I3[t1] + (
+								I1[t2][0]	*
+								I2[t1][0]
+							)
+						; //
+					}
+				}
+				_MACRO_S2_ _MACRO_S1_ _MACRO_S3_TMP_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T2_ _MACRO_T1_ _MACRO_T3_ {
+						this[0][t2][t1]	+=
+							I1[t2][t3]	*
+							I2[t1][t3]
+						; //
+					}
+				}
+			} //
+			_MACRO_MULTIPLY_
+			ADD_MULTIPLY (
+				_MACRO_M2P_ const & I1 ,
+				_MACRO_M1P_ const & I2
+			) {
+				ADD_MULTIPLY_2P1P (
+					I1 ,
+					I2.I1
+				) ;
+			} //
 			_MACRO_MULTIPLY_
 			MULTIPLY (
 				_MACRO_M2P_ const & I1 ,
@@ -621,6 +846,28 @@
 					I1 ,
 					I2.I1
 				) ;
+			} //
+			_MACRO_MULTIPLY_
+			MULTIPLY_ADD (
+				_MACRO_M2P_			const & I1 ,
+				_MACRO_M1P_			const & I2 ,
+				TYPE_VECTOR_DATA	const & I3
+			) {
+				MULTIPLY_2P1P_ADD (
+					I1		,
+					I2.I1	,
+					I3
+				) ;
+			} //
+			template <size_t P>
+			inline void
+			ADD_MULTIPLY (
+				_MACRO_MATRIX_Y_P_ const & M ,
+				_MACRO_MATRIX_X_P_ const & N
+			) {
+				ADD_MULTIPLY_2P1P
+					(M,N)
+				; //
 			} //
 			template <size_t P>
 			inline void
@@ -640,6 +887,31 @@
 			// P2P1 BEGIN: //
 			/////////////////
 			_MACRO_MULTIPLY_ MULTIPLY_P2P1 (
+				_MACRO_MAT_(SIZE_3,SIZE_2())	I1 ,
+				_MACRO_MAT_(SIZE_3,SIZE_1())	I2
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							(
+								I1[0][t2]	*
+								I2[0][t1]
+							)
+						; //
+					}
+				}
+				_MACRO_S3_TMP_ _MACRO_S2_ _MACRO_S1_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T3_ _MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1]	+=
+							I1[t3][t2]	*
+							I2[t3][t1]
+						; //
+					}
+				}
+			}
+			_MACRO_MULTIPLY_ ADD_MULTIPLY_P2P1 (
 				_MACRO_MAT_(SIZE_3,SIZE_2()) I1 ,
 				_MACRO_MAT_(SIZE_3,SIZE_1()) I2
 			) {
@@ -653,6 +925,42 @@
 					}
 				}
 			}
+			_MACRO_MULTIPLY_ MULTIPLY_P2P1_ADD (
+				_MACRO_MAT_(SIZE_3,SIZE_2())	I1 ,
+				_MACRO_MAT_(SIZE_3,SIZE_1())	I2 ,
+				TYPE_VECTOR_DATA const &		I3
+			) {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1] =
+							I3[t1] + (
+								I1[0][t2]	*
+								I2[0][t1]
+							)
+						; //
+					}
+				}
+				_MACRO_S3_TMP_ _MACRO_S2_ _MACRO_S1_ {
+					_MACRO_DEFINE_LIMITS_
+					_MACRO_T3_ _MACRO_T2_ _MACRO_T1_ {
+						this[0][t2][t1]	+=
+							I1[t3][t2]	*
+							I2[t3][t1]
+						; //
+					}
+				}
+			}
+			_MACRO_MULTIPLY_
+			ADD_MULTIPLY (
+				_MACRO_MP2_ const & I1 ,
+				_MACRO_MP1_ const & I2
+			) {
+				ADD_MULTIPLY_P2P1 (
+					I1.I1 ,
+					I2
+				) ;
+			}
 			_MACRO_MULTIPLY_
 			MULTIPLY (
 				_MACRO_MP2_ const & I1 ,
@@ -663,6 +971,28 @@
 					I2
 				) ;
 			}
+			_MACRO_MULTIPLY_
+			MULTIPLY_ADD (
+				_MACRO_MP2_			const & I1 ,
+				_MACRO_MP1_			const & I2 ,
+				TYPE_VECTOR_DATA	const & I3
+			) {
+				MULTIPLY_P2P1 (
+					I1.I1	,
+					I2		,
+					I3
+				) ;
+			}
+			template <size_t P>
+			inline void
+			ADD_MULTIPLY (
+				_MACRO_MATRIX_P_Y_ const & M ,
+				_MACRO_MATRIX_P_X_ const & N
+			) {
+				ADD_MULTIPLY_P2P1
+					(M,N)
+				; //
+			} //
 			template <size_t P>
 			inline void
 			MULTIPLY (
@@ -678,6 +1008,46 @@
 			///////////////
 
 
+			inline void
+			ADD_REDUCE_SUM (
+				TYPE_VECTOR_DATA &
+					in
+			) const {
+				_MACRO_S2_ _MACRO_S1_ {
+					_MACRO_LIMIT_1_
+					_MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						in[t1] +=
+							this[0][t2][t1]
+						; //
+					}
+				}
+			}
+
+			inline void
+			REDUCE_SUM (
+				TYPE_VECTOR_DATA &
+					in
+			) const {
+
+				for(size_t s1=0;s1<SIZE_1();s1++){
+					in[s1] =
+						this[0][0][s1]
+					; //
+				}
+
+				for(size_t s2=1;s2<SIZE_2();s2+=SkipSize())
+				for(size_t s1=0;s1<SIZE_1();s1+=SkipSize()){
+					_MACRO_LIMIT_1_
+					_MACRO_LIMIT_2_
+					_MACRO_T2_ _MACRO_T1_ {
+						in[t1] +=
+							this[0][t2][t1]
+						; //
+					}
+				}
+			}
+
 			//////////////////////
 			// TRANSPOSE BEGIN: //
 			//////////////////////
@@ -687,8 +1057,7 @@
 					in
 			) {
 				_MACRO_S2_ _MACRO_S1_ {
-					_MACRO_LIMIT_1_
-					_MACRO_LIMIT_2_
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
 					_MACRO_T1_ _MACRO_T2_ {
 						this[0][t2][t1] =
 							in[t1][t2]
@@ -702,8 +1071,7 @@
 					in
 			) {
 				_MACRO_S2_ _MACRO_S1_ {
-					_MACRO_LIMIT_1_
-					_MACRO_LIMIT_2_
+					_MACRO_LIMIT_1_ _MACRO_LIMIT_2_
 					_MACRO_T1_ _MACRO_T2_ {
 						this[0][t2][t1] +=
 							in[t1][t2]
@@ -782,15 +1150,18 @@
 		_MACRO_B_ const &
 			other
 	) const {
+
 		_MACRO_RET_
 			ret (
 				this[0] ,
 				other
 			)
 		; //
+
 		return
 			ret
 		; //
+
 	}
 
 ///////////////////
@@ -811,15 +1182,18 @@
 			_MACRO_B_ const &
 					other
 		) const {
+
 			_MACRO_RET_
 				ret (
 					this[0] ,
 					other
 				)
 			; //
+
 			return
 				ret
 			; //
+
 		}
 
 ///////////////////
@@ -840,14 +1214,15 @@
 #undef _MACRO_LIMIT_1_	//
 //////////////////////////
 
-//////////////////////
-#undef _MACRO_M21_	//
-#undef _MACRO_M12_	//
-#undef _MACRO_M2P_	//
-#undef _MACRO_MP2_	//
-#undef _MACRO_MP1_	//
-#undef _MACRO_M1P_	//
-//////////////////////
+//////////////////////////
+#undef _MACRO_M21_		//
+#undef _MACRO_M12_		//
+#undef _MACRO_M2P_		//
+#undef _MACRO_MP2_		//
+#undef _MACRO_MP1_		//
+#undef _MACRO_M1P_		//
+#undef _MACRO_S3_TMP_	//
+//////////////////////////
 
 //////////////////////////////////
 #undef _MACRO_ARR_				//
@@ -872,8 +1247,8 @@
 
 	inline void
 	MULTIPLY (
-		TYPE_SELF const & I1 ,
-		TYPE_DATA const I2
+		TYPE_SELF const &	I1 ,
+		TYPE_DATA const		I2
 	) {
 
 		auto & out =
@@ -899,13 +1274,39 @@
 			<T1,T2> const &
 				in
 	) {
-		MULTIPLY (
+
+		ADD_MULTIPLY (
 			in.I1 ,
 			in.I2
 		) ; //
+
 		return
 			this[0]
 		; //
+
+	}
+
+	template <
+		typename T1 ,
+		typename T2 ,
+		typename T3
+	> inline TYPE_SELF &
+	operator = (
+		Operator::MULTIPLY_ADD
+			<T1,T2,T3> const &
+				in
+	) {
+
+		MULTIPLY_ADD (
+			in.I1 ,
+			in.I2 ,
+			in.I3
+		) ; //
+
+		return
+			this[0]
+		; //
+
 	}
 
 	template <
@@ -917,13 +1318,20 @@
 			<T1,T2> const &
 				in
 	) {
-		this[0] =
-			0
-		; //
-		return (
-			this[0] +=
-				in
+
+		MULTIPLY (
+			in.I1 ,
+			in.I2
 		) ; //
+
+		//this[0] =
+			//0
+		//; //
+
+		return
+			this[0]
+		; //
+
 	}
 
 	template <
@@ -934,9 +1342,27 @@
 			<T1,T2> const &
 				in
 	) {
+
 		this[0]	=
 			in
 		; //
+
+	}
+
+	template <
+		typename T1 ,
+		typename T2 ,
+		typename T3
+	> N2D_ARRAY (
+		Operator::MULTIPLY_ADD
+			<T1,T2,T3> const &
+				in
+	) {
+
+		this[0] =
+			in
+		; //
+
 	}
 
 ////////////////////////////////////////////////////////////////
