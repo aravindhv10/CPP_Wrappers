@@ -8,16 +8,24 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 #include "classes/DelphesClasses.h"
+
 namespace NewHEPHeaders /* The Delphes part: */ {
 
     template <typename T> class DelphesReader : public T {
     public:
+		size_t limit ;
         typedef DelphesReader<T> TYPE_Self ;
         template <typename T2> inline void operator () (T2&analyzer) {
             if (this->fChain != 0) {
-                long nentries = this->fChain->GetEntriesFast();
+                long nentries =
+					this->fChain->GetEntriesFast()
+				; //
                 long nbytes = 0, nb = 0;
-                for (long jentry=0; jentry<nentries;jentry++) {
+                for (
+					long jentry=0;
+					((jentry<nentries)&&(jentry<limit));
+					jentry++
+				) {
                     long ientry = this->LoadTree(jentry);
                     if((jentry%1000)==0){printf("Analyzed %ld events\n",jentry);}
                     if (ientry >= 0) {
@@ -66,7 +74,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
             { int j=cons[i].user_index() ; ret += self[j].Eem ; }
             return ret ;
         }
-        template <typename T1> inline void ReadFromDelphes (T1 & inref) {
+        template <typename T1> inline void ReadFromDelphes (T1 const & inref) {
             GenParts.ReadFromDelphes(inref);
             size_t limit_EFlowNeutralHadron = inref.EFlowNeutralHadron_ ;
             size_t limit_EFlowPhoton        = inref.EFlowPhoton_        ;
