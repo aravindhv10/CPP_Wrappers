@@ -68,7 +68,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline bool operator > (const plane2vector < TR > b) const { return pt2 () > b.pt2 (); }
             inline bool operator < (const plane2vector < TR > b) const { return pt2 () < b.pt2 (); }
             inline ssize_t operator >> (CPPFileIO::FileFD & f) const { return f.multiwrite2file (*this); }
-            inline ssize_t operator << (CPPFileIO::FileFD & f) const { return f.multiread2file (*this); }
+            inline ssize_t operator << (CPPFileIO::FileFD & f) { return f.multiread2file (*this); }
 
             inline void operator += ( const plane2vector < TR > b ) { x[0] += b.x[0] ; x[1] += b.x[1] ; }
             inline void operator -= ( const plane2vector < TR > b ) { x[0] -= b.x[0] ; x[1] -= b.x[1] ; }
@@ -81,7 +81,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline void operator /= ( TYPE_Data const b ) { x[0] /= b ; x[1] /= b ; }
 
             inline TR & operator [] (size_t i)       { return x[i]; }
-            inline TR   operator [] (size_t i) const { return x[i]; }
+            inline TR const operator [] (size_t i) const { return x[i]; }
 
             inline void clearthis () { x[0] = 0; x[1] = 0; }
             inline bool operator == (const plane2vector < TR > b) const {
@@ -185,7 +185,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline bool operator > (const euclid3vector < TR > b) const { return pt2 () > b.pt2 (); }
             inline bool operator < (const euclid3vector < TR > b) const { return pt2 () < b.pt2 (); }
             inline ssize_t operator >> (CPPFileIO::FileFD & f) const { return f.multiwrite2file (*this); }
-            inline ssize_t operator << (CPPFileIO::FileFD & f) const { return f.multiread2file (*this); }
+            inline ssize_t operator << (CPPFileIO::FileFD & f) { return f.multiread2file (*this); }
             inline void clearthis () { xy = plane2vector < TR > (0, 0); z = 0; }
             inline bool operator == (const euclid3vector < TR > b) const {
                 euclid3vector < TR > tmp = (*this) - b;
@@ -204,7 +204,11 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             typedef euclid3vector  <TYPE_Data> TYPE_Vector3 ;
         public:
             TYPE_Vector3 xyz; TYPE_Data t;
-            inline void SetPtEtaPhiM(const TR _pt, const TR _eta, const TR _phi, const TR _m){
+            inline void
+            SetPtEtaPhiM (
+				const TR _pt	, const TR _eta	,
+				const TR _phi	, const TR _m
+			) {
                 xyz.xy.SetPtPhi(_pt,_phi);
                 TR K = exp(2.0*_eta) ;
                 K=(K+1.0)/(K-1.0);
@@ -251,14 +255,12 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline lorentz4vector < TR > operator / (const TR b) const
             { return lorentz4vector < TR > (xyz / b, t / b); }
 
-            inline void operator = ( const euclid3vector < TR > other ) {
-                xyz = other     ;
-                t   = other.p() ;
-            }
-            inline void operator = ( const lorentz4vector < TR > other ) {
-                xyz = other.xyz ;
-                t   = other.t ;
-            }
+            inline void operator = ( const euclid3vector < TR > other )
+			{ xyz = other ; t = other.p() ; }
+
+            inline void operator = ( const lorentz4vector < TR > other )
+			{ xyz = other.xyz ; t   = other.t ; }
+
             inline TR pcone2 (const lorentz4vector < TR > b) const {
                 TR tphi = xyz.dphi (b.xyz);
                 tphi = tphi * tphi;
@@ -294,7 +296,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline bool operator > (const lorentz4vector < TR > b) const { return t < b.t ; }
             inline bool operator < (const lorentz4vector < TR > b) const { return t > b.t ; }
             inline ssize_t operator >> (CPPFileIO::FileFD & f) const { return f.multiwrite2file (*this); }
-            inline ssize_t operator << (CPPFileIO::FileFD & f) const { return f.multiread2file (*this); }
+            inline ssize_t operator << (CPPFileIO::FileFD & f) { return f.multiread2file (*this); }
             inline bool cleared () const { return (t < 0); }
             inline bool pass () const { return (t > 0); }
             inline void clearthis () { t = -1; xyz = euclid3vector < TR > (0, 0, 0); }
@@ -371,20 +373,31 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             lorentz4vector <TR> momentum      ;
             TI                  Charge        ;
             TR                  Eem, Ehad, Emu;
-            inline bool IsElectron () {
-                bool ret = (CPPFileIO::mymod(Charge)==1) && (Eem/momentum[3]>0.9) ;
+			//
+			inline bool const
+			IsElectron () const {
+				bool ret =
+					(CPPFileIO::mymod(Charge)==1) &&
+					(Eem/momentum[3]>0.9)
+				; //
+				return ret ;
+			}
+            inline bool const
+            IsMuon () const {
+                bool ret =
+					(CPPFileIO::mymod(Charge)==1) &&
+					(Emu/momentum[3]>0.9)
+				; //
                 return ret ;
             }
-            inline bool IsMuon () {
-                bool ret = (CPPFileIO::mymod(Charge)==1) && (Emu/momentum[3]>0.9) ;
-                return ret ;
-            }
-            inline bool IsLepton () { return IsMuon() || IsElectron () ; }
+            inline bool IsLepton () const { return IsMuon() || IsElectron () ; }
             inline void Set_Ehad_Fraction (const TR InFrac) { Ehad = momentum[3] * InFrac ; }
             inline void Set_Eem_Fraction  (const TR InFrac) { Eem  = momentum[3] * InFrac ; }
             inline void Set_Emu_Fraction  (const TR InFrac) { Emu  = momentum[3] * InFrac ; }
-            inline void SetPtEtaPhiM      (const TR _pt, const TR _eta, const TR _phi, const TR _m)
+            //
+            inline void SetPtEtaPhiM (const TR _pt, const TR _eta, const TR _phi, const TR _m)
             { momentum.SetPtEtaPhiM (_pt,_eta,_phi,_m) ; }
+            //
             inline TR & operator [] (const size_t ref) {
                 if      ( ref <= 3 ) { return momentum[ref] ; }
                 else if ( ref == 4 ) { return Eem           ; }
@@ -412,36 +425,44 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline TR n     () const { return momentum.n    () ; }
             inline TR dphi       (const DelphesVectors <TR,TI> b) const { return momentum.dphi (b.momentum) ; }
             inline TR operator * (const DelphesVectors <TR,TI> b) const { return momentum * b.momentum      ; }
+            //
             inline DelphesVectors <TR,TI> operator * (const TR b) const
             { return DelphesVectors <TR,TI> (momentum*b,Eem*b,Ehad*b,Emu*b,Charge); }
+            //
             inline DelphesVectors < TR > operator / (const TR b) const
             { return DelphesVectors <TR,TI> (momentum/b,Eem/b,Ehad/b,Emu/b,Charge); }
+            //
             inline void operator = ( const DelphesVectors <TR,TI> other )
             { momentum=other.momentum; Eem=other.Eem; Ehad=other.Ehad; Emu=other.Emu; Charge=other.Charge;}
+            //
             inline DelphesVectors <TR,TI> operator + (const DelphesVectors <TR,TI> b) const {
-                return DelphesVectors <TR,TI> (
-                    momentum+b.momentum,
-                    Eem+b.Eem,
-                    Ehad+b.Ehad,
-                    Emu+b.Emu,
-                    Charge+b.Charge
-                );
+                return
+					DelphesVectors <TR,TI> (
+						momentum+b.momentum,
+						Eem+b.Eem,
+						Ehad+b.Ehad,
+						Emu+b.Emu,
+						Charge+b.Charge
+					)
+				; //
             }
             inline DelphesVectors <TR,TI> operator - (const DelphesVectors <TR,TI> b) const {
-                return DelphesVectors <TR,TI> (
-                    momentum-b.momentum,
-                    Eem-b.Eem,
-                    Ehad-b.Ehad,
-                    Emu-b.Emu,
-                    Charge-b.Charge
-                );
+                return
+					DelphesVectors <TR,TI> (
+						momentum-b.momentum,
+						Eem-b.Eem,
+						Ehad-b.Ehad,
+						Emu-b.Emu,
+						Charge-b.Charge
+					)
+				; //
             }
             inline TR cone (const DelphesVectors <TR,TI> b) const { return momentum.cone(b.momentum); }
             inline TR operator () (const DelphesVectors <TR,TI> b) const { return momentum(b.momentum); }
             inline bool operator > (const DelphesVectors <TR,TI> b) const { return momentum.pt2 () > b.momentum.pt2 (); }
             inline bool operator < (const DelphesVectors <TR,TI> b) const { return momentum.pt2 () < b.momentum.pt2 (); }
             inline ssize_t operator >> (CPPFileIO::FileFD & f) const { return f.multiwrite2file (*this); }
-            inline ssize_t operator << (CPPFileIO::FileFD & f) const { return f.multiread2file (*this); }
+            inline ssize_t operator << (CPPFileIO::FileFD & f) { return f.multiread2file (*this); }
             inline bool cleared () const { return (momentum[3] < 0); }
             inline bool pass () const { return (momentum[3] > 0); }
             inline void clearthis () { momentum.clearthis(); Eem=-10000; Ehad=-10000; Emu=-10000; Charge=0; }
@@ -449,31 +470,40 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline TR gamma2 () const { return (TR) momentum[3] * momentum[3] / momentum.m2(); }
             inline TR beta () const {return momentum.beta();}
             inline euclid3vector < TR > Velocity () const { return momentum.Velocity(); }
+            //
             inline DelphesVectors <TR,TI> LorentzBoost (const euclid3vector < TR > booster) const {
                 lorentz4vector<TR>ret=momentum.LorentzBoost(booster);
                 TR ratio = ret[3] / momentum[3] ;
                 TR _Eem=Eem*ratio, _Ehad=Ehad*ratio, _Emu=Emu*ratio;
                 return DelphesVectors <TR,TI> (ret,_Eem,_Ehad,_Emu,Charge) ;
             }
+            //
             inline DelphesVectors <TR,TI> LorentzBoostGamma (const euclid3vector < TR > booster) const {
                 lorentz4vector<TR>ret=momentum.LorentzBoostGamma(booster);
                 TR ratio=ret[3]/momentum[3];
                 TR _Eem=Eem*ratio, _Ehad=Ehad*ratio, _Emu=Emu*ratio;
                 return DelphesVectors <TR,TI> (ret,_Eem,_Ehad,_Emu,Charge) ;
             }
+            //
             #ifdef __FASTJET_PSEUDOJET_HH__
             inline fastjet::PseudoJet getpseudojet () const
             { return fastjet::PseudoJet (momentum[0],momentum[1],momentum[2],momentum[3]) ; }
             #endif
+            //
             DelphesVectors
             (const lorentz4vector<TR>_momentum, const TR _Eem=0, const TR _Ehad=0, const TR _Emu=0, const TI _Charge=0)
             { momentum=_momentum; Eem=_Eem; Ehad=_Ehad; Emu=_Emu; Charge=_Charge; }
+            //
             DelphesVectors
             (const TR _x=0, const TR _y=0, const TR _z=0, const TR _t=0, const TR _Eem=0, const TR _Ehad=0, const TR _Emu=0, const TI _Charge=0)
             { momentum=lorentz4vector<TR>(_x,_y,_z,_t); Eem=_Eem; Ehad=_Ehad; Emu=_Emu; Charge=_Charge; }
+            //
             ~DelphesVectors () {}
+            //
         } ;
-        template < typename TRF=double, typename TRI=long > class ParticleNode   {
+		//
+        template < typename TRF=double, typename TRI=long >
+        class ParticleNode   {
         private:
             lorentz4vector <TRF> momentum;
             TRI d1, d2, pid;
@@ -489,34 +519,49 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             inline TRF pt () const { return momentum.pt (); }
             inline TRF eta () const { return momentum.eta (); }
             inline TRF modeta () const { return CPPFileIO::mymod (eta()); }
-            inline bool isDetectable () const {
-                bool ret = (pt () > 0.5) && (modeta () < 6.0);
-                ret = ret && detectable (pid);
+            //
+            inline bool const
+            isDetectable () const {
+                bool ret =
+					(pt () > 0.5) &&
+					(modeta () < 6.0)
+				; //
+                ret =
+					ret &&
+					detectable(pid)
+				; //
                 return ret;
             }
+            //
             inline bool IsGood () const { return isFinal () && isDetectable (); }
             inline bool IsLepton () const { return islepton (pid); }
             inline bool IsBLike () const { return isblike(pid); }
+            //
             inline bool IsBMeson () const {
                 TRI tmppid = CPPFileIO::mymod(pid) ;
                 return ((tmppid>100)&&isblike(tmppid));
             }
+            //
             inline bool IsBQuakr () const {
                 TRI tmppid = CPPFileIO::mymod(pid) ;
                 return (tmppid==PID::BOTTOM);
             }
-            inline TRF operator [] (size_t i) { return momentum[i] ; }
+            //
+            inline TRF & operator [] (size_t i) { return momentum[i] ; }
+            inline TRF const operator [] (size_t i) const { return momentum[i] ; }
             inline lorentz4vector <TRF> & getvec () { return momentum; }
             inline lorentz4vector <TRF> const getvec () const { return momentum; }
             inline lorentz4vector <TRF> & operator () () { return momentum; }
             inline lorentz4vector <TRF> const operator () () const { return momentum; }
-            inline TRF operator  () (ParticleNode b) { return momentum (b.momentum); }
-            inline TRF operator  () (lorentz4vector <TRF> b) { return momentum (b); }
+            inline TRF operator () (ParticleNode b) const { return momentum (b.momentum); }
+            inline TRF operator () (lorentz4vector <TRF> b) const { return momentum (b); }
             inline TRF pcone (ParticleNode b) { return momentum.pcone (b.momentum); }
             inline TRF pcone (lorentz4vector <TRF> b) { return momentum.pcone (b); }
             ParticleNode () {d1=-1;d2= -1;pid = 0;momentum.clearthis ();}
+            //
             ParticleNode (TRF _x, TRF _y, TRF _z, TRF _t, TRI _d1, TRI _d2, TRI _pid) :
             momentum (_x, _y, _z, _t) { d1 = _d1;d2 = _d2;pid = _pid; }
+            //
             #ifdef Pythia8_Pythia_H
             inline fastjet::PseudoJet getpseudojet () { return momentum.getpseudojet (); }
             ParticleNode (const Pythia8::Particle & part) {
@@ -526,10 +571,15 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 else { d1 = part.daughter1 (); d2 = part.daughter2 (); }
             }
             #endif
+            //
             ~ParticleNode () {}
+            //
         };
         #ifdef __FASTJET_PSEUDOJET_HH__
-        template < typename TR=double > class JetContainer : public lorentz4vector <TR> {
+		//
+        template < typename TR=double >
+        class JetContainer :
+        public lorentz4vector <TR> {
         private:
             inline lorentz4vector <TR> & CstGet (size_t i) {return vectors[0][constituents[i]];}
             std::vector <int> constituents;
@@ -537,10 +587,12 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
         public:
             size_t TAG;
             fastjet::PseudoJet * injet;
-            bool tau_tag () {
+			//
+            bool const tau_tag () const {
                 if (checkbit(TAG,TAUTAG)) {return true;}
                 else {return false;}
             }
+            //
             bool bot_tag () {
                 if (checkbit(TAG,BTAG)) {return true;}
                 else {return false;}
@@ -750,20 +802,26 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 euclid3vector <TR>     SpinDir  (STS*CPS,STS*SPS,CTS) ;
                 return EvalSpinMatrix (SpinDir)                       ;
             }
-            inline lorentz4vector <TR> operator [] ( size_t i                               ) { return Daughters [i] ; }
-
+            //
+            inline lorentz4vector <TR> operator [] ( size_t i ) { return Daughters [i] ; }
+            //
             RestTopDecays(){}
             RestTopDecays ( lorentz4vector <TR> *_Daughters        ) { Init ( _Daughters          ) ; }
             RestTopDecays ( TR _E2, TR _T2, TR _P2, TR _T3, TR _P3 ) { Init ( _E2,_T2,_P2,_T3,_P3 ) ; }
             ~RestTopDecays(){}
         };
+		//
         template < typename TR=double, typename TI=long >
         class GenParticles : public std::vector <ParticleNode<TR,TI>> {
         public:
             typedef ParticleNode <TR,TI> TYPE_Element ;
             typedef GenParticles <TR,TI> TYPE_Self    ;
         public:
-            inline TR CalcISO (size_t IDX, double DeltaR) {
+            inline TR const
+            CalcISO (
+				size_t IDX,
+				TR DeltaR
+			) const {
                 TR ret = 0 ;
                 for (size_t i=0;i<this->size();i++)
                 if (
@@ -773,32 +831,50 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 ) { ret += this[0][i].pt() ; }
                 return ret / this[0][IDX].pt() ;
             }
-            inline size_t FindPID
-            ( long   const PID) const {
-                TYPE_Self const & SELF = this[0] ;
+            //
+			inline size_t const
+			FindPID (
+				TI const PID
+			) const {
+                TYPE_Self const &
+					SELF = this[0]
+				; //
                 size_t ret = 0 ;
-                for(size_t i=0;(i<SELF.size())&&(ret==0);i++)if(SELF[i].id()==PID){ret=i;}
+				//
+                for(size_t i=0;(i<SELF.size())&&(ret==0);i++)
+				if(SELF[i].id()==PID){ret=i;}
+				//
                 return ret;
             }
-            inline size_t FindPIDMod
-            ( long const PID) const {
-                TYPE_Self const & SELF = this[0] ;
+            //
+			inline size_t const
+			FindPIDMod (
+				TI const PID
+			) const {
+				TYPE_Self const &
+					SELF = this[0]
+				; //
                 size_t ret = 0 ;
+				//
                 for(size_t i=0;(i<SELF.size())&&(ret==0);i++){
                     if (
                         ( SELF[i].id() ==  PID ) ||
                         ( SELF[i].id() == -PID )
                     ) {ret=i;}
                 }
+                //
                 return ret;
             }
-            inline size_t Recurse
-            ( size_t const idx) const {
+            //
+			inline size_t const
+			Recurse (
+				size_t const idx
+			) const {
                 if (idx > 0) {
                     TYPE_Self const & SELF = this[0] ;
-                    int PID = SELF[idx].id ();
-                    size_t d1 = SELF[idx].daughter1 ();
-                    size_t d2 = SELF[idx].daughter2 ();
+                    TI const PID = SELF[idx].id ();
+                    size_t const d1 = SELF[idx].daughter1 ();
+                    size_t const d2 = SELF[idx].daughter2 ();
                     if ((d1 > idx) && (SELF[d1].id () == PID)) {
                         return Recurse(d1);
                     } else if ((d2 > idx) && (SELF[d2].id () == PID)) {
@@ -807,20 +883,22 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 }
                 return idx;
             }
-            inline TI FindDaughter (
-                long ParentID,
-                long DPID
+            //
+            inline TI const
+            FindDaughter (
+                TI const ParentID,
+                TI const DPID
             ) {
                 ParentID =
                     Recurse (ParentID) ;
                 //
-                long dt [2] = {
+                TI const dt [2] = {
                     this[0][ParentID]
                         .daughter1 () ,
                     this[0][ParentID]
                         .daughter2 ()
                 } ;
-                long dpid [2] = {
+                TI const dpid [2] = {
                     this[0][dt[0]].id () ,
                     this[0][dt[1]].id ()
                 } ;
@@ -835,8 +913,11 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 //
             }
             template <typename T1>
-            inline void ReadFromDelphes
-            (T1 & inref) {
+            inline void
+            ReadFromDelphes (
+				T1 const &
+					inref
+			) {
                 TYPE_Self & SELF = this[0] ;
                 size_t limit = inref.Particle_ ;
                 SELF.resize(limit);

@@ -1,5 +1,113 @@
     namespace Array /* 1 D Array */ {
 
+		namespace D1_OPERATORS {
+
+//////////////////////////////////
+#define _MACRO_DECLARE_HEADER_	\
+								\
+	template <					\
+		typename T1 = Nothing,	\
+		typename T2 = Nothing	\
+	> class						\
+								//
+//////////////////////////////////
+
+//////////////////////////////////////
+#define _MACRO_INHERIT_OPERATOR_	\
+									\
+	using TYPE_DATA =				\
+		typename T1::TYPE_DATA		\
+	;								\
+	T1 const & t1 ;					\
+	T2 const & t2 ;					\
+									//
+//////////////////////////////////////
+
+//////////////////////////////////////
+#define _MACRO_DEFINE_OPERATION_	\
+									\
+	inline TYPE_DATA const			\
+	operator []						\
+	(size_t const i) const			\
+									//
+//////////////////////////////////////
+
+//////////////////////////////////////////////////
+#define _MACRO_DEFINE_CONSTRUCTOR_(ClassName)	\
+												\
+	ClassName(									\
+		T1 const & _t1 ,						\
+		T2 const & _t2							\
+	) : t1(_t1) , t2(_t2) {}					\
+												\
+	~ClassName(){}								\
+												\
+	template < typename S1 , typename S2 >		\
+	static inline ClassName < S1 , S2 >			\
+	GET ( S1 const & s1 , S2 const & s2 ) {		\
+		return									\
+			ClassName < S1 , S2 > ( s1 , s2 )	\
+		;										\
+	}											\
+												//
+//////////////////////////////////////////////////
+
+//////////////////////////////////////////////////
+#define _MACRO_DECLARE_A_A_(ClassName,Sign)		\
+												\
+	_MACRO_DECLARE_HEADER_ ClassName {			\
+	public:										\
+												\
+		_MACRO_INHERIT_OPERATOR_				\
+												\
+		_MACRO_DEFINE_OPERATION_ {				\
+			return								\
+				t1[i] Sign t2[i]				\
+			;									\
+		}										\
+												\
+		_MACRO_DEFINE_CONSTRUCTOR_(ClassName)	\
+												\
+	} ;											\
+												//
+//////////////////////////////////////////////////
+
+//////////////////////////////////////////////////
+#define _MACRO_DECLARE_A_S_(ClassName,Sign)		\
+												\
+	_MACRO_DECLARE_HEADER_ ClassName {			\
+	public:										\
+												\
+		_MACRO_INHERIT_OPERATOR_				\
+												\
+		_MACRO_DEFINE_OPERATION_ {				\
+			return								\
+				t1[i] Sign t2					\
+			;									\
+		}										\
+												\
+		_MACRO_DEFINE_CONSTRUCTOR_(ClassName)	\
+												\
+	} ;											\
+												//
+//////////////////////////////////////////////////
+
+			_MACRO_DECLARE_A_A_(ADD_A_A,+)
+			_MACRO_DECLARE_A_A_(SUBTRACT_A_A,-)
+			_MACRO_DECLARE_A_A_(MULTIPLY_A_A,*)
+			_MACRO_DECLARE_A_A_(DIVIDE_A_A,/)
+			_MACRO_DECLARE_A_S_(MULTIPLY_A_S,*)
+			_MACRO_DECLARE_A_S_(DIVIDE_A_S,/)
+
+#undef _MACRO_DECLARE_A_S_
+#undef _MACRO_DECLARE_A_A_
+#undef _MACRO_DEFINE_CONSTRUCTOR_
+#undef _MACRO_INHERIT_OPERATOR_
+#undef _MACRO_DEFINE_OPERATION_
+#undef _MACRO_DECLARE_HEADER_
+
+		}
+
 ////////////////////////////////////////////////////////////////
 #define _MACRO_ND_LOOP_(I) for(size_t I=0;I<SIZE();I++) ////////
 ////////////////////////////////////////////////////////////////
@@ -21,7 +129,7 @@
         _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_DATA_(Name,Sign) ///
 ////////////////////////////////////////////////////////////////
 
-        template <size_t X, typename T=float>
+        template <size_t X=1, typename T=float>
         class ND_ARRAY {
         public:
             using TYPE_DATA = T ;
@@ -47,11 +155,6 @@
                     TYPE_DATA
                 >
             ; //
-        private:
-            TYPE_DATA
-                DATA[SIZE()]
-            ; //
-        public:
             //
             _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Add,+=)
             _MACRO_ND_REGISTER_OPERATOR_ON_TYPE_SELF_(Sub,-=)
@@ -269,6 +372,11 @@
                 }
                 return ret ;
             } //
+
+			TYPE_DATA
+				DATA[SIZE()]
+			; //
+
         } ;
 
 //////////////////////////////////////////////////////

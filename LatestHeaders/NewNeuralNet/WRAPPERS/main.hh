@@ -118,6 +118,19 @@
 										\
 	}									\
 										\
+	template <typename T1>				\
+	inline TYPE_FORWARD_OUTPUT const	\
+	FWD_FROM (							\
+		T1 const in						\
+	) {									\
+		return							\
+			FORWARD (					\
+				{ in.i , in.O1 }		\
+			)							\
+		;								\
+	}									\
+										\
+										\
 	inline TYPE_BACKWARD_OUTPUT const	\
 	BACKWARD (							\
 		TYPE_BACKWARD_INPUT const		\
@@ -140,6 +153,18 @@
 			ret							\
 		;								\
 										\
+	}									\
+										\
+	template <typename T1>				\
+	inline TYPE_BACKWARD_OUTPUT const	\
+	BKW_FROM (							\
+		T1 const in						\
+	) {									\
+		return							\
+			BACKWARD (					\
+				{ in.i , in.DI1 }		\
+			)							\
+		;								\
 	}									\
 										//
 //////////////////////////////////////////
@@ -218,6 +243,18 @@
 											\
 	}										\
 											\
+	template <typename T1>					\
+	inline TYPE_FORWARD_OUTPUT const		\
+	FWD_FROM (								\
+		T1 const in							\
+	) {										\
+		return								\
+			FORWARD (						\
+				{ in.i , in.O1 , in.OD1 }	\
+			)								\
+		;									\
+	}										\
+											\
 	inline TYPE_FORWARD_OUTPUT const		\
 	FORWARD (								\
 		TYPE_FORWARD_INPUT_FIRST const		\
@@ -280,6 +317,18 @@
 			ret								\
 		;									\
 											\
+	}										\
+											\
+	template <typename T1>					\
+	inline TYPE_BACKWARD_OUTPUT const		\
+	BKW_FROM (								\
+		T1 const in							\
+	) {										\
+		return								\
+			BACKWARD (						\
+				{ in.i , in.DI1 , in.DID1 }	\
+			)								\
+		;									\
 	}										\
 											//
 //////////////////////////////////////////////

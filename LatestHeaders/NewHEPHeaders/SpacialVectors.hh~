@@ -774,7 +774,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 return ret / this[0][IDX].pt() ;
             }
             inline size_t FindPID
-            ( long   const PID) const {
+            ( long const PID) const {
                 TYPE_Self const & SELF = this[0] ;
                 size_t ret = 0 ;
                 for(size_t i=0;(i<SELF.size())&&(ret==0);i++)if(SELF[i].id()==PID){ret=i;}
