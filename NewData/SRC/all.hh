@@ -2122,6 +2122,405 @@ namespace STEP3_GENERATETOP {
     }
     //
 }
+namespace STEP3_B_GENERATEH4J {
+    //
+    using namespace MISC ;
+    //
+    inline void
+    Generate (
+        size_t      index                ,
+        std::string MidName              ,
+        size_t      random_seed = 123    ,
+        size_t      N_Events    = 100000
+    ) {
+        CPPFileIO::SetCPUAffinity(index);
+        std::string prefixname ;
+        /* Make the directories: */ {
+            std::string dirname = "./OUTS/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            dirname = "./OUTS/H4J/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            dirname = "./OUTS/H4J/" + MidName + "/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            char tmp = '0' ;
+            tmp = tmp + ( (char) index ) ;
+            dirname = dirname + tmp + "/" ;
+            mkdir ( &(dirname[0]) , 0755 ) ;
+            prefixname = dirname ;
+        }
+		size_t count = 0 ;
+		EventWriter writer (prefixname) ;
+		MyPythia pythia ;
+		/* Configure pythia: */ {
+			pythia.readString ( "Beams:eCM = 13000"         ) ;
+			pythia.readString ( "PhaseSpace:pTHatMin = 750" ) ;
+			pythia.readString ( "PhaseSpace:pTHatMax = 950" ) ;
+			pythia.readString ( "PartonLevel:MPI = off"     ) ;
+			pythia.readString ( "Random:setSeed = on"       ) ;
+			/* Set the random number Seed */ {
+				char tmp[256] ;
+				sprintf (
+					tmp                 ,
+					"Random:seed = %ld" ,
+					index + random_seed
+				) ; //
+				pythia.readString
+					(tmp)
+				; //
+			}
+			pythia.readString ( "Higgs:useBSM = on"         ) ;
+			pythia.readString ( "HiggsBSM:ffbar2H2Z = on"   ) ;
+			pythia.readString ( "35:m0 = 180.0"             ) ;
+			pythia.readString ( "35:onMode = off"           ) ;
+			pythia.readString ( "35:onIfAny = 24 24"        ) ;
+			pythia.readString ( "23:onMode = off"           ) ;
+			pythia.readString ( "23:onIfAny = 12"           ) ;
+			pythia.readString ( "24:onMode = off"           ) ;
+			pythia.readString ( "24:onIfAny = 1 2 3 4"      ) ;
+            pythia.init () ;
+        }
+        while (count<N_Events)
+        if (pythia.next()) {
+			vector4s
+				hadrons
+			; /* Prepare the list of hadrons: */ {
+                for (
+                    size_t i=0;
+                    i<pythia.event.size();
+                    i++
+                ) if (
+                    pythia.event[i]
+                        .isFinal()
+                ) {
+                    int pid =
+                        pythia
+                        .event[i]
+                        .id()
+                    ;
+                    if (pid<0) {pid=-pid;}
+                    if (
+                        ( pid != 12 ) &&
+                        ( pid != 14 ) &&
+                        ( pid != 16 )
+                    ) {
+                        vector4 tmp (
+                            pythia.event[i].px () ,
+                            pythia.event[i].py () ,
+                            pythia.event[i].pz () ,
+                            pythia.event[i].e  ()
+                        ) ;
+                        auto tmpeta =
+                            tmp.rapidity()
+                        ;
+                        if (
+                            ( -2.5     < tmpeta ) &&
+                            ( tmpeta   < 2.5    ) &&
+                            ( tmp.pt() > 0.5    )
+                        ) {
+                            hadrons.push_back
+                                (tmp)
+                            ; //
+                        }
+                    }
+                }
+            }
+			//
+			vector4
+				HG2		,	WBS[2]	,
+				JT1[2]	,	JT2[2]
+			; /* Get These Vectors: */ {
+				long hid =
+					pythia.Recurse (
+						pythia.FindParticle ( 35 )
+					)
+				; //
+				HG2 = pythia.GetVector (hid) ;
+				long wid[2] = {
+					pythia.Recurse ( pythia.FindDaughter ( (long) /*ParentID=*/ hid , (long) /*DPID=*/  24 ) ) ,
+					pythia.Recurse ( pythia.FindDaughter ( (long) /*ParentID=*/ hid , (long) /*DPID=*/ -24 ) )
+				} ; {
+					WBS[0] = pythia.GetVector (wid[0]) ;
+					WBS[1] = pythia.GetVector (wid[1]) ;
+				}
+				long j1id[2] = {
+					pythia.event[wid[0]].daughter1 () ,
+					pythia.event[wid[1]].daughter1 ()
+				} ; {
+					JT1[0] = pythia.GetVector (j1id[0]) ;
+					JT1[1] = pythia.GetVector (j1id[1]) ;
+				}
+				long j2id[2] = {
+					pythia.event[wid[0]].daughter2 () ,
+					pythia.event[wid[1]].daughter2 ()
+				} ; {
+					JT2[0] = pythia.GetVector (j2id[0]) ;
+					JT2[1] = pythia.GetVector (j2id[1]) ;
+				}
+			}
+            //
+            fastjet::JetAlgorithm algo =
+                fastjet::antikt_algorithm
+            ; //
+            fastjet::JetDefinition
+                jet_def (
+                    algo,
+                    1.0
+                )
+            ;
+            fastjet::ClusterSequence
+                clust_seq (
+                    hadrons,
+                    jet_def
+                )
+            ;
+            vector4s jets =
+                clust_seq
+                .inclusive_jets
+                        (800.0)
+            ;
+            //
+			if (jets.size()>0) {
+				//
+				bool genmatched =
+					(
+						( jets[0].delta_R (HG2)		< 0.6 )	&&
+						( jets[0].delta_R (WBS[0])	< 0.6 )	&&
+						( jets[0].delta_R (WBS[1])	< 0.6 )	&&
+						( jets[0].delta_R (JT1[0])	< 0.6 )	&&
+						( jets[0].delta_R (JT1[1])	< 0.6 )	&&
+						( jets[0].delta_R (JT2[0])	< 0.6 )	&&
+						( jets[0].delta_R (JT2[1])	< 0.6 )
+					)
+				; //
+                if (
+                    (genmatched) &&
+                    (jets[0].constituents().size()>2)
+                ) {
+                    auto tmppt =
+                        jets[0]
+                        .pt()
+                    ; //
+                    auto tmpet =
+                        jets[0]
+                        .rapidity()
+                    ; //
+                    if (
+                        (
+                            ( 800 < tmppt ) &&
+                            ( tmppt < 900 )
+                        ) && (
+                            ( -2.5 < tmpet ) &&
+                            ( tmpet < 2.5 )
+                        )
+                    ) {
+                        writer(jets[0]);
+                        count++ ;
+                    }
+                }
+            }
+        }
+    }
+    //
+	inline void
+	Generate_Train () {
+        CPPFileIO::ForkMe forker ;
+        for (size_t i=0;i<8;i++)
+        if (forker.InKid()) {
+            Generate (
+                i       ,
+                "TRAIN" ,
+                123     ,
+                300000
+            ) ; //
+        }
+    }
+    //
+    inline void
+    Generate_Test () {
+        CPPFileIO::ForkMe forker ;
+        for (size_t i=0;i<8;i++)
+        if (forker.InKid()) {
+            Generate (
+                i      ,
+                "TEST" ,
+                456    ,
+                50000
+            ) ; //
+        }
+    }
+    //
+    inline void
+    PlotNsub () {
+        /* TRAIN */ if(true) {
+            MyHistN <5,false>
+                nsubcompare (
+                    "TAU_TRAIN_H4J",
+                    100,-0.01,100.01
+                )
+            ; //
+            for(
+                size_t index=0;
+                index<8;
+                index++
+            ) {
+                char tmp[256] ;
+                sprintf (
+                    tmp,
+                    "./OUTS/H4J/TRAIN/%ld/nsub",
+                    index
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_NSub>
+                        Reader (tmp)
+                ; //
+                for (size_t i=0;i<Reader();i++) {
+                    nsubcompare.Fill<0>
+                        (Reader(i)[0])
+                    ; //
+                    nsubcompare.Fill<1>
+                        (Reader(i)[1])
+                    ; //
+                    nsubcompare.Fill<2>
+                        (Reader(i)[2])
+                    ; //
+                    nsubcompare.Fill<3>
+                        (Reader(i)[3])
+                    ; //
+                    nsubcompare.Fill<4>
+                        (Reader(i)[4])
+                    ; //
+                }
+            }
+        }
+        /* TEST */ if(true) {
+            MyHistN <5,false>
+                nsubcompare (
+                    "TAU_TEST_H4J",
+                    100,-0.01,100.01
+                )
+            ; //
+            for(
+                size_t index=0;
+                index<8;
+                index++
+            ) {
+                char tmp[256] ;
+                sprintf (
+                    tmp,
+                    "./OUTS/H4J/TEST/%ld/nsub",
+                    index
+                ) ; //
+                CPPFileIO::FullFileReader
+                    <TYPE_NSub>
+                        Reader (tmp)
+                ; //
+                for (size_t i=0;i<Reader();i++) {
+                    nsubcompare.Fill<0>
+                        (Reader(i)[0])
+                    ; //
+                    nsubcompare.Fill<1>
+                        (Reader(i)[1])
+                    ; //
+                    nsubcompare.Fill<2>
+                        (Reader(i)[2])
+                    ; //
+                    nsubcompare.Fill<3>
+                        (Reader(i)[3])
+                    ; //
+                    nsubcompare.Fill<4>
+                        (Reader(i)[4])
+                    ; //
+                }
+            }
+        }
+    }
+    //
+    inline void
+    PlotImages () {
+
+        if(true) /* TRAIN */ {
+
+            if(true) /* NORMAL */ {
+                Plot2D tmp("H4J_TRAIN_IMAGES");
+                tmp("./OUTS/H4J/TRAIN/0/image");
+                tmp("./OUTS/H4J/TRAIN/1/image");
+                tmp("./OUTS/H4J/TRAIN/2/image");
+                tmp("./OUTS/H4J/TRAIN/3/image");
+                tmp("./OUTS/H4J/TRAIN/4/image");
+                tmp("./OUTS/H4J/TRAIN/5/image");
+                tmp("./OUTS/H4J/TRAIN/6/image");
+                tmp("./OUTS/H4J/TRAIN/7/image");
+            }
+
+            if(true) /* NOGRAMSCHMIDT */ {
+                Plot2D tmp("H4J_TRAIN_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/H4J/TRAIN/0/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/1/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/2/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/3/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/4/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/5/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/6/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TRAIN/7/NoGramSchmidtImageType");
+            }
+
+            if(true) /* NOBOOST */ {
+                Plot2D tmp("H4J_TRAIN_IMAGES_NOBOOST");
+                tmp("./OUTS/H4J/TRAIN/0/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/1/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/2/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/3/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/4/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/5/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/6/UnBoostedimage");
+                tmp("./OUTS/H4J/TRAIN/7/UnBoostedimage");
+            }
+
+        }
+
+        if(true) /* TEST */ {
+
+            if(true) /* NORMAL */ {
+                Plot2D tmp("H4J_TEST_IMAGES");
+                tmp("./OUTS/H4J/TEST/0/image");
+                tmp("./OUTS/H4J/TEST/1/image");
+                tmp("./OUTS/H4J/TEST/2/image");
+                tmp("./OUTS/H4J/TEST/3/image");
+                tmp("./OUTS/H4J/TEST/4/image");
+                tmp("./OUTS/H4J/TEST/5/image");
+                tmp("./OUTS/H4J/TEST/6/image");
+                tmp("./OUTS/H4J/TEST/7/image");
+            }
+
+            if(true) /* NOGRAMSCHMIDT */ {
+                Plot2D tmp("H4J_TEST_IMAGES_NOGRAMSCHMIDT");
+                tmp("./OUTS/H4J/TEST/0/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/1/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/2/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/3/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/4/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/5/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/6/NoGramSchmidtImageType");
+                tmp("./OUTS/H4J/TEST/7/NoGramSchmidtImageType");
+            }
+
+            if(true) /* NOBOOST */ {
+                Plot2D tmp("H4J_TEST_IMAGES_NOBOOST");
+                tmp("./OUTS/H4J/TEST/0/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/1/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/2/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/3/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/4/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/5/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/6/UnBoostedimage");
+                tmp("./OUTS/H4J/TEST/7/UnBoostedimage");
+            }
+
+        }
+
+    }
+    //
+}
 ////////////////////////////////////////////////////////////////
 namespace STEP4_MIX_DATA {
     //
@@ -4782,7 +5181,7 @@ namespace STEP10_2D_MASS_ERROR {
 			&(histname[0])	,
 			&(histname[0])	,
 			100, -0.01, _limit ,
-			100, -0.01, 0.8
+			100, -0.1, 0.8
 		) ,
 		LossMassBins (
 			histname+"bins",
@@ -5009,7 +5408,7 @@ namespace STEP10_2D_MASS_ERROR {
 			PLOT_LOSS_MASS
 				tmp (
 					"Mass_Loss_QCD_TEST" ,
-					600.0
+					800.0
 				)
 			; //
 
@@ -5048,7 +5447,7 @@ namespace STEP10_2D_MASS_ERROR {
 			PLOT_LOSS_MASS
 				tmp (
 					"Mass_Loss_QCD_TRAIN" ,
-					1000.0
+					800.0
 				)
 			; //
 
@@ -5090,7 +5489,7 @@ namespace STEP10_2D_MASS_ERROR {
 				PLOT_LOSS_MASS
 					tmp (
 						"Mass_Loss_QCD_TRAIN_HUGE_DENCE" ,
-						1000.0
+						800.0
 					)
 				; //
 
@@ -5129,7 +5528,7 @@ namespace STEP10_2D_MASS_ERROR {
 				PLOT_LOSS_MASS
 					tmp (
 						"Mass_Loss_QCD_TEST_HUGE_DENCE" ,
-						600.0
+						800.0
 					)
 				; //
 
@@ -5170,7 +5569,7 @@ namespace STEP10_2D_MASS_ERROR {
 			PLOT_LOSS_MASS
 				tmp (
 					"Mass_Loss_QCD_TRAIN_cnn" ,
-					1000.0
+					800.0
 				)
 			; //
 
@@ -5209,7 +5608,7 @@ namespace STEP10_2D_MASS_ERROR {
 			PLOT_LOSS_MASS
 				tmp (
 					"Mass_Loss_QCD_TEST_cnn" ,
-					600.0
+					800.0
 				)
 			; //
 
@@ -5740,3 +6139,136 @@ namespace STEP11_SMALL_AE_LOSS_IN_MASS_BINS {
     } ;
 
 }
+////////////////////////////////////////////////////////////////
+namespace STEP12_MASS_PT_OF_TOP_W_H4J {
+
+	using namespace MISC ;
+
+	class Plotter {
+	public:
+
+		static inline names
+		QCDNames () {
+			names ret ;
+			ret.push_back("./OUTS/QCD/TEST/0/vector");
+			ret.push_back("./OUTS/QCD/TEST/1/vector");
+			ret.push_back("./OUTS/QCD/TEST/2/vector");
+			ret.push_back("./OUTS/QCD/TEST/3/vector");
+			ret.push_back("./OUTS/QCD/TEST/4/vector");
+			ret.push_back("./OUTS/QCD/TEST/5/vector");
+			ret.push_back("./OUTS/QCD/TEST/6/vector");
+			ret.push_back("./OUTS/QCD/TEST/7/vector");
+			return ret ;
+		}
+
+		static inline names
+		TopNames () {
+			names ret ;
+			ret.push_back("./OUTS/TOP/TEST/0/vector");
+			ret.push_back("./OUTS/TOP/TEST/1/vector");
+			ret.push_back("./OUTS/TOP/TEST/2/vector");
+			ret.push_back("./OUTS/TOP/TEST/3/vector");
+			ret.push_back("./OUTS/TOP/TEST/4/vector");
+			ret.push_back("./OUTS/TOP/TEST/5/vector");
+			ret.push_back("./OUTS/TOP/TEST/6/vector");
+			ret.push_back("./OUTS/TOP/TEST/7/vector");
+			return ret ;
+		}
+
+		static inline names
+		WBSNames () {
+			names ret ;
+			ret.push_back("./OUTS/WBS/TEST/0/vector");
+			ret.push_back("./OUTS/WBS/TEST/1/vector");
+			ret.push_back("./OUTS/WBS/TEST/2/vector");
+			ret.push_back("./OUTS/WBS/TEST/3/vector");
+			ret.push_back("./OUTS/WBS/TEST/4/vector");
+			ret.push_back("./OUTS/WBS/TEST/5/vector");
+			ret.push_back("./OUTS/WBS/TEST/6/vector");
+			ret.push_back("./OUTS/WBS/TEST/7/vector");
+			return ret ;
+		}
+
+		static inline names
+		H4JNames () {
+			names ret ;
+			ret.push_back("./OUTS/H4J/TEST/0/vector");
+			ret.push_back("./OUTS/H4J/TEST/1/vector");
+			ret.push_back("./OUTS/H4J/TEST/2/vector");
+			ret.push_back("./OUTS/H4J/TEST/3/vector");
+			ret.push_back("./OUTS/H4J/TEST/4/vector");
+			ret.push_back("./OUTS/H4J/TEST/5/vector");
+			ret.push_back("./OUTS/H4J/TEST/6/vector");
+			ret.push_back("./OUTS/H4J/TEST/7/vector");
+			return ret ;
+		}
+
+		static inline READER_Vector
+		TopReader (size_t i) {
+			READER_Vector ret (TopNames()[i]) ;
+			return ret ;
+		}
+
+		static inline READER_Vector
+		WBSReader (size_t i) {
+			READER_Vector ret (WBSNames()[i]) ;
+			return ret ;
+		}
+
+		static inline READER_Vector
+		H4JReader (size_t i) {
+			READER_Vector ret (H4JNames()[i]) ;
+			return ret ;
+		}
+
+		static inline READER_Vector
+		QCDReader (size_t i) {
+			READER_Vector ret (QCDNames()[i]) ;
+			return ret ;
+		}
+
+//////////////////////////////////////////
+#define _MACRO_PLOTTER_(Name,Index)		\
+	auto out = Name(j) ;				\
+	for(size_t i=0;i<out();i++){		\
+		PTs.Fill<Index>(out(i).pt());	\
+		MJs.Fill<Index>(out(i).m());	\
+	}									//
+//////////////////////////////////////////
+		inline void
+		Plot () {
+			for(size_t j=0;j<8;j++){
+				/* QCD PART: */ {
+					_MACRO_PLOTTER_(QCDReader,0)
+				}
+				/* TOP PART: */ {
+					_MACRO_PLOTTER_(TopReader,1)
+				}
+				/* WBS PART: */ {
+					_MACRO_PLOTTER_(WBSReader,2)
+				}
+				/* H4J PART: */ {
+					_MACRO_PLOTTER_(H4JReader,3)
+				}
+			}
+		}
+#undef _MACRO_PLOTTER_
+
+		Plotter():
+		PTs("PT_OF_QCD_TOP_W_H4J",100,780,920),
+		MJs("MJ_OF_QCD_TOP_W_H4J",100,0.0,600)
+		{ Plot () ; }
+
+		~Plotter(){}
+
+		MyHistN <4> PTs ;
+		MyHistN <4> MJs ;
+
+		static inline void WORK () {
+			auto * tmp = new Plotter ;
+			delete tmp ;
+		}
+
+	} ;
+}
+////////////////////////////////////////////////////////////////
