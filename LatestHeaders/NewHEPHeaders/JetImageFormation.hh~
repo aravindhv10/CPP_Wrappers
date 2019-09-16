@@ -22,6 +22,13 @@ namespace NewHEPHeaders /* Fastjet easy jet cluster: */ {
 			Image[N][N]
 		; //
 		//
+		template <typename T>
+		inline static T const
+		mymod ( T const a ) {
+			if (a<0) { return -a ; }
+			else { return a ; }
+		}
+		//
 		static inline double
 		norm4 (
 			vector4 const &
@@ -92,8 +99,8 @@ namespace NewHEPHeaders /* Fastjet easy jet cluster: */ {
 		) {
 			double ScalingFactor =
 				(
-					CPPFileIO::mymod(X) +
-					CPPFileIO::mymod(Y)
+					mymod(X) +
+					mymod(Y)
 				) /
 				sqrt (
 					(X*X) +
@@ -316,8 +323,8 @@ namespace NewHEPHeaders /* Fastjet easy jet cluster: */ {
 						/* Rescale to get a box: */ if(false) {
 							double ScalingFactor =
 								(
-									CPPFileIO::mymod(cX) +
-									CPPFileIO::mymod(cY)
+									mymod(cX) +
+									mymod(cY)
 								) /
 								sqrt (
 									(cX*cX) +

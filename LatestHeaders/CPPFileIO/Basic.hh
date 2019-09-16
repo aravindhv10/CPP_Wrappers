@@ -129,8 +129,8 @@ namespace CPPFileIO {
     template <typename T>
     inline T const
     GCD (
-		T const a ,
-		T const b
+		T a ,
+		T b
 	) {
         T ret ;
         while (

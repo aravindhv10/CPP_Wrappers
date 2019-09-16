@@ -112,10 +112,10 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 
 		inline size_t
 		Count_Tracks (
-			fastjet::PseudoJet &
+			fastjet::PseudoJet const &
 				injet
 		) const {
-			TYPE_Self &
+			TYPE_Self const &
 				self = this[0]
 			; //
 			size_t
@@ -143,10 +143,10 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 
 		inline double
 		HCal_Fraction (
-			fastjet::PseudoJet &
+			fastjet::PseudoJet const &
 				injet
 		) const {
-			TYPE_Self & self =
+			TYPE_Self const & self =
 				this[0]
 			; //
 			double ret =
@@ -172,10 +172,10 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 
 		inline double
 		ECal_Fraction (
-			fastjet::PseudoJet &
+			fastjet::PseudoJet const &
 				injet
 		) const {
-			TYPE_Self & self =
+			TYPE_Self const & self =
 				this[0]
 			; //
 			double ret =
