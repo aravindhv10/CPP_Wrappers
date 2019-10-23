@@ -1,0 +1,4 @@
+#!/bin/bash
+#( 'pdflatex' 'main.tex' ; 'biber' 'main' ; 'pdflatex' 'main.tex' );
+( 'lualatex' 'main.tex' ; 'biber' 'main' ; 'lualatex' 'main.tex' );
+exit '0'

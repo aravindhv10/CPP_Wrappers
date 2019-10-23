@@ -4,6 +4,417 @@ namespace NewHEPHeaders /* Fastjet easy jet cluster: */ {
 		size_t 		N 				,
 		typename	Tf		= float	,
 		bool		boxify	= true
+	> class BigBoxImageGen {
+	public:
+		//
+		using TYPE_DATA =
+			Tf
+		; //
+		using vector4  =
+			fastjet::PseudoJet
+		; //
+		using vector4s =
+			std::vector
+				<fastjet::PseudoJet>
+		; //
+		//
+		TYPE_DATA
+			Image[N][N]
+		; //
+		//
+		template <typename T>
+		inline static T const
+		mymod (
+			T const a
+		) {
+			if (a<0) {
+				return -a ;
+			} else {
+				return a ;
+			}
+		}
+		//
+		static inline double
+		dot3 (
+			vector4 const & a ,
+			vector4 const & b
+		) {
+			return
+				(a[0]*b[0]) +
+				(a[1]*b[1]) +
+				(a[2]*b[2])
+			; //
+		} //
+		static inline double
+		norm3 (
+			vector4 const & a
+		) {
+			return
+				std::sqrt (
+					dot3 (a,a)
+				)
+			; //
+		} //
+		//
+		static inline double
+		dot4 (
+			vector4 const & a ,
+			vector4 const & b
+		) {
+			return
+				(a[3]*b[3]) -
+				dot3(a,b)
+			; //
+		} //
+		static inline double
+		norm4 (
+			vector4 const & a
+		) {
+			return
+				std::sqrt (
+					dot4(a,a)
+				)
+			; //
+		} //
+		//
+		inline void
+		ZeroImage () {
+			for(size_t x=0;x<N;x++){
+				for(size_t y=0;y<N;y++){
+					Image[x][y] = 0.0 ;
+				}
+			}
+		} //
+		//
+		static inline void
+		Rescale2Box (
+			double & X ,
+			double & Y
+		) {
+			double const
+				ScalingFactor =
+					(
+						mymod(X) +
+						mymod(Y)
+					) /
+					std::sqrt (
+						std::pow (X,2) +
+						std::pow (Y,2)
+					)
+			;
+			X *= ScalingFactor ;
+			Y *= ScalingFactor ;
+		} //
+
+		inline vector4
+		OrthoNormalize (
+			vector4	&	V1	,
+			vector4	&	V2	,
+			vector4	&	V3
+		) {
+			vector4 ret =
+				V1 + V2 + V3
+			; /* Prepare the basis vectors: */ {
+				vector4 B[3] =
+					{ ret , V1 , V2 }
+				; //
+				/* The 1st basis vector: */ {
+					B[0] /=
+						norm3 (B[0])
+					; //
+					V1 = B[0] ;
+				}
+				/* The 2nd Basis Vector: */ {
+					B[1] = B[1]
+						- ( B[0] * dot3(B[0],B[1]) )
+					; //
+					B[1] /=
+						norm3 (B[1])
+					; //
+					V2 = B[1] ;
+				}
+				/* The 3rd Basis Vector: */ {
+					B[2] = B[2]
+						- ( B[1] * dot3(B[2],B[1]) )
+						- ( B[0] * dot3(B[2],B[0]) )
+					; //
+					B[2] /=
+						norm3 (B[2])
+					; //
+					V3 = B[2] ;
+				}
+			}
+			return
+				ret
+			; //
+		}
+
+		inline bool
+		Eval (
+			vector4s const &
+				invectors  ,
+			double const
+				M0 = 0.5
+		) {
+			if(invectors.size()>2){
+
+				ZeroImage();
+
+				double constexpr
+					E0 =
+						1.0
+				; //
+
+				double const
+					P0 =
+						sqrt (
+							(E0*E0) -
+							(M0*M0)
+						)
+				; //
+
+				fastjet::JetAlgorithm
+					algo =
+						fastjet::kt_algorithm
+				; //
+
+				fastjet::JetDefinition
+					jet_def (
+						algo ,
+						100.0
+					)
+				; //
+
+				fastjet::ClusterSequence
+					clust_seq (
+						invectors ,
+						jet_def
+					)
+				; //
+
+				vector4s basis =
+					fastjet::sorted_by_pt (
+						clust_seq.exclusive_jets (3)
+					)
+				; //
+
+				if(basis.size()>2){
+
+					vector4
+						eZ = basis[0] ,
+						eX = basis[1] ,
+						eY = basis[2]
+					; //
+
+					vector4 const
+						P_MU_J =
+							OrthoNormalize
+								(eZ,eX,eY)
+					;
+
+					const double
+						EJ =
+							P_MU_J[3]
+					; //
+
+					const double
+						PJ =
+							norm3 (P_MU_J)
+					; //
+
+					const double
+						MJ =
+							norm4 (P_MU_J)
+					; //
+
+					const double
+						Factor =
+							(M0/MJ)
+					; //
+
+					double GM =
+						( (EJ*E0) - (PJ*P0) ) /
+						(MJ*M0)
+					; //
+
+					if(GM<1.0000000001){
+						GM=1.0000000001;
+					}
+
+					double BT =
+						sqrt (
+							1.0 - (1.0/(GM*GM))
+						)
+					; //
+
+					if ((EJ/MJ)<(E0/M0)) {
+						BT = -BT ;
+					}
+
+					if (false) /* Orthonormalize the basis: */ {
+						eZ /=
+							norm3 (eZ)
+						; //
+						eX =
+							basis[0] -
+							(eZ*dot3(basis[0],eZ))
+						; //
+						eX /=
+							norm3 (eX)
+						; //
+						eY =
+							basis[1] -
+							(eZ*dot3(basis[1],eZ)) -
+							(eX*dot3(basis[1],eX))
+						; //
+						eY /=
+							norm3 (eY)
+						; //
+					}
+
+					if (false) {
+						auto newtmp =
+							sorted_by_E(invectors)
+						; //
+						eX =
+							newtmp[0] -
+							(eZ*dot3(newtmp[0],eZ))
+						; //
+						eX /=
+							norm3 (eX)
+						; //
+						eY =
+							newtmp[1] -
+							(eZ*dot3(newtmp[1],eZ)) -
+							(eX*dot3(newtmp[1],eX))
+						; //
+						eY /=
+							norm3 (eY)
+						; //
+					}
+
+					for(
+						size_t i=0;
+						i<invectors.size();
+						i++
+					) {
+
+						vector4 tmp =
+							invectors[i] *
+							Factor
+						; //
+
+						double	cX	,	cY		;
+						double	eI	=	tmp[3]	;
+
+						/* Evaluate the components */ {
+							double	const
+								pX	=
+									dot3 (tmp,eX)
+							; //
+							double	const
+								pY	=
+									dot3 (tmp,eY)
+							; //
+							double	const
+								pZ	=
+									dot3 (tmp,eZ)
+							; //
+							double const
+								pZ_NEW	= GM * ( pZ - (BT*eI) )
+							; //
+								eI		= GM * ( eI - (BT*pZ) )
+							; //
+							cX	=
+								pX / eI
+							;
+							cY	=
+								pY / eI
+							;
+							if (
+								pZ_NEW < 0.0
+							) /* Improves image for small gamma factors: */ {
+								double const
+									R =
+										std::sqrt (
+											std::pow(cX,2) +
+											std::pow(cY,2)
+										)
+								; //
+								double const
+									K =
+										( 2.0 - R ) /
+										R
+								; //
+								cX = cX * K ;
+								cY = cY * K ;
+							}
+						}
+
+						if (true) /* Rescale to get a box: */ {
+							Rescale2Box(cX,cY);
+						}
+
+						/* Fill the Bins: */ {
+							size_t N_X =
+								static_cast<size_t>(
+									static_cast<double>(N) *
+									(cX+2.0) / 4.0
+								)
+							; //
+							size_t N_Y =
+								static_cast<size_t>(
+									static_cast<double>(N) *
+									(cY+2.0) / 4.0
+								)
+							;
+							if(N_X>=N){N_X=N-1;}
+							if(N_Y>=N){N_Y=N-1;}
+							Image[N_Y][N_X] += eI ;
+						}
+
+					}
+					return true;
+				}
+				else{return false;}
+			}
+			else{return false;}
+		}
+		//
+		inline bool
+		operator () (
+			vector4s const &
+				invectors  ,
+			double const
+				M0 = 0.5
+		) {
+			return
+				Eval (
+					invectors	,
+					M0
+				)
+			; //
+		}
+		//
+		BigBoxImageGen (
+			vector4s const &
+				invectors  ,
+			double const
+				M0 = 0.5
+		) {
+			Eval(invectors,M0);
+		}
+		//
+		BigBoxImageGen(){}
+		//
+		~BigBoxImageGen(){}
+		//
+	} ;
+
+	template <
+		size_t 		N 				,
+		typename	Tf		= float	,
+		bool		boxify	= true
 	> class BoxImageGen {
 	public:
 		//

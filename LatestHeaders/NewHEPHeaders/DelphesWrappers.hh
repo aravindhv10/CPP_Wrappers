@@ -17,7 +17,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 	public:
 
 		using TYPE_Self =
-			DelphesReader<T>
+			DelphesReader <T>
 		; //
 
 		template <typename T2>
@@ -75,22 +75,22 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 	> class DelphesVectorsList :
 	public std::vector <VECTORS::DelphesVectors<TR,TI>> {
     public:
-
+		//
 		using TYPE_Element =
 			VECTORS::DelphesVectors
 				<TR,TI>
 		; //
-
+		//
 		using TYPE_Self =
 			DelphesVectorsList
 				<TR,TI>
 		; //
-
+		//
 		using TYPE_GenParticles =
 			VECTORS::GenParticles
 				<TR,TI>
 		; //
-
+		//
 		inline double
 		CalcPtSum (
 			size_t	index ,
@@ -109,7 +109,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 			}
 			return ret ;
 		}
-
+		//
 		inline size_t
 		Count_Tracks (
 			fastjet::PseudoJet const &
@@ -140,7 +140,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 			}
 			return ret ;
 		}
-
+		//
 		inline double
 		HCal_Fraction (
 			fastjet::PseudoJet const &
@@ -169,7 +169,7 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 			}
 			return ret ;
 		}
-
+		//
 		inline double
 		ECal_Fraction (
 			fastjet::PseudoJet const &
@@ -198,30 +198,30 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 			}
 			return ret ;
 		}
-
+		//
 		template <typename T1>
 		inline void
 		ReadFromDelphes (
 			T1 const &
 				inref
 		) {
-
+			//
 			GenParts.ReadFromDelphes
 				(inref)
 			; //
-
+			//
 			size_t const limit_EFlowNeutralHadron =
 				inref.EFlowNeutralHadron_
 			; //
-
+			//
 			size_t const limit_EFlowPhoton =
 				inref.EFlowPhoton_
 			; //
-
+			//
 			size_t const limit_EFlowTrack =
 				inref.EFlowTrack_
 			; //
-
+			//
 			/* Prepare the vectors: */ {
 				this->clear();
 				this->reserve (
@@ -230,15 +230,13 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 					limit_EFlowTrack
 				) ;
 			}
-
+			//
 			/* Read Neutral Hadrons : */ {
-
 				for (
 					size_t i=0;
 					i<limit_EFlowNeutralHadron;
 					i++
 				) {
-
 					TYPE_Element tmp2 ; /* Read in the track vectors: */ {
 						tmp2.SetPtEtaPhiM (
 							inref.EFlowNeutralHadron_ET[i]	,
@@ -253,23 +251,18 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 							tmp2.Charge	= 0									;
 						}
 					}
-
 					this->push_back
 						(tmp2)
 					; //
-
 				}
-
 			}
-
+			//
 			/* Read Photons : */ {
-
 				for (
 					size_t i=0;
 					i<limit_EFlowPhoton;
 					i++
 				) {
-
 					TYPE_Element tmp2 ; /* Read in the track vectors: */ {
 						tmp2.SetPtEtaPhiM (
 							inref.EFlowPhoton_ET[i]		,
@@ -284,23 +277,18 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 							tmp2.Charge	= 0							;
 						}
 					}
-
 					this->push_back
 						(tmp2)
 					; //
-
 				}
-
 			}
-
+			//
 			/* Read tracks : */ {
-
 				for (
 					size_t i=0;
 					i<limit_EFlowTrack;
 					i++
 				) {
-
 					TYPE_Element tmp2 ; /* Read in the track vectors: */ {
 						tmp2.SetPtEtaPhiM (
 							inref.EFlowTrack_PT[i]	,
@@ -332,18 +320,18 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 							inref.EFlowTrack_Charge [i]
 						; //
 					}
-
+					//
 					this->push_back
 						(tmp2)
 					; //
-
 				}
 			}
-
 		}
-
-		TYPE_GenParticles GenParts ;
-
+		//
+		TYPE_GenParticles
+			GenParts
+		; //
+		//
 	} ;
 
 	template <
@@ -352,18 +340,20 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 	> class FullDelphesReader :
 	public DelphesVectorsList <TR,TI> {
 	public:
-
+		//
 		inline void
 		Prepare (
 			double const isocone	= 0.3	,
 			double const isoratio	= 0.15
 		) {
-
-			tofastjet.clear();
-
+			//
+			tofastjet
+				.clear()
+			; //
+			//
 			for (
-				size_t i=0;
-				i<this->size();
+				size_t i = 0		;
+				i < this->size()	;
 				i++
 			) {
 				bool isolepton =
@@ -380,22 +370,23 @@ namespace NewHEPHeaders /* The Delphes part: */ {
 						(ptratio<isoratio)
 					; //
 				} else {
-					fastjet::PseudoJet tmpjet =
-						this[0][i].getpseudojet ()
-					; //
-					tmpjet.set_user_index
-						((int)i)
-					; //
-					tofastjet.push_back
-						(tmpjet)
+					tofastjet
+						.push_back (
+							this[0][i].getpseudojet (
+								static_cast<int>
+									(i)
+							)
+						)
 					; //
 				}
 			}
-
+			//
 		}
-
-		pseudojets tofastjet ;
-
+		//
+		pseudojets
+			tofastjet
+		; //
+		//
 	} ;
 
 }

@@ -1,6 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% List of include packages BEGIN: %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \documentclass[12pt,a4paper,oneside]{book}
 \usepackage{float}
 \usepackage{amsfonts}
@@ -21,7 +22,23 @@
 \usepackage{subfigure}
 \usepackage{upgreek}
 \usepackage[USenglish]{babel}
-\usepackage[nobreak]{cite}
+\usepackage{textcomp}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Additions for biblatex: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{csquotes}
+%\usepackage[style=authoryear,backend=biber]{biblatex}
+\usepackage[style=numeric-comp,sorting=none,defernumbers,backend=biber,backref=true]{biblatex}
+\addbibresource{main_new.bib}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Removes for biblatex: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% \usepackage[nobreak]{cite}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Done with changes for biblatex. %%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \usepackage{setspace}
 \usepackage{xcolor}
 \usepackage{tikz-feynman}
@@ -39,8 +56,6 @@
 \usepackage{bm}
 \usepackage{appendix}
 \usepackage{wrapfig}
-\usepackage{textcomp}
-\usepackage{csquotes}
 \usepackage{hyperref}
 \usepackage[acronym,toc]{glossaries}
 
@@ -163,8 +178,8 @@
 \newcommand {\subsecref} [1] {\autoref{#1}}
 \newcommand {\appref}    [1] {\autoref{#1}}
 \newcommand {\eqnref}    [1] {\autoref{#1}}
-\newcommand {\figref}    [1] {\autoref{#1}}
 \newcommand {\tabref}    [1] {\autoref{#1}}
+\newcommand {\figref}    [1] {\autoref{#1}}
 
 \definecolor{mGreen}{rgb}{0,0.6,0}
 \definecolor{mGray}{rgb}{0.5,0.5,0.5}
@@ -193,6 +208,8 @@
 \definecolor{b8}{rgb}{0.24,0.0,0.32}
 \definecolor{b9}{rgb}{0.32,0.0,0.24}
 
+
+
 \definecolor{mred}{rgb}{0.6,0.0,0.0}
 \definecolor{mgreen}{rgb}{0.0,0.6,0.0}
 \definecolor{mblue}{rgb}{0.0,0.0,0.6}
@@ -218,6 +235,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% PACKAGE CONFIGURE BEGIN: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \lstdefinestyle{CStyle}{
 %	backgroundcolor=\color{backgroundColour},
 	commentstyle=\color{mGreen},
@@ -247,4 +265,3 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% PACKAGE CONFIGURE END. %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

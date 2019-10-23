@@ -24,6 +24,7 @@
 	#include "Definitions.hh"
 
 	#include "SpacialVectors.hh"
+	#include "FeynmanDiagrams.hh"
 
 	#include "TopReconstruction.hh"
 

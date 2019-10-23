@@ -351,28 +351,65 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             { return LorentzBoostGamma(booster.xyz.dir()*booster[3]/booster.m()); }
 
             #ifdef __FASTJET_PSEUDOJET_HH__
-            inline fastjet::PseudoJet getpseudojet () const { return fastjet::PseudoJet (xyz[0], xyz[1], xyz[2], t); }
-            inline void operator = (const fastjet::PseudoJet & injet) {this[0]=lorentz4vector<TR>(injet);}
-            lorentz4vector (const fastjet::PseudoJet & injet) {
-                t      = injet.e  () ;
-                xyz[2] = injet.pz () ;
-                xyz[1] = injet.py () ;
-                xyz[0] = injet.px () ;
-            }
+			//
+			inline fastjet::PseudoJet
+			getpseudojet (
+				int const user_idx =
+					0
+			) const {
+				fastjet::PseudoJet
+					tmp (
+						xyz[0] , xyz[1] ,
+						xyz[2] , t
+					)
+				; //
+				tmp.
+					set_user_index (
+						user_idx
+					)
+				; //
+				return tmp ;
+			}
+			//
+			inline void
+			operator = (
+				const fastjet::PseudoJet &
+					injet
+			) {
+				this[0] =
+					lorentz4vector<TR>
+						(injet)
+				; //
+			}
+			//
+			lorentz4vector (
+				const fastjet::PseudoJet &
+					injet
+			) {
+				t      = injet.e  () ;
+				xyz[2] = injet.pz () ;
+				xyz[1] = injet.py () ;
+				xyz[0] = injet.px () ;
+			}
+			//
             #endif
-
+            //
             lorentz4vector (const TR _x = 0, const TR _y = 0, const TR _z = 0, const TR _t = 0):xyz (_x, _y, _z) { t = _t; }
             lorentz4vector (const euclid3vector < TR > a, const TR _t = -1) :xyz (a) { if(_t<0) {t=a.p();} else {t=_t;} }
             lorentz4vector (const plane2vector  < TR > a, const TR _z = 0 , const TR _t = -1) :xyz (a)
             { if (_t<0) {t=a.pt();} else {t=_t;} xyz.z = _z ; }
             lorentz4vector (const lorentz4vector < TR > &a):xyz (a.xyz) { t = a.t; }
             ~lorentz4vector(){}
-        };
-        template < typename TR=double, typename TI=int > class DelphesVectors {
-        public:
-            lorentz4vector <TR> momentum      ;
-            TI                  Charge        ;
-            TR                  Eem, Ehad, Emu;
+        } ;
+		//
+		template <
+			typename TR = double ,
+			typename TI = int
+		> class DelphesVectors {
+		public:
+			lorentz4vector <TR> momentum      ;
+			TI                  Charge        ;
+			TR                  Eem, Ehad, Emu;
 			//
 			inline bool const
 			IsElectron () const {
@@ -486,8 +523,28 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             }
             //
             #ifdef __FASTJET_PSEUDOJET_HH__
-            inline fastjet::PseudoJet getpseudojet () const
-            { return fastjet::PseudoJet (momentum[0],momentum[1],momentum[2],momentum[3]) ; }
+            inline fastjet::PseudoJet
+            getpseudojet (
+				int const user_idx =
+					0
+			) const {
+				fastjet::PseudoJet
+					tmp (
+						momentum[0] ,
+						momentum[1] ,
+						momentum[2] ,
+						momentum[3]
+					)
+				; //
+				tmp.
+					set_user_index(
+						user_idx
+					)
+				; //
+				return
+					tmp
+				; //
+			}
             #endif
             //
             DelphesVectors
@@ -562,8 +619,28 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             ParticleNode (TRF _x, TRF _y, TRF _z, TRF _t, TRI _d1, TRI _d2, TRI _pid) :
             momentum (_x, _y, _z, _t) { d1 = _d1;d2 = _d2;pid = _pid; }
             //
+			#ifdef __FASTJET_PSEUDOJET_HH__
+			inline fastjet::PseudoJet
+			getpseudojet (
+				int const user_idx =
+					0
+			) const {
+				fastjet::PseudoJet
+					tmp =
+						momentum
+							.getpseudojet ()
+				; //
+				tmp.
+					set_user_index (
+						user_idx
+					)
+				; //
+				return
+					tmp
+				; //
+			}
+			#endif
             #ifdef Pythia8_Pythia_H
-            inline fastjet::PseudoJet getpseudojet () { return momentum.getpseudojet (); }
             ParticleNode (const Pythia8::Particle & part) {
                 momentum = lorentz4vector <TRF> (part.px (), part.py (), part.pz (), part.e ());
                 pid = part.id ();
@@ -811,26 +888,45 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
             ~RestTopDecays(){}
         };
 		//
-        template < typename TR=double, typename TI=long >
-        class GenParticles : public std::vector <ParticleNode<TR,TI>> {
+		template <
+			typename TR=double ,
+			typename TI=long
+		> class GenParticles :
+		public std::vector <
+			ParticleNode <TR,TI>
+		> {
         public:
-            typedef ParticleNode <TR,TI> TYPE_Element ;
-            typedef GenParticles <TR,TI> TYPE_Self    ;
+			using TYPE_Element =
+				ParticleNode <TR,TI>
+			; //
+			using TYPE_Self =
+				GenParticles <TR,TI>
+			; //
         public:
-            inline TR const
-            CalcISO (
+			inline TR const
+			CalcISO (
 				size_t IDX,
 				TR DeltaR
 			) const {
-                TR ret = 0 ;
-                for (size_t i=0;i<this->size();i++)
-                if (
-                   (i!=IDX) &&
-                   (this[0][i].IsGood()) &&
-                   (this[0][i].getvec()(this[0][IDX].getvec())<DeltaR)
-                ) { ret += this[0][i].pt() ; }
-                return ret / this[0][IDX].pt() ;
-            }
+				TR ret = 0 ;
+				for (
+					size_t i = 0		;
+					i < this->size()	;
+					i++
+				) if (
+					( i != IDX ) &&
+					( this[0][i].IsGood() ) &&
+					( this[0][i].getvec() (this[0][IDX].getvec()) < DeltaR )
+				) {
+					ret +=
+						this[0][i].pt()
+					; //
+				}
+				return
+					ret /
+					this[0][IDX].pt()
+				; //
+			}
             //
 			inline size_t const
 			FindPID (
@@ -912,6 +1008,7 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                 else { return 0 ; }
                 //
             }
+            //
             template <typename T1>
             inline void
             ReadFromDelphes (
@@ -935,17 +1032,43 @@ namespace NewHEPHeaders /* The main lorentz vectors part: */ {
                     SELF[i]=TYPE_Element(x,y,z,t,D1,D2,PID);
                 }
             }
-            #ifdef Pythia8_Pythia_H
-            inline void ReadFromPythia
-            (Pythia8::Pythia const & pythia) {
-                for(size_t i=0;i<pythia.event.size();i++){
-                    TYPE_Element tmp
-                        (pythia.event[i]) ;
-                    //
-                    this->push_back(tmp);
-                }
-            }
-            #endif
+            //
+			#ifdef Pythia8_Pythia_H
+			inline void
+			ReadFromPythia (
+				Pythia8::Pythia const &
+					pythia
+			) {
+				for (
+					size_t i = 0			;
+					i < pythia.event.size()	;
+					i++
+				) {
+					TYPE_Element
+						tmp (
+							pythia.event[i]
+						)
+					; //
+					this->push_back
+						(tmp)
+					; //
+				}
+			}
+			#endif
+            //
+			#ifdef __FASTJET_PSEUDOJET_HH__
+			inline fastjet::PseudoJet
+			getpseudojet (
+				size_t const
+					i
+			) const {
+				return
+					this[0][i]
+						.getpseudojet(i)
+				; //
+			}
+			#endif
+
         };
     }
     typedef VECTORS::plane2vector   < float       > vector2         ;
