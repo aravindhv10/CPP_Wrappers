@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+('./FastJet_Static/flags';'./Pythia_Static/flags';'./Static_HepMC/flags') | 'tr' '\n' ' '
+exit '0'

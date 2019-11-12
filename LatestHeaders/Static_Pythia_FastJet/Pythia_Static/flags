@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'realpath' './share/Pythia8/xmldoc/' | 'sed' 's@^@#define XMLDIR "@g;s@$@"@g' > './main.hh'
+'find' './source/src/' '-type' 'f' | 'grep' '\.cc$' | 'grep' '-v' '/\._' | 'sed' 's@^@#include "@g;s@$@"@g' >> './main.hh'
+'echo' "-DGZIPSUPPORT"
+exit '0'

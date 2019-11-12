@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$(dirname -- "${0}")"
+'g++' '-E' $('./flags') './main.hh' > './main.cc'
+'g++' '-c' '-fPIC' './main.cc' '-o' 'pyfjmc.o' '-Ofast' '-mtune=native' '-march=native'
+'g++' '-shared' 'pyfjmc.o' '-o' 'libpyfjmc.so'
+exit 0

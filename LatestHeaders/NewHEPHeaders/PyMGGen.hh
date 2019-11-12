@@ -43,7 +43,7 @@ namespace NewHEPHeaders /* Pythia to HEPMc part: */ {
     }
 
     template <typename T> inline void Generate (size_t const index, size_t const count) {
-        CPPFileIO::SetCPUAffinity((int)index);
+        CPPFileIO::SetCPUAffinity((int)(index%8));
         char tmp[128] ; sprintf(tmp,"hepmc.%ld.fifo",index);
         mkfifo (tmp,0755) ; CPPFileIO::ForkMe forker ;
         if(forker.InKid()){

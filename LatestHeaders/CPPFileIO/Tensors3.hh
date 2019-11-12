@@ -7,6 +7,8 @@ namespace Tensors {
 
     class Nothing {
     public:
+		using TYPE_SELF = Nothing	;
+		using TYPE_DATA = TYPE_SELF	;
         Nothing(){}
         ~Nothing(){}
     } ;

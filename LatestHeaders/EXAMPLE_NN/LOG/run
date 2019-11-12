@@ -1,0 +1,7 @@
+#!/bin/bash
+'rm' '-vf' '--' './a.out'
+#'g++' './main.cc' '-lopenblas' '-Ofast' '-mtune=native' '-march=native' '-fopenmp' '-lgomp'
+'g++' './main.cc' '-Ofast' '-mtune=native' '-march=native' '-fopenmp' '-lgomp'
+#'g++' './main.cc' '-lopenblas' '-Ofast' '-mtune=native' '-march=native'
+'./a.out'
+exit '0'

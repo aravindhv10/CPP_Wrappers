@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'./configure' '--enable-dependency-tracking' '--with-momentum=GEV' '--with-length=MM' '--with-pic'
+exit '0'

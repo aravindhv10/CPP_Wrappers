@@ -1,0 +1,8 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'./FastJet_Static/clean'
+'./Pythia_Static/clean'
+'./Static_HepMC/clean'
+'./testing/clean'
+'rm' '-vf' '--' './main.cc' './pyfjmc.o' './libpyfjmc.so'
+exit '0'

@@ -1,0 +1,6 @@
+#!/bin/bash
+#g++ ./main01.cc -lz -ldl -lpyfj -L. -Wl,-rpath=. -lgmp -lCGAL
+g++ ./main01.cc 'pyfjmc.o' -lz -ldl -lgmp -lCGAL -o main01
+g++ ./main41.cc 'pyfjmc.o' -lz -ldl -lgmp -lCGAL -o main41
+g++ ./main71.cc 'pyfjmc.o' -lz -ldl -lgmp -lCGAL -o main71
+exit 0
