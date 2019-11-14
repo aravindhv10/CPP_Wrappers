@@ -1,4 +1,5 @@
 #!/bin/bash
 cd "$('dirname' '--' "${0}")"
-'echo'  "-I$('realpath' 'HepMC/')"
+#'echo'  "-I$('realpath' 'HepMC/')" "-I$('realpath' 'include')"
+'echo'   "-I$('realpath' 'include')"
 exit '0'

@@ -1,3 +1,4 @@
+#define DROP_CGAL
 #include "./src/AreaDefinition.cc"
 #include "./src/BasicRandom.cc"
 #include "./src/ClosestPair2D.cc"
