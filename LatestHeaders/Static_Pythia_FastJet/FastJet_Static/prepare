@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'mkdir' '-p' '--' './include/'
+cd './include/'
+'mkdir' '-p' '--' 'fastjet'
+cd 'fastjet/'
+'ln' '-fs' ../../source/include/fastjet/* './'
+'ln' '-fs' ../../source/tools/fastjet/tools/ './'
+exit '0'

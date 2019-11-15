@@ -1,0 +1,1 @@
+../../source/include/fastjet/config_auto.h
