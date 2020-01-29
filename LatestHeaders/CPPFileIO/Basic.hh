@@ -269,8 +269,15 @@
     }; /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    template <bool DoFork=false>
 	class ExternalStarter {
 	public:
+
+		using TYPE_SELF =
+			ExternalStarter
+				<DoFork>
+		; //
+
 		using TYPE_NAMES = std::vector <std::string> ;
 
 		ExternalStarter (
@@ -283,7 +290,7 @@
 			}
 		}
 
-		inline void
+		inline TYPE_SELF &
 		operator () (
 			TYPE_NAMES const &
 				in
@@ -291,6 +298,7 @@
 			for(size_t i=0;i<in.size();i++){
 				prog.push_back(in[i]);
 			}
+			return this[0] ;
 		}
 
 		ExternalStarter  (
@@ -300,19 +308,33 @@
 			prog.push_back(in);
 		}
 
-		inline void
+		inline TYPE_SELF &
 		operator () (
 			std::string const
 				in
 		) {
 			prog.push_back(in);
+			return this[0];
 		}
 
         ~ExternalStarter () {
-			ForkMe forker ;
-			if(forker.InKid()){
+			if(DoFork){
+				ForkMe forker ;
+				if(forker.InKid()){
+					starter_self(prog);
+				}
+			} else {
 				starter_self(prog);
 			}
+		}
+
+		static inline TYPE_SELF
+		GET (
+			std::string const
+				in
+		) {
+			TYPE_SELF ret(in);
+			return ret ;
 		}
 
 	private:
@@ -872,8 +894,8 @@
             showvals(outvals); /////////////////////////////////////////////////////////////////////////////////////////////////////
             return outvals; ////////////////////////////////////////////////////////////////////////////////////////////////////////
         } //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        inline size_t operator >> (CPPFileIO::FileFD & outfile) {outfile<<L;} //////////////////////////////////////////////////////
-        inline size_t operator << (CPPFileIO::FileFD & outfile) {outfile>>L;} //////////////////////////////////////////////////////
+        inline size_t operator >> (CPPFileIO::FileFD & outfile) {return (outfile<<L);} /////////////////////////////////////////////
+        inline size_t operator << (CPPFileIO::FileFD & outfile) {return (outfile>>L);} /////////////////////////////////////////////
         inline void operator = (const flowtable <T> & other) {copyfrom(other);} ////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         void filewrite (std::string filename) { ////////////////////////////////////////////////////////////////////////////////////

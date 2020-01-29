@@ -12,13 +12,13 @@
 			SIZE() { return I ; }
 
 			static inline TYPE_DATA constexpr
-			BETA_1 () { return 0.6 ; }
+			BETA_1 () { return 0.9 ; }
 
 			static inline TYPE_DATA constexpr
-			BETA_2 () { return 0.8 ; }
+			BETA_2 () { return 0.99 ; }
 
 			static inline TYPE_DATA constexpr
-			EPS () { return 0.0000001 ; }
+			EPS () { return 0.00001 ; }
 
 			using TYPE_ARRAY	=
 				ND_ARRAY <

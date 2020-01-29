@@ -36,6 +36,9 @@
 
 	#include "Tensors3.hh"
 
+	#include "Histograms.hh"
+
+	#include "./Array/DYNAMIC/D1.hh"
 
 	#include "MXNET_WRAPPERS.hh"
 //	#include "NeuralNetwork1.hh"

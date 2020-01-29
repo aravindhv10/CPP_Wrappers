@@ -191,19 +191,6 @@
 				this[0] >> filefd ;
 			}
 
-			inline void
-			operator << (
-				std::string outfilename
-			) {
-				CPPFileIO::FileFD
-					filefd (
-						outfilename
-					)
-				; //
-				filefd.writefile () ;
-				this[0] << filefd ;
-			}
-
 
 
             Sample_Pars(){
