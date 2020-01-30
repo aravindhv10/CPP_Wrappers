@@ -45,23 +45,30 @@
 		//////////////////////////
 
 		inline size_t const
-		SIZE_1 () {
+		SIZE_1 () const {
 			return S_1 ;
 		}
 
 		inline size_t const
-		SIZE_2 () {
+		SIZE_2 () const {
 			return S_2 ;
 		}
 
 		inline size_t const
-		DIST_1 () {
+		DIST_1 () const {
 			return D_1 ;
 		}
 
 		inline size_t const
-		DIST_2 () {
+		DIST_2 () const {
 			return D_2 ;
+		}
+
+		inline bool const
+		ALLOCATED() const {
+			return
+				STORE.ALLOCATED()
+			; //
 		}
 
 		////////////////////////
@@ -110,6 +117,29 @@
 
 		~Dynamic2DArray(){}
 
+		static inline TYPE_SELF
+		CLONE (
+			TYPE_SELF const &
+				in
+		) {
+
+			TYPE_SELF
+				ret	(
+					in.SIZE_2()	,
+					in.SIZE_1()
+				)
+			; //
+
+			for(size_t s2=0;s2<ret.SIZE_2();s2++){
+				for(size_t s1=0;s1<ret.SIZE_1();s1++){
+					ret(s2,s1) = in(s2,s1) ;
+				}
+			}
+
+			return ret ;
+
+		}
+
 		/////////////////////////////////////
 		// CONSTRUCTOR AND DESTRUCTOR END. //
 		/////////////////////////////////////
@@ -124,7 +154,7 @@
 		GET_INDEX (
 			size_t const _S2 ,
 			size_t const _S1
-		) {
+		) const {
 			return
 				(_S2*DIST_2()) +
 				(_S1*DIST_1())

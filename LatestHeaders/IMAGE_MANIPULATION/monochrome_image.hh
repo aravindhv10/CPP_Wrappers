@@ -1,13 +1,6 @@
 ﻿#ifdef OPENCV_ALL_HPP
 
-#define _MACRO_CLASS_NAME_ MyColorImage
-
-//////////////////////////////////////////
-#define _MACRO_INHERIT_DEF_(DefName)	\
-	using DefName =						\
-		typename TYPE_PIXEL::DefName	\
-	;									//
-//////////////////////////////////////////
+#define _MACRO_CLASS_NAME_ MyMonochromeImage
 
 class _MACRO_CLASS_NAME_ {
 
@@ -17,21 +10,26 @@ class _MACRO_CLASS_NAME_ {
 
 public:
 
+	using TYPE_DATA =
+		double
+	; //
+
+	using TYPE_BYTE =
+		unsigned char
+	; //
+
 	using TYPE_SELF =
 		_MACRO_CLASS_NAME_
 	; //
 
 	using TYPE_PIXEL =
-		ColorPixel
+		TYPE_BYTE
 	; //
 
 	using TYPE_STORE =
 		DYNAMIC_ARRAYS::Dynamic2DArray
 			<TYPE_PIXEL>
 	; //
-
-	_MACRO_INHERIT_DEF_(TYPE_DATA)
-	_MACRO_INHERIT_DEF_(TYPE_BYTE)
 
 	//////////////////////
 	// DEFINITIONS END. //
@@ -63,27 +61,31 @@ public:
 
 	inline void
 	Store2Mat () {
-		if(MainStore.ALLOCATED()){
+
+		if (MainStore.ALLOCATED()) {
+
 			MainMat =
 				cv::Mat::eye (
-					SIZE_Y(),
-					SIZE_X(),
-					CV_8UC3
+					SIZE_Y() ,
+					SIZE_X() ,
+					CV_8UC1
 				)
-			; /* Prepare the return matrix: */ {
-				for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
-					uchar * p =
-						MainMat.ptr<uchar>(y)
-					; //
-					for ( int x = 0 ; x < SIZE_X() ; x++ ) {
-						uchar * pix = & (p[x*3]) ;
-						pix[0] = MainStore(y,x).B() ;
-						pix[1] = MainStore(y,x).G() ;
-						pix[2] = MainStore(y,x).R() ;
-					}
+			; //
+
+			for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+
+				uchar * p =
+					MainMat.ptr<uchar>(y)
+				; //
+
+				for ( int x = 0 ; x < SIZE_X() ; x++ ) {
+					p[x] = MainStore(y,x) ;
 				}
+
 			}
+
 		}
+
 	}
 
 	//////////////////////////
@@ -103,9 +105,9 @@ private:
 
 		int const channels	= in.channels()	;
 
-		if (channels!=3) {
+		if (channels!=1) {
 			printf (
-				"As of now, I have only written this for color images..."
+				"As of now, I have only written this for monochrome images..."
 				"You are doing something wrong...\n"
 			) ;
 		}
@@ -142,25 +144,68 @@ public:
 	) : MainStore(TYPE_STORE::CLONE(in))
 	{ Store2Mat() ; }
 
+
+	_MACRO_CLASS_NAME_(
+		MyColorImage const & in ,
+		char const channel = 'R'
+	) :
+	MainStore (
+		in.SIZE_Y()	,
+		in.SIZE_X()
+	) {
+
+		if (channel=='B') {
+			for(size_t y=0;y<SIZE_Y();y++)
+			for(size_t x=0;x<SIZE_X();x++){
+				MainStore(y,x) =
+					in.MainStore(y,x).B()
+				; //
+			}
+		} else if (channel=='G') {
+			for(size_t y=0;y<SIZE_Y();y++)
+			for(size_t x=0;x<SIZE_X();x++){
+				MainStore(y,x) =
+					in.MainStore(y,x).G()
+				; //
+			}
+		} else if (channel=='R') {
+			for(size_t y=0;y<SIZE_Y();y++)
+			for(size_t x=0;x<SIZE_X();x++){
+				MainStore(y,x) =
+					in.MainStore(y,x).R()
+				; //
+			}
+		}
+
+	}
+
 	~_MACRO_CLASS_NAME_(){}
 
 	static inline TYPE_SELF
-	READ_FROM_FILE (
-		std::string const
-			filename
+	GET_EDGES (
+		MyColorImage	const &	in						,
+		double					threshold1		= 150	,
+		double					threshold2		= 150	,
+		int						apertureSize	= 3		,
+		bool					L2gradient		= true
 	) {
-
-		cv::Mat image =
-			cv::imread (
-				&(filename[0]) ,
-				1
-			)
-		; //
-
-		return
-			TYPE_SELF (image)
-		; //
-
+		cv::Mat Edges	;
+		cv::Mat Blur	;
+		blur (
+			in.MainMat		,
+			Blur			,
+			cv::Size(2,2)
+		) ; //
+		Canny (
+			/* InputArray	image			= */ Blur			,
+			/* OutputArray	edges			= */ Edges			,
+			/* double		threshold1		= */ threshold1		,
+			/* double		threshold2		= */ threshold2		,
+			/* int			apertureSize	= */ apertureSize	,
+			/* bool			L2gradient		= */ L2gradient
+		) ; //
+		TYPE_SELF ret(Edges) ;
+		return ret ;
 	}
 
 	///////////////////////////////////////

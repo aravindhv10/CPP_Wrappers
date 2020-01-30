@@ -49,6 +49,13 @@
 			return SZ ;
 		}
 
+		inline bool const
+		ALLOCATED() const {
+			return
+				allocated
+			; //
+		}
+
 		////////////////////////////
 		// INTERFACE TO DATA END. //
 		////////////////////////////
@@ -220,6 +227,18 @@
 			if(allocated){
 				delete [] STORE ;
 			}
+		}
+
+		static inline TYPE_SELF
+		CLONE (
+			TYPE_SELF const &
+				in
+		) {
+			TYPE_SELF
+				ret(in.SIZE())
+			; //
+			ret = in ;
+			return ret ;
 		}
 
 	public:

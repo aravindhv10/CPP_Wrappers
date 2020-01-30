@@ -83,7 +83,9 @@
 			TYPE_DATA const _D =
 				std::sqrt (
 					MAX_INTENSITY_D () - (
-						(_R*_R) + (_G*_G) + (_B*_B)
+						(_R*_R) +
+						(_G*_G) +
+						(_B*_B)
 					)
 				)
 			; //
@@ -103,7 +105,7 @@
 		inline TYPE_BYTE &
 		GET_R () {
 			return
-				DATA[0]
+				DATA[2]
 			; //
 		}
 
@@ -117,14 +119,14 @@
 		inline TYPE_BYTE &
 		GET_B () {
 			return
-				DATA[2]
+				DATA[0]
 			; //
 		}
 
 		inline TYPE_BYTE const &
 		GET_R () const {
 			return
-				DATA[0]
+				DATA[2]
 			; //
 		}
 
@@ -138,7 +140,7 @@
 		inline TYPE_BYTE const &
 		GET_B () const {
 			return
-				DATA[2]
+				DATA[0]
 			; //
 		}
 
@@ -168,21 +170,24 @@
 		inline TYPE_DATA const
 		R_D () const {
 			return
-				static_cast<TYPE_DATA>(R())
+				static_cast<TYPE_DATA>
+					(R())
 			; //
 		}
 
 		inline TYPE_DATA const
 		G_D () const {
 			return
-				static_cast<TYPE_DATA>(G())
+				static_cast<TYPE_DATA>
+					(G())
 			; //
 		}
 
 		inline TYPE_DATA const
 		B_D () const {
 			return
-				static_cast<TYPE_DATA>(B())
+				static_cast<TYPE_DATA>
+					(B())
 			; //
 		}
 
@@ -265,12 +270,21 @@
 				Norm1 * Norm2
 			; //
 
-			if(Norm>0.0001){
-				double const N = (DATA*other.DATA) ;
-				double const D = std::sqrt(Norm) ;
+			if (Norm>0.0001) {
+
+				double const N =
+					(DATA*other.DATA)
+				; //
+				double const D =
+					std::sqrt(Norm)
+				; //
+
 				return N / D ;
+
 			} else {
+
 				return 0 ;
+
 			}
 
 		}
@@ -304,6 +318,7 @@
 			TYPE_BYTE const
 				other
 		) {
+
 			TYPE_SELF
 				ret (
 					R() / other ,
@@ -311,7 +326,11 @@
 					B() / other
 				)
 			; //
-			return ret ;
+
+			return
+				ret
+			; //
+
 		}
 
 		//////////////////////////////////////////
