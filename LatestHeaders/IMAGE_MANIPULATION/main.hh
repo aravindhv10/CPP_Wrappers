@@ -1,4 +1,4 @@
-#ifndef _MACRO_IMAGE_MANIPULATION_
+﻿#ifndef _MACRO_IMAGE_MANIPULATION_
 #define _MACRO_IMAGE_MANIPULATION_
 
 #include "../CPPFileIO/main.hh"
@@ -8,9 +8,21 @@
 #endif
 
 namespace IMAGE_MANIPULATION {
+
+	using TYPE_DATA =
+		double
+	; //
+
+	using TYPE_BYTE =
+		unsigned char
+	; //
+
+	#include "./point.hh"
+	#include "./line.hh"
 	#include "./pixel.hh"
 	#include "./color_image.hh"
 	#include "./monochrome_image.hh"
+
 }
 
 #endif

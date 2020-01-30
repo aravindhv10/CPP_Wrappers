@@ -2,13 +2,6 @@
 
 #define _MACRO_CLASS_NAME_ MyColorImage
 
-//////////////////////////////////////////
-#define _MACRO_INHERIT_DEF_(DefName)	\
-	using DefName =						\
-		typename TYPE_PIXEL::DefName	\
-	;									//
-//////////////////////////////////////////
-
 class _MACRO_CLASS_NAME_ {
 
 	////////////////////////
@@ -29,9 +22,6 @@ public:
 		DYNAMIC_ARRAYS::Dynamic2DArray
 			<TYPE_PIXEL>
 	; //
-
-	_MACRO_INHERIT_DEF_(TYPE_DATA)
-	_MACRO_INHERIT_DEF_(TYPE_BYTE)
 
 	//////////////////////
 	// DEFINITIONS END. //

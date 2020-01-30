@@ -9,14 +9,6 @@
 
 	public:
 
-		using TYPE_DATA =
-			double
-		; //
-
-		using TYPE_BYTE =
-			unsigned char
-		; //
-
 		using TYPE_PIXEL_DATA =
 			Tensors::Array::ND_ARRAY
 				<3,TYPE_BYTE>

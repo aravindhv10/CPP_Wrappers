@@ -10,14 +10,6 @@ class _MACRO_CLASS_NAME_ {
 
 public:
 
-	using TYPE_DATA =
-		double
-	; //
-
-	using TYPE_BYTE =
-		unsigned char
-	; //
-
 	using TYPE_SELF =
 		_MACRO_CLASS_NAME_
 	; //
@@ -72,14 +64,25 @@ public:
 				)
 			; //
 
-			for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+			for (
+				int y = 0 ;
+				y < SIZE_Y() ;
+				y++
+			) {
 
 				uchar * p =
-					MainMat.ptr<uchar>(y)
+					MainMat.ptr<uchar>
+						(y)
 				; //
 
-				for ( int x = 0 ; x < SIZE_X() ; x++ ) {
-					p[x] = MainStore(y,x) ;
+				for (
+					int x = 0 ;
+					x < SIZE_X() ;
+					x++
+				) {
+					p[x] =
+						MainStore (y,x)
+					; //
 				}
 
 			}
