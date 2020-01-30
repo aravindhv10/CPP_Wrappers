@@ -38,7 +38,7 @@
 
 	#include "Histograms.hh"
 
-	#include "./Array/DYNAMIC/D1.hh"
+	#include "./Array/DYNAMIC/main.hh"
 
 	#include "MXNET_WRAPPERS.hh"
 //	#include "NeuralNetwork1.hh"

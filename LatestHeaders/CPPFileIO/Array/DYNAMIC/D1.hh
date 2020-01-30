@@ -1,39 +1,91 @@
-namespace DYNAMIC_ARRAYS {
-
-	template <typename T>
+﻿	template <typename T>
 	class Dynamic1DArray {
+
 	public:
+
+		////////////////////////
+		// DEFINITIONS BEGIN: //
+		////////////////////////
 
 		using TYPE_DATA = T ;
 
 		using TYPE_SELF =
-			Dynamic1DArray<TYPE_DATA>
+			Dynamic1DArray
+				<TYPE_DATA>
 		; //
 
+		//////////////////////
+		// DEFINITIONS END. //
+		//////////////////////
+
+	private:
+
+		/////////////////
+		// DATA BEGIN: //
+		/////////////////
+
+		TYPE_DATA * STORE ;
+		size_t const SZ ;
+		size_t const DS ;
+		bool const allocated ;
+
+		///////////////
+		// DATA END. //
+		///////////////
+
+	public:
+
+		//////////////////////////////
+		// INTERFACE TO DATA BEGIN: //
+		//////////////////////////////
+
 		inline size_t const
-		operator () () const {
-			return SIZE ;
+		DIST () const {
+			return DS ;
 		}
 
-		inline T &
-		operator () (
-			size_t const
-				i
+		inline size_t const
+		SIZE () const {
+			return SZ ;
+		}
+
+		////////////////////////////
+		// INTERFACE TO DATA END. //
+		////////////////////////////
+
+	private:
+
+		///////////////////////
+		// RETRIEVING BEGIN: //
+		///////////////////////
+
+		inline TYPE_DATA &
+		GET_ELEMENT (
+			size_t const i
 		) {
 			return
-				STORE[i]
+				STORE[i*DIST()]
 			; //
 		}
 
-		inline T const &
-		operator () (
-			size_t const
-				i
+		inline TYPE_DATA const &
+		GET_ELEMENT (
+			size_t const i
 		) const {
 			return
-				STORE[i]
+				STORE[i*DIST()]
 			; //
 		}
+
+		/////////////////////
+		// RETRIEVING END. //
+		/////////////////////
+
+	public:
+
+		////////////////////
+		// SLICING BEGIN: //
+		////////////////////
 
 		inline TYPE_SELF
 		CloneRange (
@@ -47,7 +99,7 @@ namespace DYNAMIC_ARRAYS {
 					CloneRange(end,begin)
 				; //
 
-			} else if (end<SIZE) {
+			} else if (end<SIZE()) {
 
 				size_t const
 					NEW_SIZE =
@@ -64,7 +116,9 @@ namespace DYNAMIC_ARRAYS {
 					i++
 				) {
 					ret(i) =
-						STORE[i+begin]
+						GET_ELEMENT(
+							i + begin
+						)
 					; //
 				}
 
@@ -73,7 +127,10 @@ namespace DYNAMIC_ARRAYS {
 			} else {
 
 				return
-					CloneRange(begin,SIZE-1)
+					CloneRange (
+						begin	,
+						SIZE() - 1
+					)
 				; //
 
 			}
@@ -95,7 +152,7 @@ namespace DYNAMIC_ARRAYS {
 					)
 				; //
 
-			} else if (end<SIZE) {
+			} else if (end<SIZE()) {
 
 				size_t const
 					NEW_SIZE =
@@ -105,7 +162,8 @@ namespace DYNAMIC_ARRAYS {
 				TYPE_SELF
 					ret (
 						&(STORE[begin]) ,
-						NEW_SIZE
+						NEW_SIZE ,
+						DIST()
 					)
 				; //
 
@@ -116,12 +174,81 @@ namespace DYNAMIC_ARRAYS {
 				return
 					ViewRange (
 						begin	,
-						SIZE - 1
+						SIZE() - 1
 					)
 				; //
 
 			}
 
+		}
+
+		//////////////////
+		// SLICING END. //
+		//////////////////
+
+		Dynamic1DArray (
+			size_t const _SIZE
+		) :
+		SZ(_SIZE)				,
+		DS(1)					,
+		allocated((SZ*DS)>0)	{
+
+			if (allocated) {
+				STORE =
+					new
+						TYPE_DATA [
+							SIZE() *
+							DIST()
+						]
+				; //
+			}
+
+		}
+
+		Dynamic1DArray (
+			TYPE_DATA * _STORE ,
+			size_t const _SIZE ,
+			size_t const _DIST = 1
+		) :
+		SZ(_SIZE)			,
+		DS(_DIST)			,
+		allocated(false)	{
+			STORE = _STORE ;
+		}
+
+		~Dynamic1DArray(){
+			if(allocated){
+				delete [] STORE ;
+			}
+		}
+
+	public:
+
+		///////////////////////
+		// CONVINENCE BEGIN: //
+		///////////////////////
+
+		inline size_t const
+		operator () () const {
+			return SIZE() ;
+		}
+
+		inline TYPE_DATA &
+		operator () (
+			size_t const i
+		) {
+			return
+				GET_ELEMENT(i)
+			; //
+		}
+
+		inline TYPE_DATA const &
+		operator () (
+			size_t const i
+		) const {
+			return
+				GET_ELEMENT(i)
+			; //
 		}
 
 		inline void
@@ -132,48 +259,18 @@ namespace DYNAMIC_ARRAYS {
 
 			size_t I =
 				CPPFileIO::mymin (
-					SIZE	,
+					SIZE()	,
 					other()
 				)
 			; //
 
 			for (size_t i=0;i<I;i++)
-			{ STORE[i]=other(i); }
+			{ GET_ELEMENT[i]=other(i); }
 
 		}
 
-		Dynamic1DArray (
-			size_t const
-				_SIZE
-		) : SIZE(_SIZE) ,
-		allocated(SIZE>0) {
-
-			if (allocated) {
-				STORE =
-					new TYPE_DATA[SIZE]
-				; //
-			}
-
-		}
-
-		Dynamic1DArray (
-			TYPE_DATA * _STORE ,
-			size_t const _SIZE
-		) : SIZE(_SIZE) ,
-		allocated(false)
-		{ STORE = _STORE ; }
-
-		~Dynamic1DArray(){
-			if(allocated){
-				delete [] STORE ;
-			}
-		}
-
-	private:
-
-		TYPE_DATA * STORE ;
-		size_t const SIZE ;
-		bool const allocated ;
+		/////////////////////
+		// CONVINENCE END. //
+		/////////////////////
 
 	} ;
-}
