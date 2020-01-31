@@ -23,6 +23,18 @@ public:
 			<TYPE_PIXEL>
 	; //
 
+	using TYPE_LINE =
+		MyLine
+	; //
+
+	using TYPE_LINES =
+		typename TYPE_LINE::TYPE_LINES
+	; //
+
+	using TYPE_CV_LINES =
+		typename TYPE_LINE::TYPE_CV_LINES
+	; //
+
 	//////////////////////
 	// DEFINITIONS END. //
 	//////////////////////
@@ -91,6 +103,38 @@ public:
 
 	}
 
+	inline void
+	Mat2Store () {
+
+		if (MainStore.ALLOCATED()) {
+
+			for (
+				int y = 0 ;
+				y < SIZE_Y() ;
+				y++
+			) {
+
+				uchar * p =
+					MainMat.ptr<uchar>
+						(y)
+				; //
+
+				for (
+					int x = 0 ;
+					x < SIZE_X() ;
+					x++
+				) {
+					MainStore(y,x) =
+						p[x]
+					; //
+				}
+
+			}
+
+		}
+
+	}
+
 	//////////////////////////
 	// DATA CONVERSION END. //
 	//////////////////////////
@@ -115,8 +159,8 @@ private:
 			) ;
 		}
 
-		int const Y = in.rows		; // Y
-		int const X = in.cols		; // X
+		int const Y = in.rows ; // Y
+		int const X = in.cols ; // X
 
 		TYPE_PIXEL * p =
 			reinterpret_cast<TYPE_PIXEL*>(
@@ -124,8 +168,8 @@ private:
 			)
 		; //
 
-		TYPE_STORE ret (p,Y,X) ;
-		return ret ;
+		TYPE_STORE	ret (p,Y,X)	;
+		return		ret			;
 
 	}
 
@@ -186,19 +230,24 @@ public:
 
 	static inline TYPE_SELF
 	GET_EDGES (
+
 		MyColorImage	const &	in						,
-		double					threshold1		= 150	,
-		double					threshold2		= 150	,
-		int						apertureSize	= 3		,
-		bool					L2gradient		= true
+		int				const	NumPixel		= 3		,
+		double			const	threshold1		= 50	,
+		double			const	threshold2		= 150	,
+		int				const	apertureSize	= 3		,
+		bool			const	L2gradient		= true
+
 	) {
-		cv::Mat Edges	;
+
 		cv::Mat Blur	;
 		blur (
 			in.MainMat		,
 			Blur			,
-			cv::Size(2,2)
+			cv::Size(NumPixel,NumPixel)
 		) ; //
+
+		cv::Mat Edges	;
 		Canny (
 			/* InputArray	image			= */ Blur			,
 			/* OutputArray	edges			= */ Edges			,
@@ -207,8 +256,10 @@ public:
 			/* int			apertureSize	= */ apertureSize	,
 			/* bool			L2gradient		= */ L2gradient
 		) ; //
+
 		TYPE_SELF ret(Edges) ;
 		return ret ;
+
 	}
 
 	///////////////////////////////////////
@@ -278,6 +329,115 @@ public:
 	////////////////////////
 	// IMAGE RELATED END. //
 	////////////////////////
+
+	inline void
+	DRAW_LINES (
+		TYPE_CV_LINES const &
+			in
+	) {
+
+		using namespace cv ;
+
+		for (
+			size_t i=0;
+			i<in.size();
+			i++
+		) {
+
+			auto const &
+				l = in[i]
+			; //
+
+			line (
+				MainMat				,
+				Point(l[0], l[1])	,
+				Point(l[2], l[3])	,
+				Scalar(255,10,10)	,
+				1, 8
+			) ; //
+
+		}
+
+	}
+
+	inline TYPE_LINES
+	GET_LINES (
+
+		int		const NumPixel		= 3			,
+		double	const rho			= 1			,
+		double	const theta			= CV_PI/180	,
+		int		const threshold		= 50		,
+		double	const minLineLength	= 500		,
+		double	const maxLineGap	= 10
+
+	) {
+		using namespace cv ;
+
+		TYPE_CV_LINES	lines		;
+		Mat				BlurInImage	;
+
+		if(NumPixel>0){
+			blur (
+				MainMat		,
+				BlurInImage	,
+				Size(NumPixel,NumPixel)
+			) ; //
+		} else {
+			BlurInImage = MainMat ;
+		}
+
+		HoughLinesP (
+			/* InputArray	image			= */ BlurInImage	,
+			/* OutputArray	lines			= */ lines			,
+			/* double		rho				= */ rho			,
+			/* double		theta			= */ theta			,
+			/* int			threshold		= */ threshold		,
+			/* double		minLineLength	= */ minLineLength	,
+			/* double		maxLineGap		= */ maxLineGap
+		) ;
+
+		TYPE_LINES ret ;
+
+		for( size_t i = 0; i < lines.size(); i++ ) {
+
+			Vec4i const &
+				l =
+					lines[i]
+			; //
+
+			double const x1 =
+				static_cast <double>
+					(l[0])
+			; //
+			double const y1 =
+				static_cast <double>
+					(l[1])
+			; //
+			double const x2 =
+				static_cast <double>
+					(l[2])
+			; //
+			double const y2 =
+				static_cast <double>
+					(l[3])
+			; //
+
+			MyLine
+				theline (
+					{y1,x1} ,
+					{y2,x2}
+				)
+			; //
+
+			ret.push_back (
+				theline
+			) ; //
+
+		}
+
+		return ret ;
+
+	}
 
 } ;
 

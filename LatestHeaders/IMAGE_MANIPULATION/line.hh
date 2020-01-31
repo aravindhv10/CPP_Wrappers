@@ -20,6 +20,10 @@ public:
 		MyPoint
 	; //
 
+	using TYPE_CV_LINES =
+		std::vector	<cv::Vec4i>
+	; //
+
 	//////////////////////
 	// DEFINITIONS END. //
 	//////////////////////
@@ -30,10 +34,10 @@ public:
 
 public:
 
-	TYPE_POINT const P1	;
-	TYPE_POINT const P2	;
-	TYPE_POINT const VC ;
-	TYPE_POINT const DR ;
+	TYPE_POINT	const P1 ;
+	TYPE_POINT	const P2 ;
+	TYPE_POINT	const VC ;
+	TYPE_POINT	const DR ;
 
 	///////////////
 	// DATA END. //
@@ -56,6 +60,77 @@ public:
 
 	~_MACRO_CLASS_NAME_(){}
 
+	static inline TYPE_CV_LINES
+	CONVERT_LINES (
+		TYPE_LINES const &
+			in
+	) {
+
+		TYPE_CV_LINES
+			ret (in.size())
+		; //
+
+		for(size_t i=0;i<in.size();i++){
+			ret[i][0] = in[i].P1.X ;
+			ret[i][1] = in[i].P1.Y ;
+			ret[i][2] = in[i].P2.X ;
+			ret[i][3] = in[i].P2.Y ;
+		}
+
+		return ret ;
+
+	}
+
+	static inline TYPE_LINES
+	CONVERT_LINES (
+		TYPE_CV_LINES const &
+			in
+	) {
+		using namespace cv ;
+
+		TYPE_LINES ret ;
+
+		for( size_t i = 0; i < in.size(); i++ ) {
+
+			Vec4i const &
+				l =
+					in[i]
+			; //
+
+			double const x1 =
+				static_cast <double>
+					(l[0])
+			; //
+			double const y1 =
+				static_cast <double>
+					(l[1])
+			; //
+			double const x2 =
+				static_cast <double>
+					(l[2])
+			; //
+			double const y2 =
+				static_cast <double>
+					(l[3])
+			; //
+
+			MyLine
+				theline (
+					{x1,y1} ,
+					{x2,y2}
+				)
+			; //
+
+			ret.push_back (
+				theline
+			) ; //
+
+		}
+
+		return ret ;
+
+	}
+
 	/////////////////////////////////////
 	// CONSTRUCTOR AND DESTRUCTOR END. //
 	/////////////////////////////////////
@@ -64,8 +139,8 @@ public:
 	// SLOPES BEGIN: //
 	///////////////////
 
-	inline TYPE_DATA
-	M_H () {
+	inline TYPE_DATA const
+	M_H () const {
 
 		TYPE_DATA const N =
 			VC.Y
@@ -85,8 +160,8 @@ public:
 
 	}
 
-	inline TYPE_DATA
-	M_V () {
+	inline TYPE_DATA const
+	M_V () const {
 
 		TYPE_DATA const N =
 			VC.X
@@ -130,6 +205,16 @@ public:
 
 		return ( dist1 + dist2 ) / 2.0 ;
 
+	}
+
+	inline TYPE_DATA const
+	operator () (
+		TYPE_POINT const P
+	) const {
+		return
+			ShortestDistnace
+				(P)
+		; //
 	}
 
 	/////////////////////////////////

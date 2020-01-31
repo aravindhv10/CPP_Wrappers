@@ -181,6 +181,18 @@ public:
 		; //
 	}
 
+	inline TYPE_DATA
+	DIST (
+		TYPE_SELF const &
+			other
+	) const {
+		return
+			(
+				this[0] - other
+			).NORM()
+		; //
+	}
+
 	inline TYPE_SELF
 	DIR () const {
 		return

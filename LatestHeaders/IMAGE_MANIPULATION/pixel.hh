@@ -115,21 +115,21 @@
 			; //
 		}
 
-		inline TYPE_BYTE const &
+		inline TYPE_BYTE const
 		GET_R () const {
 			return
 				DATA[2]
 			; //
 		}
 
-		inline TYPE_BYTE const &
+		inline TYPE_BYTE const
 		GET_G () const {
 			return
 				DATA[1]
 			; //
 		}
 
-		inline TYPE_BYTE const &
+		inline TYPE_BYTE const
 		GET_B () const {
 			return
 				DATA[0]
@@ -246,7 +246,7 @@
 			; //
 		}
 
-		inline double
+		inline TYPE_DATA
 		ColorDot (
 			TYPE_SELF const &
 				other
@@ -255,19 +255,24 @@
 			TYPE_DATA const Norm1 =
 				ColorNorm2()
 			; //
+
 			TYPE_DATA const Norm2 =
 				other.ColorNorm2()
 			; //
+
 			TYPE_DATA const Norm =
 				Norm1 * Norm2
 			; //
 
 			if (Norm>0.0001) {
 
-				double const N =
-					(DATA*other.DATA)
+				TYPE_DATA const N =
+					( R_D() * other.R_D() ) +
+					( G_D() * other.G_D() ) +
+					( B_D() * other.B_D() )
 				; //
-				double const D =
+
+				TYPE_DATA const D =
 					std::sqrt(Norm)
 				; //
 
@@ -289,8 +294,10 @@
 
 			return
 				(
-					( DATA	* other.DATA	) +
-					( D_D()	* other.D_D()	)
+					( R_D() * other.R_D() ) +
+					( G_D() * other.G_D() ) +
+					( B_D() * other.B_D() ) +
+					( D_D() * other.D_D() )
 				) / MAX_INTENSITY ()
 			; //
 

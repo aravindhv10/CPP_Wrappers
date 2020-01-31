@@ -53,28 +53,67 @@ public:
 
 	inline void
 	Store2Mat () {
+
 		if(MainStore.ALLOCATED()){
+
 			MainMat =
+
 				cv::Mat::eye (
 					SIZE_Y(),
 					SIZE_X(),
 					CV_8UC3
 				)
+
 			; /* Prepare the return matrix: */ {
+
 				for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+
 					uchar * p =
 						MainMat.ptr<uchar>(y)
 					; //
+
 					for ( int x = 0 ; x < SIZE_X() ; x++ ) {
 						uchar * pix = & (p[x*3]) ;
 						pix[0] = MainStore(y,x).B() ;
 						pix[1] = MainStore(y,x).G() ;
 						pix[2] = MainStore(y,x).R() ;
 					}
+
 				}
+
 			}
+
 		}
+
 	}
+
+	inline void
+	Mat2Store () {
+
+		if(MainStore.ALLOCATED())
+		for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+
+			uchar * p =
+				MainMat.ptr<uchar>(y)
+			; //
+
+			for ( int x = 0 ; x < SIZE_X() ; x++ ) {
+
+				uchar * pix = & (p[x*3]) ;
+				MainStore
+					(y,x) (
+						pix[0]	,
+						pix[1]	,
+						pix[2]
+					)
+				; //
+
+			}
+
+		}
+
+	}
+
 
 	//////////////////////////
 	// DATA CONVERSION END. //
