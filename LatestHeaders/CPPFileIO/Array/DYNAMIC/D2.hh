@@ -44,6 +44,13 @@
 		// RETRIVE SIZES BEGIN: //
 		//////////////////////////
 
+		inline TYPE_DATA *
+		GET_DATA () {
+			return
+				STORE.GET_DATA()
+			; //
+		}
+
 		inline size_t const
 		SIZE_1 () const {
 			return S_1 ;

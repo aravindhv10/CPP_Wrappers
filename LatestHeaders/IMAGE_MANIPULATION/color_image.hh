@@ -51,56 +51,83 @@ public:
 
 public:
 
-	inline void
-	Store2Mat () {
+	static inline cv::Mat
+	CloneStore2Mat (
+		TYPE_STORE const &
+			in
+	) {
 
-		if(MainStore.ALLOCATED()){
+		size_t const
+			SIZE_Y =
+				in.SIZE_2()
+		; //
+		size_t const
+			SIZE_X =
+				in.SIZE_1()
+		; //
 
-			MainMat =
-
+		cv::Mat
+			ret =
 				cv::Mat::eye (
-					SIZE_Y(),
-					SIZE_X(),
+					SIZE_Y	,
+					SIZE_X	,
 					CV_8UC3
 				)
+		; //
 
-			; /* Prepare the return matrix: */ {
+		for ( int y = 0 ; y < SIZE_Y ; y++ ) {
 
-				for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+			uchar * p =
+				ret.ptr<uchar>(y)
+			; //
 
-					uchar * p =
-						MainMat.ptr<uchar>(y)
-					; //
-
-					for ( int x = 0 ; x < SIZE_X() ; x++ ) {
-						uchar * pix = & (p[x*3]) ;
-						pix[0] = MainStore(y,x).B() ;
-						pix[1] = MainStore(y,x).G() ;
-						pix[2] = MainStore(y,x).R() ;
-					}
-
-				}
-
+			for ( int x = 0 ; x < SIZE_X ; x++ ) {
+				uchar * pix = & (p[x*3]) ;
+				pix[0] = in(y,x).B() ;
+				pix[1] = in(y,x).G() ;
+				pix[2] = in(y,x).R() ;
 			}
 
 		}
 
+		return
+			ret
+		; //
+
 	}
 
-	inline void
-	Mat2Store () {
+	static inline TYPE_STORE
+	CloneMat2Store (
+		cv::Mat const &
+			in
+	) {
 
-		if(MainStore.ALLOCATED())
-		for ( int y = 0 ; y < SIZE_Y() ; y++ ) {
+		int const Y = in.rows		;
+		int const X = in.cols		;
+		int const C = in.channels()	;
 
-			uchar * p =
-				MainMat.ptr<uchar>(y)
+		if (C!=3) {
+			printf (
+				"Only written for 3 color matrices, ur doing something wrong...\n"
+			) ; //
+		}
+
+		TYPE_STORE ret (Y,X) ;
+
+		for ( int y = 0 ; y < Y ; y++ ) {
+
+			uchar const * p =
+				in.ptr<uchar const>(y)
 			; //
 
-			for ( int x = 0 ; x < SIZE_X() ; x++ ) {
+			for ( int x = 0 ; x < X ; x++ ) {
 
-				uchar * pix = & (p[x*3]) ;
-				MainStore
+				uchar const *
+					pix =
+						& ( p[3*x] )
+				; //
+
+				ret
 					(y,x) (
 						pix[0]	,
 						pix[1]	,
@@ -112,21 +139,12 @@ public:
 
 		}
 
+		return ret ;
+
 	}
 
-
-	//////////////////////////
-	// DATA CONVERSION END. //
-	//////////////////////////
-
-	/////////////////////////////////////////
-	// CONSTRUCTION AND DESTRUCTION BEGIN: //
-	/////////////////////////////////////////
-
-private:
-
 	static inline TYPE_STORE
-	GET_STORE (
+	ViewMat2Store (
 		cv::Mat & in
 	) {
 
@@ -139,8 +157,8 @@ private:
 			) ;
 		}
 
-		int const Y = in.rows		; // Y
-		int const X = in.cols		; // X
+		int const Y = in.rows ;
+		int const X = in.cols ;
 
 		TYPE_PIXEL * p =
 			reinterpret_cast<TYPE_PIXEL*>(
@@ -153,23 +171,36 @@ private:
 
 	}
 
+	//////////////////////////
+	// DATA CONVERSION END. //
+	//////////////////////////
+
+	/////////////////////////////////////////
+	// CONSTRUCTION AND DESTRUCTION BEGIN: //
+	/////////////////////////////////////////
+
 public:
 
 	_MACRO_CLASS_NAME_(
-		cv::Mat const & in
+		cv::Mat const &
+			in
 	) :
-	MainMat(in)						,
-	MainStore(GET_STORE(MainMat))	{}
+	MainMat		(in)						,
+	MainStore	(ViewMat2Store(MainMat))	{}
 
 	_MACRO_CLASS_NAME_(
 		size_t sy ,
 		size_t sx
-	) : MainStore(sy,sx) {}
+	) :
+	MainMat		(cv::Mat::eye(sy,sx,CV_8UC3))	,
+	MainStore	(ViewMat2Store(MainMat))		{}
 
 	_MACRO_CLASS_NAME_(
-		TYPE_STORE const & in
-	) : MainStore(TYPE_STORE::CLONE(in))
-	{ Store2Mat() ; }
+		TYPE_STORE const &
+			in
+	) :
+	MainMat		(CloneStore2Mat(in))		,
+	MainStore	(ViewMat2Store(MainMat))	{}
 
 	~_MACRO_CLASS_NAME_(){}
 
@@ -249,7 +280,6 @@ public:
 		std::string const
 			filename
 	) {
-		Store2Mat () ;
 		imwrite (
 			&(filename[0]),
 			MainMat

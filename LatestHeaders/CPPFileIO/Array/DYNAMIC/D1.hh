@@ -39,6 +39,13 @@
 		// INTERFACE TO DATA BEGIN: //
 		//////////////////////////////
 
+		inline TYPE_DATA *
+		GET_DATA () {
+			return
+				STORE
+			; //
+		}
+
 		inline size_t const
 		DIST () const {
 			return DS ;
