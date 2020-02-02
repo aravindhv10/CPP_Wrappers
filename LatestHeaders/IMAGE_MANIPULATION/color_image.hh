@@ -263,7 +263,7 @@ public:
 	CROP (
 		size_t AY , size_t AX ,
 		size_t BY , size_t BX
-	) {
+	) const {
 		TYPE_SELF
 			ret (
 				MainStore.CloneRange(
@@ -273,6 +273,35 @@ public:
 			)
 		; //
 		return ret ;
+	}
+
+	inline TYPE_SELF
+	BLUR (
+		int const
+			NumPixel = 3
+	) {
+
+		cv::Mat
+			Blur
+		; //
+
+		blur (
+			MainMat			,
+			Blur			,
+			cv::Size (
+				NumPixel	,
+				NumPixel
+			)
+		) ; //
+
+		TYPE_SELF
+			ret (Blur)
+		; //
+
+		return
+			ret
+		; //
+
 	}
 
 	inline void

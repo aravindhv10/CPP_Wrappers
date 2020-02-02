@@ -24,10 +24,10 @@
 		// DATA BEGIN: //
 		/////////////////
 
-		TYPE_DATA * STORE ;
-		size_t const SZ ;
-		size_t const DS ;
-		bool const allocated ;
+		TYPE_DATA			*	STORE		;
+		size_t		const		SZ			;
+		size_t		const		DS			;
+		bool		const		allocated	;
 
 		///////////////
 		// DATA END. //

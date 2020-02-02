@@ -209,22 +209,42 @@ public:
 
 	) {
 
-		cv::Mat Blur ;
-		blur (
-			in.MainMat		,
-			Blur			,
-			cv::Size(NumPixel,NumPixel)
-		) ; //
+		cv::Mat
+			Blur
+		; /* Prepare the blur image: */ {
 
-		cv::Mat Edges	;
-		Canny (
-			/* InputArray	image			= */ Blur			,
-			/* OutputArray	edges			= */ Edges			,
-			/* double		threshold1		= */ threshold1		,
-			/* double		threshold2		= */ threshold2		,
-			/* int			apertureSize	= */ apertureSize	,
-			/* bool			L2gradient		= */ L2gradient
-		) ; //
+			if (NumPixel>0) {
+
+				blur (
+					in.MainMat		,
+					Blur			,
+					cv::Size(NumPixel,NumPixel)
+				) ; //
+
+			} else {
+
+				Blur =
+					in.MainMat
+				; //
+
+			}
+
+		}
+
+		cv::Mat
+			Edges
+		; /* Prepare the edges: */ {
+
+			Canny (
+				/* InputArray	image			= */ Blur			,
+				/* OutputArray	edges			= */ Edges			,
+				/* double		threshold1		= */ threshold1		,
+				/* double		threshold2		= */ threshold2		,
+				/* int			apertureSize	= */ apertureSize	,
+				/* bool			L2gradient		= */ L2gradient
+			) ; //
+
+		}
 
 		TYPE_SELF ret(Edges) ;
 		return ret ;
@@ -271,7 +291,7 @@ public:
 	CROP (
 		size_t AY , size_t AX ,
 		size_t BY , size_t BX
-	) {
+	) const {
 		TYPE_SELF
 			ret (
 				MainStore.CloneRange(
@@ -287,7 +307,7 @@ public:
 	TO_FILE (
 		std::string const
 			filename
-	) {
+	) const {
 		imwrite (
 			&(filename[0]),
 			MainMat
@@ -338,7 +358,7 @@ public:
 		double	const minLineLength	= 500		,
 		double	const maxLineGap	= 10
 
-	) {
+	) const {
 		using namespace cv ;
 
 		TYPE_CV_LINES	lines		;
@@ -351,7 +371,9 @@ public:
 				Size(NumPixel,NumPixel)
 			) ; //
 		} else {
-			BlurInImage = MainMat ;
+			BlurInImage =
+				MainMat
+			; //
 		}
 
 		HoughLinesP (
@@ -366,7 +388,11 @@ public:
 
 		TYPE_LINES ret ;
 
-		for( size_t i = 0; i < lines.size(); i++ ) {
+		for (
+			size_t i = 0		;
+			i < lines.size()	;
+			i++
+		) {
 
 			Vec4i const &
 				l =
@@ -408,7 +434,6 @@ public:
 	}
 
 } ;
-
 
 #undef _MACRO_INHERIT_DEF_
 #undef _MACRO_CLASS_NAME_

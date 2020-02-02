@@ -269,7 +269,7 @@
 		CloneRange (
 			size_t const B2 , size_t const B1 ,
 			size_t const E2 , size_t const E1
-		) {
+		) const {
 
 			size_t const X2 = E2 - B2 + 1 ;
 			size_t const X1 = E1 - B1 + 1 ;

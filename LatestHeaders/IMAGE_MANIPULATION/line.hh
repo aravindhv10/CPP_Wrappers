@@ -217,6 +217,16 @@ public:
 		; //
 	}
 
+	inline TYPE_DATA const
+	operator () (
+		double const y ,
+		double const x
+	) const {
+		return
+			ShortestDistnace({y,x})
+		; //
+	}
+
 	/////////////////////////////////
 	// IMPORTANT CALCULATIONS END. //
 	/////////////////////////////////
