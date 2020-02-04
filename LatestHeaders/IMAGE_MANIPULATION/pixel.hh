@@ -1,5 +1,4 @@
-﻿
-#define _MACRO_CLASS_NAME_ ColorPixel
+﻿#define _MACRO_CLASS_NAME_ ColorPixel
 
 	class _MACRO_CLASS_NAME_ {
 
@@ -15,7 +14,7 @@
 		; //
 
 		using TYPE_SELF =
-			ColorPixel
+			_MACRO_CLASS_NAME_
 		; //
 
 		//////////////////////
@@ -377,5 +376,9 @@
         ///////////////////////////////////
 
 	} ;
+
+	using TYPE_PIXEL =
+		_MACRO_CLASS_NAME_
+	; //
 
 #undef _MACRO_CLASS_NAME_

@@ -16,10 +16,6 @@ public:
 		std::vector <TYPE_SELF>
 	; //
 
-	using TYPE_POINT =
-		MyPoint
-	; //
-
 	using TYPE_CV_LINES =
 		std::vector	<cv::Vec4i>
 	; //
@@ -233,4 +229,12 @@ public:
 
 } ;
 
+using TYPE_LINE =
+	_MACRO_CLASS_NAME_
+; //
+
 #undef _MACRO_CLASS_NAME_
+
+using TYPE_LINES =
+	typename TYPE_LINE::TYPE_LINES
+; //

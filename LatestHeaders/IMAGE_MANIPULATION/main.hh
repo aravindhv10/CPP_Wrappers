@@ -20,6 +20,7 @@ namespace IMAGE_MANIPULATION {
 	#include "./point.hh"
 	#include "./line.hh"
 	#include "./pixel.hh"
+	#include "./square.hh"
 	#include "./color_image.hh"
 	#include "./monochrome_image.hh"
 

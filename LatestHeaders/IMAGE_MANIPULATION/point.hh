@@ -12,6 +12,10 @@ public:
 		_MACRO_CLASS_NAME_
 	; //
 
+	using TYPE_POINTS =
+		std::vector <TYPE_SELF>
+	; //
+
 	using TYPE_CV_POINT =
 		Tensors::Array::ND_ARRAY
 			<2,TYPE_BYTE>
@@ -207,4 +211,13 @@ public:
 
 } ;
 
+using TYPE_POINT =
+	_MACRO_CLASS_NAME_
+; //
+
+using TYPE_POINTS =
+	typename TYPE_POINT::TYPE_POINTS
+; //
+
 #undef _MACRO_CLASS_NAME_
+
