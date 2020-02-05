@@ -21,9 +21,11 @@ namespace IMAGE_MANIPULATION {
 	#include "./line.hh"
 	#include "./pixel.hh"
 	#include "./square.hh"
+	#include "./cluster_squares.hh"
 	#include "./color_image.hh"
 	#include "./monochrome_image.hh"
-
+	#include "./get_squares.hh"
+	#include "./cropping_functions.hh"
 }
 
 #endif

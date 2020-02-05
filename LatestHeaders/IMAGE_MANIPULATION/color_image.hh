@@ -305,6 +305,46 @@ public:
 	}
 
 	inline void
+	DRAW_SQUARES (
+		TYPE_CV_SQUARES const &
+			in
+	) {
+		using namespace cv ;
+		RNG rng (12345) ;
+		for (
+			size_t i = 0 ;
+			i < in.size() ;
+			i++
+		) {
+			Scalar
+				color =
+					Scalar (
+						rng.uniform (0, 256) ,
+						rng.uniform (0, 256) ,
+						rng.uniform (0, 256)
+					)
+			; //
+			rectangle (
+				MainMat		,
+				in[i].tl()	,
+				in[i].br()	,
+				color		,
+				2
+			) ;
+		}
+	}
+
+	inline void
+	DRAW_SQUARES (
+		TYPE_SQUARES const &
+			in
+	) {
+		DRAW_SQUARES(
+			TYPE_SQUARE::AS_CV(in)
+		) ; //
+	}
+
+	inline void
 	TO_FILE (
 		std::string const
 			filename
@@ -321,6 +361,9 @@ public:
 
 } ;
 
+using TYPE_COLOR_IMAGE =
+	_MACRO_CLASS_NAME_
+; //
 
 #undef _MACRO_INHERIT_DEF_
 #undef _MACRO_CLASS_NAME_

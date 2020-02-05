@@ -32,6 +32,14 @@ public:
 		std::vector <TYPE_SELF>
 	; //
 
+	using TYPE_CV_SQUARE =
+		cv::Rect
+	; //
+
+	using TYPE_CV_SQUARES=
+		std::vector <TYPE_CV_SQUARE>
+	; //
+
 	//////////////////////
 	// DEFINITIONS END. //
 	//////////////////////
@@ -149,6 +157,30 @@ public:
 	GET_L24 () const {
 		_MACRO_MAKE_DEFINITIONS_
 		return L24 ;
+	}
+
+	inline TYPE_DATA
+	WIDTH () const {
+		return X2-X1 ;
+	}
+
+	inline TYPE_DATA
+	HEIGHT () const {
+		return Y2-Y1 ;
+	}
+
+	inline TYPE_DATA
+	WIDTH_I () const {
+		return
+			static_cast<int>(X2-X1)
+		; //
+	}
+
+	inline TYPE_DATA
+	HEIGHT_I () const {
+		return
+			static_cast<int>(Y2-Y1)
+		; //
 	}
 
 	///////////////////////////////
@@ -510,6 +542,19 @@ public:
 		; //
 	}
 
+	inline TYPE_CV_SQUARE
+	AS_CV () const {
+		TYPE_CV_SQUARE
+			ret (
+				X1_N()		,
+				Y1_N()		,
+				WIDTH_I()	,
+				HEIGHT_I()
+			)
+		; //
+		return ret ;
+	}
+
 	//////////////////////////////
 	// CONVINENT FUNCTIONS END. //
 	//////////////////////////////
@@ -523,18 +568,29 @@ public:
 	_MACRO_CLASS_NAME_(
 		TYPE_POINT const P1 ,
 		TYPE_POINT const P2
-	) {
-		X1 = P1.X ; X2 = P2.X ;
-		Y1 = P1.Y ; Y2 = P2.Y ;
-	}
+	) :
+	Y1(CPPFileIO::mymin(P1.Y,P2.Y))	,
+	Y2(CPPFileIO::mymax(P1.Y,P2.Y))	,
+	X1(CPPFileIO::mymin(P1.X,P2.X))	,
+	X2(CPPFileIO::mymax(P1.X,P2.X)) {}
 
 	_MACRO_CLASS_NAME_(
 		TYPE_DATA const y1 , TYPE_DATA const x1 ,
 		TYPE_DATA const y2 , TYPE_DATA const x2
-	) {
-		X1 = x1 ; X2 = x2 ;
-		Y1 = y1 ; Y2 = y2 ;
-	}
+	) :
+	Y1(CPPFileIO::mymin(y1,y2))	,
+	Y2(CPPFileIO::mymax(y1,y2))	,
+	X1(CPPFileIO::mymin(x1,x2))	,
+	X2(CPPFileIO::mymax(x1,x2))	{}
+
+	_MACRO_CLASS_NAME_ (
+		TYPE_CV_SQUARE const &
+			in
+	) :
+	X1(CPPFileIO::mymin(in.x,in.x+in.width))	,
+	X2(CPPFileIO::mymax(in.x,in.x+in.width))	,
+	Y1(CPPFileIO::mymin(in.y,in.y+in.height))	,
+	Y2(CPPFileIO::mymax(in.y,in.y+in.height))	{}
 
 	~_MACRO_CLASS_NAME_(){}
 
@@ -596,6 +652,21 @@ public:
 
 	}
 
+	static inline TYPE_CV_SQUARES
+	AS_CV (
+		TYPE_SQUARES const &
+			in
+	) {
+
+		TYPE_CV_SQUARES ret ;
+
+		for (size_t i=0;i<in.size();i++)
+		if(in[i].IsValid())
+		{ ret.push_back(in[i].AS_CV()); }
+
+		return ret ;
+	}
+
 	//////////////////////////////
 	// CONVINENT FUNCTIONS END. //
 	//////////////////////////////
@@ -608,6 +679,14 @@ using TYPE_SQUARE =
 
 using TYPE_SQUARES =
 	typename TYPE_SQUARE::TYPE_SQUARES
+; //
+
+using TYPE_CV_SQUARE =
+	typename TYPE_SQUARE::TYPE_CV_SQUARE
+; //
+
+using TYPE_CV_SQUARES =
+	typename TYPE_SQUARE::TYPE_CV_SQUARES
 ; //
 
 #undef _MACRO_CLASS_NAME_

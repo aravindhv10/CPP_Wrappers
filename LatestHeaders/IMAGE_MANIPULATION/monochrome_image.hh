@@ -435,6 +435,10 @@ public:
 
 } ;
 
+using TYPE_MONOCHROME_IMAGE =
+	_MACRO_CLASS_NAME_
+; //
+
 #undef _MACRO_INHERIT_DEF_
 #undef _MACRO_CLASS_NAME_
 
