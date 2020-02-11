@@ -200,13 +200,16 @@
 		// SLICING END. //
 		//////////////////
 
+		////////////////////////
+		// CONSTRUCTOR BEGIN: //
+		////////////////////////
+
 		Dynamic1DArray (
 			size_t const _SIZE
 		) :
 		SZ(_SIZE)				,
 		DS(1)					,
 		allocated((SZ*DS)>0)	{
-
 			if (allocated) {
 				STORE =
 					new
@@ -216,7 +219,6 @@
 						]
 				; //
 			}
-
 		}
 
 		Dynamic1DArray (
@@ -224,9 +226,9 @@
 			size_t const _SIZE ,
 			size_t const _DIST = 1
 		) :
-		SZ(_SIZE)			,
-		DS(_DIST)			,
-		allocated(false)	{
+		SZ			( _SIZE ) ,
+		DS			( _DIST ) ,
+		allocated	( false ) {
 			STORE = _STORE ;
 		}
 
@@ -247,6 +249,22 @@
 			ret = in ;
 			return ret ;
 		}
+
+		static inline TYPE_SELF
+		CLONE (
+			std::vector <TYPE_DATA> const &
+				in
+		) {
+			TYPE_SELF
+				ret(in.size())
+			; //
+			ret = &(in[0]) ;
+			return ret ;
+		}
+
+		//////////////////////
+		// CONSTRUCTOR END. //
+		//////////////////////
 
 	public:
 
@@ -290,9 +308,32 @@
 				)
 			; //
 
-			for (size_t i=0;i<I;i++)
-			{ GET_ELEMENT[i]=other(i); }
+			for (
+				size_t i = 0	;
+				i < I			;
+				i++
+			) {
+				GET_ELEMENT(i) =
+					other(i)
+				; //
+			}
 
+		}
+
+		inline void
+		operator = (
+			TYPE_DATA const *
+				in
+		) {
+			for (
+				size_t i = 0	;
+				i < SIZE()		;
+				i++
+			) {
+				GET_ELEMENT(i) =
+					in[i]
+				; //
+			}
 		}
 
 		/////////////////////

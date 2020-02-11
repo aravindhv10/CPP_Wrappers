@@ -42,5 +42,5 @@
 
 	#include "MXNET_WRAPPERS.hh"
 //	#include "NeuralNetwork1.hh"
-
+	#include "./Polynomial/main.hh"
 #endif

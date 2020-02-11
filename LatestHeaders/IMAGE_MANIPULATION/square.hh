@@ -667,6 +667,19 @@ public:
 		return ret ;
 	}
 
+	inline bool
+	operator == (
+		TYPE_SELF const &
+			other
+	) const {
+		return
+			( X1_N() == other.X1_N() ) &&
+			( X2_N() == other.X2_N() ) &&
+			( Y1_N() == other.Y1_N() ) &&
+			( Y2_N() == other.Y2_N() )
+		; //
+	}
+
 	//////////////////////////////
 	// CONVINENT FUNCTIONS END. //
 	//////////////////////////////
