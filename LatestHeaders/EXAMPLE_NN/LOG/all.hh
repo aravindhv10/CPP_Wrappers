@@ -586,7 +586,7 @@ namespace NN_GRAD_LOG {
 
 	using namespace COMMON ;
 
-	TYPE_DATA RATE = 0.00001;
+	TYPE_DATA RATE = 0.1;
 
 //////////////////////////////////////////////////
 #define _MACRO_LL_(SIZE_Y,SIZE_X)				\
@@ -1050,7 +1050,7 @@ namespace NN_GRAD_LOG {
 				for(size_t j=0;j<50;j++) {
 					RATE =
 						RESCALE /
-						100000.0
+						1000.0
 					; //
 					tmp->Train();
 

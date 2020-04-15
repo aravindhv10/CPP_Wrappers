@@ -185,7 +185,7 @@ public:
 		cv::Mat const &
 			in
 	) :
-	MainMat		(in)						,
+	MainMat		(in.clone())				,
 	MainStore	(ViewMat2Store(MainMat))	{}
 
 	_MACRO_CLASS_NAME_(
@@ -279,7 +279,7 @@ public:
 	BLUR (
 		int const
 			NumPixel = 3
-	) {
+	) const {
 
 		cv::Mat
 			Blur
@@ -348,7 +348,7 @@ public:
 	TO_FILE (
 		std::string const
 			filename
-	) {
+	) const {
 		imwrite (
 			&(filename[0]),
 			MainMat

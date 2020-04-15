@@ -1,13 +1,13 @@
-//BASIC::Net::CREATE();
+﻿//BASIC::Net::CREATE();
 //BASIC::Net::TRAIN();
 
-//NN_GRAD_LOG::MainNet::CREATE();
-
+NN_GRAD_LOG::MainNet::CREATE();
+NN_GRAD_LOG::MainNet::TRAIN();
 //for(int i=0;i<4;i++){
 //NN_GRAD_LOG::MainNet::TRAIN_ZERO();
 //}
 
-for(int i=0;i<100;i++){
+//for(int i=0;i<100;i++){
 //NN_GRAD_LOG::MainNet::TRAIN_ZERO();
-NN_GRAD_LOG::MainNet::TRAIN();
-}
+//NN_GRAD_LOG::MainNet::TRAIN();
+//}

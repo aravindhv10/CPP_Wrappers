@@ -26,6 +26,8 @@ namespace IMAGE_MANIPULATION {
 	#include "./monochrome_image.hh"
 	#include "./get_squares.hh"
 	#include "./cropping_functions.hh"
+	#include "./LinearInterpolate.hh"
+
 }
 
 #endif

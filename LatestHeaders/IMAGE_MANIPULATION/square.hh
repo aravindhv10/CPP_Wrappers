@@ -605,34 +605,39 @@ public:
 		TYPE_SQUARES const &
 			in
 	) {
+
 		bool merged = false ;
 
-		TYPE_SQUARES tmp ;
-		for(size_t i=0;i<in.size();i++){
-			if (in[i].IsValid()) {
-				tmp.push_back(in[i]);
-			}
+		TYPE_SQUARES
+			tmp
+		; /* clean up the list: */ {
+			for(size_t i=0;i<in.size();i++)
+			if (in[i].IsValid())
+			{ tmp.push_back(in[i]); }
 		}
 
-		for (size_t i=1;i<tmp.size();i++) if(tmp[i].IsValid()) {
-			for (size_t j=0;j<i;j++) if(tmp[j].IsValid()) {
+		// pthread_mutex_t lock ;
 
-				auto const
-					treshhold =
-						std::sqrt (
-							tmp[i].HarmonicLength() *
-							tmp[j].HarmonicLength()
-						) * 0.1
-				; //
+		for (size_t i=1;i<tmp.size();i++)	if(tmp[i].IsValid())
+		for (size_t j=0;j<i;j++)			if(tmp[j].IsValid()) {
 
-				if ( tmp[i](tmp[j]) < treshhold ) {
-					merged = true ;
-					tmp.push_back (tmp[i].MergeWith(tmp[j])) ;
-					tmp[j].InValidate();
-					tmp[i].InValidate();
-				}
+			auto const
+				treshhold =
+					std::sqrt (
+						tmp[i].HarmonicLength() *
+						tmp[j].HarmonicLength()
+					) * 0.1
+			; //
 
+			if ( tmp[i](tmp[j]) < treshhold ) {
+				//pthread_mutex_lock(&lock);
+				merged = true ;
+				tmp.push_back (tmp[i].MergeWith(tmp[j])) ;
+				tmp[j].InValidate();
+				tmp[i].InValidate();
+				//pthread_mutex_unlock(&lock);
 			}
+
 		}
 
 		if (merged) {
