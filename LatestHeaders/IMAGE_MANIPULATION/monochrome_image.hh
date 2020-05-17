@@ -318,6 +318,16 @@ public:
 	// IMAGE RELATED END. //
 	////////////////////////
 
+	inline TYPE_PIXEL
+	operator () (
+		size_t const Y ,
+		size_t const X
+	) const {
+		return
+			MainStore(Y,X)
+		; //
+	}
+
 	inline void
 	DRAW_LINES (
 		TYPE_CV_LINES const &
