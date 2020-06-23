@@ -1,0 +1,7 @@
+\babel@toc {USenglish}{}
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}% 
+\contentsline {section}{\numberline {2}Details}{2}{section.2}% 
+\contentsline {subsection}{\numberline {2.1}The pre-processing part}{2}{subsection.2.1}% 
+\contentsline {subsection}{\numberline {2.2}Digitization part}{2}{subsection.2.2}% 
+\contentsline {subsection}{\numberline {2.3}Fitting the equation parameters}{2}{subsection.2.3}% 
+\contentsline {section}{\numberline {3}Details of select parts of the program}{3}{section.3}% 

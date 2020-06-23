@@ -1,0 +1,8 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'pdflatex' '-shell-escape' 'main.tex'
+#'gnuplot' 'main-gnuplottex-fig1.gnuplot'
+'bibtex' 'main'
+'pdflatex' '-shell-escape' 'main.tex'
+'pdflatex' '-shell-escape' 'main.tex'
+exit '0'

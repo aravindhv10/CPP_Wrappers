@@ -1,0 +1,16 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}include} \PYG{c+cpf}{\PYGZdq{}./GreenOnWhite.hh\PYGZdq{}}
+
+\PYG{k+kt}{int} \PYG{n+nf}{main} \PYG{p}{(}\PYG{k+kt}{int} \PYG{n}{argc}\PYG{p}{,} \PYG{k+kt}{char} \PYG{o}{**} \PYG{n}{argv}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+	\PYG{n}{CPPFileIO}\PYG{o}{::}\PYG{n}{GetArgs}
+		\PYG{n}{args} \PYG{p}{(}\PYG{n}{argc}\PYG{p}{,}\PYG{n}{argv}\PYG{p}{)}
+	\PYG{p}{;} \PYG{c+c1}{//}
+	\PYG{n}{GreenOnWhite}\PYG{o}{::}\PYG{n}{DIGITIZER}\PYG{o}{::}\PYG{n}{TYPE\PYGZus{}MAIN\PYGZus{}DIGITIZER}
+		\PYG{n}{slave}
+	\PYG{p}{;} \PYG{c+c1}{//}
+	\PYG{k}{for} \PYG{p}{(}\PYG{k+kt}{size\PYGZus{}t} \PYG{n}{i}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{;}\PYG{n}{i}\PYG{o}{\PYGZlt{}}\PYG{n}{args}\PYG{p}{();}\PYG{n}{i}\PYG{o}{++}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+		\PYG{n}{slave}\PYG{p}{.}\PYG{n}{Work1}\PYG{p}{(}\PYG{n}{args}\PYG{p}{(}\PYG{n}{i}\PYG{p}{));}
+	\PYG{p}{\PYGZcb{}}
+	\PYG{k}{return} \PYG{l+m+mi}{0} \PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

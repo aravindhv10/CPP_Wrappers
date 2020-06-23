@@ -1,0 +1,156 @@
+\input{header.tex}
+
+\title{Digitizing vents graph images.}
+\author{}
+
+\begin{document}
+	\maketitle
+	
+	\tableofcontents
+	
+	\section{Introduction}
+	
+	The program consists of 3 parts:
+	\begin{enumerate}
+		\item
+		The pre-processing part:
+		\begin{itemize}
+			\item
+			Identifying the screen in a given image
+			
+			\item
+			Crop out the rest of image.
+			
+			\item
+			Straighten the image
+		\end{itemize}
+	
+		\item
+		The digitization part.
+		\begin{itemize}
+			\item
+			Identify parts of the image with pressure, volume flow rate and total volume (if present) graphs using opencv algorithms like Canny edge detection, Hough Line Transform and contour detection.
+			
+			\item
+			Find bounding boxes around the region of interest, digitize the graph with respect to the base of this box.
+		\end{itemize}
+		
+		\item
+		Fitting the equation parameters.
+		\begin{itemize}
+			\item
+			Fit the equation of motion [\autoref{eq:maineom}] to the digitized data and obtain the parameters of interest.			
+		\end{itemize}
+		 
+	\end{enumerate}
+	
+	\section{Details}
+	
+	\subsection{The pre-processing part}
+	
+	The identification and cropping steps make use of \href{https://en.wikipedia.org/wiki/Object_detection}{object detection} and instance segmentation methods of neural networks.
+	We have used the \href{https://github.com/OlafenwaMoses/ImageAI}{RetinaNet model from ImageAI} for object detection and \href{https://gluon-cv.mxnet.io/build/examples_instance/demo_mask_rcnn.html}{Mask-RCNN pre-trained model from GluonCV} for instance segmentation.
+	Once the region of interest is obtained, rest of the image is cropped.
+	
+	The image straightening step is performed using the \href{https://en.wikipedia.org/wiki/Canny_edge_detector}{Canny edge detection}, \href{https://en.wikipedia.org/wiki/Hough_transform}{Hough line transform} and \href{https://en.wikipedia.org/wiki/3D_projection#Perspective_projection}{perspective warping}.
+	All of these algorithms are used from the opencv implementation, this step is general in the sense that it should work for all types of monitors.
+	
+	\begin{center}
+		The program for this part can be found in {\tt{MaskRCNN.ipynb}}
+	\end{center}
+
+	\subsection{Digitization part}
+	This part is not general in the sense that the program currently available only works for specific types of ventilator images.
+	This task is achieved by a c++ program:
+	\begin{center}
+		The programs which produces the executable is available in {\tt{Blue.cc}}, {\tt{GreenOnWhite.cc}} and {\tt{Line.cc}}.
+	\end{center}
+	This requires the external dependencies:
+	\begin{enumerate}
+		\item
+		\href{https://opencv.org/}{OpenCV C++ libraries.}
+
+		\item
+		\href{https://www.gnu.org/software/gsl/}{GNU GSL scientific library}
+	\end{enumerate}
+	This program also has several other dependencies such as \href{http://eigen.tuxfamily.org/index.php?title=Main_Page}{Eigen} but these are used as template header only libraries which is provided inside the source tree.
+	
+	\begin{center}
+		The main program for digitization is found in {\tt{MainDigitizerGreenOnWhite.hh}}.\\
+		(similar programs are also found for other types of images.)
+	\end{center}
+	This implements many algorithms for pixel by pixel filtering, pre-processing steps and deciding bounding boxes on the graphs.
+	It also implements the digitization functions for both the pressure and volume flow graphs.
+	
+	\subsection{Fitting the equation parameters}
+	This step involves two further parts:
+	\begin{enumerate}
+		\item
+		Smooth out the digitized data obtained from the previous step and use cubic spline interpolation to remove noise and perform interpolation to obtain continuous curve even in regions where digitized data might be rare.
+		
+		\item
+		Fit the ventilator equation of motion [\autoref{eq:maineom}] parameters to the cleaned data.
+		
+		\item
+		Optionally, analyze the data after Fourier transforms.
+	\end{enumerate}
+	\begin{center}
+		The main program required for achieving this step is available in {\tt{Calculator2.hh}} and {\tt{fitter2.hh}}.
+	\end{center}
+
+	The main ventilator equation of motion is:
+	\begin{eqnarray}
+		\Delta P & = & EV+RF \label{eq:maineom},\\
+		\text{Where }F & = & \frac{dV}{dt}\equiv\dot{V} {\nonumber}.
+	\end{eqnarray}
+	The digitization procedure yields $\Delta P$ and $F$, but unfortunately, $V$ is missing and needs to be calculated by integrating $F$.
+	This step is unreliable and error prone due to imperfections in picking the integration domains, hence a better approach is to differentiate the equation to obtain:
+	\begin{eqnarray}
+		\dot{\Delta P} & = & EF+R\dot{F} \label{eq:maineom2}.
+	\end{eqnarray}
+	Here, all the parameters are only local and do not require integration (this also removes any errors due to a constant shift bias) although now we have to evaluate numerical derivatives.
+	But it is far more easier and reliable to evaluate derivatives than integrals and hence this [\autoref{eq:maineom2}] equation will be used in the program to estimate $E$ and $R$ and more importantly the ratio $\frac{R}{E}$.
+	
+	To fit the parameters, overlapping, sliding windows are chosen in the pressure and flow rate graphs (obtained by the previous step), numerical derivatives are calculated and finally the parameters are fit using \href{https://en.wikipedia.org/wiki/Gradient_descent}{gradient descent} technique.
+
+\section{Details of select parts of the program}
+
+The main program which produces the executable is like:
+\begin{minted}{c}
+#include "./GreenOnWhite.hh"
+
+int main (int argc, char ** argv) {
+	CPPFileIO::GetArgs
+		args (argc,argv)
+	; //
+	GreenOnWhite::DIGITIZER::TYPE_MAIN_DIGITIZER
+		slave
+	; //
+	for (size_t i=1;i<args();i++) {
+		slave.Work1(args(i));
+	}
+	return 0 ;
+}
+\end{minted}
+here, {\tt{slave.Work1(args(i));}} calls the main function which does all the work. This function is called on every filename mentioned on the command line, this behavior can be easily changed in the program. All the real work is done by this function which is found in the file {\tt{MainDigitizerGreenOnWhite.hh}}.
+The final results $\left( R/E \right)$ is written by the lines:
+\begin{minted}{c}
+TYPE_INTERPOLATOR calc(output,outpoints);
+calc.TO_FILE(filename+".pars");
+\end{minted}
+found in the same header file.
+
+The final digitized output is normalized to 1 (units are arbitrary), the units can be restored by using some references for each graph.
+For instance, PEEP can be used to restore normalization on the pressure graph, the PEEP from the image can be read using OCR techniques, lets call this $\text{PEEP}_{\text{Truth}}$.
+This quantity can also be calculated from the digitized data, a function which does this can be found in {\tt{Fitter::MinPeepSlab()}} in the header file {\tt{Calculator2.hh}}, lets call this $\text{PEEP}_{\text{Calc}}$.
+The pressure graph can then be rescaled by the fraction $\frac{\text{PEEP}_{\text{Truth}}}{\text{PEEP}_{\text{Calc}}}$ to restore the normalization of the pressure graph.
+Similar approach might be feasible to also restore the units of volume flow graph.
+
+
+
+
+
+\end{document}
+
+
+

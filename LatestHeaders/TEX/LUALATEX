@@ -1,7 +1,0 @@
-#!/bin/bash
-cd "$('dirname' '--' "${0}")"
-'lualatex' 'main_new.tex'
-'biber' 'main_new'
-'lualatex' 'main_new.tex'
-'lualatex' 'main_new.tex'
-exit '0'

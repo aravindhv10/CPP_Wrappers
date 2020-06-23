@@ -1,0 +1,7 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'lualatex' '-shell-escape' 'main.tex'
+'biber' 'main'
+'lualatex' '-shell-escape' 'main.tex'
+'lualatex' '-shell-escape' 'main.tex'
+exit '0'

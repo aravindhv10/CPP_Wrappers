@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{TYPE\PYGZus{}INTERPOLATOR} \PYG{n+nf}{calc}\PYG{p}{(}\PYG{n}{output}\PYG{p}{,}\PYG{n}{outpoints}\PYG{p}{);}
+\PYG{n}{calc}\PYG{p}{.}\PYG{n}{TO\PYGZus{}FILE}\PYG{p}{(}\PYG{n}{filename}\PYG{o}{+}\PYG{l+s}{\PYGZdq{}.pars\PYGZdq{}}\PYG{p}{);}
+\end{Verbatim}
