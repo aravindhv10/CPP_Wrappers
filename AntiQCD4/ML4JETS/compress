@@ -1,0 +1,5 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'rm' '-vf' '--' "$('/bin/pwd').squashfs-xz"
+'mksquashfs' '.' "$('/bin/pwd').squashfs-xz" '-comp' 'xz' '-b' '1048576' '-always-use-fragments' '-keep-as-directory'
+exit '0'

@@ -249,6 +249,16 @@ public:
 		; //
 	}
 
+	inline TYPE_PIXEL
+	operator () (
+		size_t const y ,
+		size_t const x
+	) const {
+		return
+			MainStore(y,x)
+		; //
+	}
+
 	/////////////////////////////
 	// INTERFACE FOR SIZE END. //
 	/////////////////////////////

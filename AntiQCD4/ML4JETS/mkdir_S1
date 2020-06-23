@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'mkdir' '-pv' '--' './S1/' './S1/QCD' './S1/QCD/TEST' './S1/QCD/TRAIN' './S1/QCD/VAL' './S1/TOP' './S1/TOP/TEST' './S1/TOP/TRAIN' './S1/TOP/VAL'
+exit '0'
