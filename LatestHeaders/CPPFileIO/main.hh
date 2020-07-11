@@ -28,7 +28,9 @@
 	#include <complex>
 
 	#include "pcg-cpp/main.hh"
-	#include "Basic.hh"
+	#include "./Basic.hh"
+	#include "./ExternalPrograms.hh"
+	#include "./FileIO.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
@@ -41,6 +43,5 @@
 	#include "./Array/DYNAMIC/main.hh"
 
 	#include "MXNET_WRAPPERS.hh"
-//	#include "NeuralNetwork1.hh"
 	#include "./Polynomial/main.hh"
 #endif
