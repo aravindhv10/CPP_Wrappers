@@ -1031,5 +1031,39 @@
 		buffer.size(limit);
 	}
 
-}
+	template <typename T>
+	inline void
+	MergeFile(
+		std::string const file1 ,
+		std::string const file2 ,
+		std::string const fileo
+	) {
+		CPPFileIO::FileArray <T> reader1 (file1) ;
+		CPPFileIO::FileArray <T> reader2 (file2) ;
+		CPPFileIO::FileVector <T> writer (fileo) ;
+		size_t limit1 = reader1.size() ;
+		size_t limit2 = reader2.size() ;
+		size_t i1 = 0 ;
+		size_t i2 = 0 ;
+		while ( (i1<limit1) && (i2<limit2) ) {
+			T const V1 = reader1(i1) ;
+			T const V2 = reader2(i2) ;
+			if (V1<V2) {
+				writer.push_back(V1);
+				i1++;
+			} else {
+				writer.push_back(V2);
+				i2++;
+			}
+		}
+		while(i1<limit1){
+			writer.push_back(reader1(i1));
+			i1++;
+		}
+		while(i2<limit2){
+			writer.push_back(reader2(i2));
+			i2++;
+		}
+	}
 
+}
