@@ -31,6 +31,7 @@
 	#include "./Basic.hh"
 	#include "./ExternalPrograms.hh"
 	#include "./FileIO.hh"
+	#include "./ExternalMergeSorter.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
