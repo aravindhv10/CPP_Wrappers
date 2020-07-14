@@ -11,6 +11,7 @@ namespace CPPFileIO {
 		using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT> ;
 
 		std::string const infilename ;
+		std::string const outfilename ;
 		std::string const dirname ;
 		CPPFileIO::FileArray <TYPE_ELEMENT> MainReader ;
 		size_t const limit ;
@@ -84,6 +85,13 @@ namespace CPPFileIO {
 		inline void
 		MergeRange () {
 			MergeRange(0,N_SPLITS-1);
+			std::string filename = GetFileName(0,N_SPLITS-1);
+			{
+				CPPFileIO::ExternalStarter<true>::GET("/bin/mv")
+					("-v")("--")
+					(filename)(outfilename)
+				;
+			}
 		}
 
 		inline void
@@ -107,7 +115,6 @@ namespace CPPFileIO {
 			for(size_t i=0;i<N_SPLITS;i++){
 				writers[i] = new TYPE_WRITER(GetFileName(i)) ;
 			}
-			printf("Came here:\n");
 			for(size_t i=0;i<limit;i++){
 				writers[i%N_SPLITS]->push_back(MainReader(i));
 			}
@@ -117,11 +124,12 @@ namespace CPPFileIO {
 		}
 
 		_MACRO_CLASS_NAME_ (
-			std::string const _infilename ,
-			std::string const _dirname ,
+			std::string const _infilename	,
+			std::string const _outfilename	,
 			size_t const n_splits
 		) :	infilename(_infilename)		,
-			dirname(_dirname)			,
+			outfilename(_outfilename)	,
+			dirname(outfilename+".dir")	,
 			MainReader(infilename)		,
 			limit(MainReader.size())	,
 			N_SPLITS(n_splits)			{}
