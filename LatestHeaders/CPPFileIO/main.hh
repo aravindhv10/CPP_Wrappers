@@ -32,6 +32,7 @@
 	#include "./ExternalPrograms.hh"
 	#include "./FileIO.hh"
 	#include "./ExternalMergeSorter.hh"
+	#include "./LineReader.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"

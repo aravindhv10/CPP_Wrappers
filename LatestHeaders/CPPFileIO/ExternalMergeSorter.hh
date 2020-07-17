@@ -92,6 +92,11 @@ namespace CPPFileIO {
 					(filename)(outfilename)
 				;
 			}
+			{
+				CPPFileIO::ExternalStarter<true>::GET("/bin/rmdir")
+					("-v")("--")(dirname)
+				;
+			}
 		}
 
 		inline void
