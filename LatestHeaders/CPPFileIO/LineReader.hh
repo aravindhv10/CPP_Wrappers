@@ -64,6 +64,7 @@ namespace CPPFileIO {
 			}
 
 			end_of_line:{
+				lines.push_back(data);
 				i++;
 				current_loc += i ;
 				return lines;
