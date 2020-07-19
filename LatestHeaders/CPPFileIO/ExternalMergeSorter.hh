@@ -2,13 +2,13 @@ namespace CPPFileIO {
 
 #define _MACRO_CLASS_NAME_ ExternalMergeSorter
 
-	template <typename T, size_t NTH=1>
+	template <typename T>
 	class _MACRO_CLASS_NAME_ {
 	private:
 
 		using TYPE_ELEMENT = T ;
 
-		using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT,NTH> ;
+		using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT> ;
 
 		std::string const infilename ;
 		std::string const outfilename ;
@@ -16,6 +16,7 @@ namespace CPPFileIO {
 		CPPFileIO::FileArray <TYPE_ELEMENT> MainReader ;
 		size_t const limit ;
 		size_t const N_SPLITS ;
+		size_t const NTH ;
 
 		inline std::string
 		GetFileName (
@@ -146,13 +147,15 @@ namespace CPPFileIO {
 		_MACRO_CLASS_NAME_ (
 			std::string const _infilename	,
 			std::string const _outfilename	,
-			size_t const n_splits
+			size_t const n_splits ,
+			size_t const nth
 		) :	infilename(_infilename)		,
 			outfilename(_outfilename)	,
 			dirname(outfilename+".dir")	,
 			MainReader(infilename)		,
 			limit(MainReader.size())	,
-			N_SPLITS(n_splits)			{}
+			N_SPLITS(n_splits)			,
+			NTH(nth)					{}
 
 		~_MACRO_CLASS_NAME_(){}
 
@@ -162,13 +165,15 @@ namespace CPPFileIO {
 		DoAllSteps (
 			std::string const binfilename = "./infile",
 			std::string const tmpdirname = "./tmps",
-			size_t const n_splits = 16
+			size_t const n_splits = 16 ,
+			size_t const nth = 4
 		) {
 			TYPE_SELF
 				slave (
 					binfilename,
 					tmpdirname,
-					n_splits
+					n_splits,
+					nth
 				)
 			; //
 			slave.DoSplit();
