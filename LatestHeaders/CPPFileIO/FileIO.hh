@@ -152,33 +152,33 @@
             }
         }
 
-        inline void
-        check_file_mode (
+		inline void
+		check_file_mode (
 			int const newfilemode = -1
 		) {
-            if (filemode!=newfilemode) {
+			if (filemode!=newfilemode) {
 				closefile();
 			}
-            if (fd<0) {
-                fd =
+			if (fd<0) {
+				fd =
 					open (
 						static_cast<const char *>(&(filename[0])) ,
 						newfilemode ,
 						static_cast<mode_t>(0755)
 					)
 				; //
-                filemode = newfilemode ;
-            }
-        }
+				filemode = newfilemode ;
+			}
+		}
 
-        inline void
-        readfile(){
+		inline void
+		readfile(){
 			check_file_mode ( static_cast <int> (O_RDONLY) ) ;
 			mmapprot = static_cast <int> (PROT_READ) ;
 		}
 
-        inline void
-        writefile  () {
+		inline void
+		writefile  () {
 			check_file_mode (
 				static_cast <int> ( O_WRONLY | O_CREAT | O_TRUNC )
 			) ; //
@@ -187,8 +187,8 @@
 			; //
 		}
 
-        inline void
-        appendfile () {
+		inline void
+		appendfile () {
 			check_file_mode (
 				static_cast <int> ( O_RDWR | O_CREAT )
 			) ; //
@@ -197,8 +197,8 @@
 			; //
 		}
 
-        inline void
-        destroy () {
+		inline void
+		destroy () {
 			closefile() ;
 		}
 
@@ -207,8 +207,8 @@
         FileFD  ( std::string Afile ) { construct ( Afile ) ; }
         ~FileFD (                   ) { destroy   (       ) ; }
 
-        inline void
-        reconstruct (
+		inline void
+		reconstruct (
 			std::string const Afile =
 				std::string("outfile")
 		) {
@@ -221,16 +221,16 @@
 			reconstruct (std::string(Afile)) ;
 		}
 
-        inline FileFD &
-        operator () (
+		inline FileFD &
+		operator () (
 			std::string const name
 		) {
 			reconstruct(name) ;
 			return (*this);
 		}
 
-        inline int
-        truncatefile (
+		inline int
+		truncatefile (
 			off_t const length = 0
 		) {
 			return
@@ -240,8 +240,8 @@
 			;
 		}
 
-        inline off_t
-        seekfile (
+		inline off_t
+		seekfile (
 			off_t const offset = 0 ,
 			int const whence = SEEK_CUR
 		) {
@@ -254,8 +254,8 @@
 			; //
 		}
 
-        inline ssize_t
-        read2file (
+		inline ssize_t
+		read2file (
 			void *buf = NULL ,
 			size_t const count = 0
 		) {
@@ -280,8 +280,8 @@
 			; //
 		}
 
-        inline int
-        info () {
+		inline int
+		info () {
 			return
 				static_cast <int> (
 					fstat (
@@ -293,8 +293,8 @@
 			; //
 		}
 
-        inline off_t
-        sizefile () {
+		inline off_t
+		sizefile () {
 			info() ;
 			return
 				static_cast<off_t>
@@ -302,20 +302,20 @@
 			;
 		}
 
-        inline std::string const &
-        getfilename () const {
+		inline std::string const &
+		getfilename () const {
 			return filename;
 		}
 
-        inline off_t
-        operator () (
+		inline off_t
+		operator () (
 			off_t const offset = 0
 		) {
 			return seekfile ( offset ) ;
 		}
 
-        inline FileFD &
-        operator [] (
+		inline FileFD &
+		operator [] (
 			off_t const pos
 		) {
 			seekfile (
@@ -325,13 +325,13 @@
 			return (*this) ;
 		}
 
-        inline int
-        getfd () const {
+		inline int
+		getfd () const {
 			return fd ;
 		}
 
-        void *
-        mapfile (
+		inline void *
+		mapfile (
 			size_t const length,
 			off_t const offset = 0
 		) {
@@ -352,40 +352,41 @@
 						)
 					)
 				; //
-                if (mapped!=MAP_FAILED) {maplength=length;}
-                else {printf("MMAP FAILED 1 !!! %s\n",&(filename[0]));}
-            }
-            else {printf("MMAP FAILED 2 !!!\n");}
-            return mapped;
-        }
+				if (mapped!=MAP_FAILED) {maplength=length;}
+				else {printf("MMAP FAILED 1 !!! %s\n",&(filename[0]));}
+			}
+			else {printf("MMAP FAILED 2 !!!\n");}
+			return mapped;
+		}
 
-        int unmapfile () {
-            int ret = 0 ;
-            if (
+		inline int
+		unmapfile () {
+			int ret = 0 ;
+			if (
 				(mapped!=MAP_FAILED) &&
 				(maplength>0) &&
 				(mmapprot!=PROT_NONE)
 			) {
-                ret =
+				ret =
 					munmap (
 						reinterpret_cast<void *>(mapped) ,
 						reinterpret_cast<size_t>(maplength)
 					)
 				; //
-                maplength = 0 ;
-                mapped = MAP_FAILED ;
-            }
-            return ret;
-        }
+				maplength = 0 ;
+				mapped = MAP_FAILED ;
+			}
+			return ret;
+		}
 
-        inline size_t
-        getmaplength () {
+		inline size_t
+		getmaplength () const {
 			return maplength ;
 		}
 
-        template <typename T>
-        inline ssize_t
-        multiread2file (
+		template <typename T>
+		inline ssize_t
+		multiread2file (
 			T & buf ,
 			size_t const count = 1
 		) {
@@ -397,9 +398,9 @@
 			;
 		}
 
-        template <typename T>
-        inline ssize_t
-        multiwrite2file (
+		template <typename T>
+		inline ssize_t
+		multiwrite2file (
 			const T &buf ,
 			size_t count = 1
 		) {
@@ -411,53 +412,54 @@
 			; //
 		}
 
-        template <typename T>
-        inline ssize_t
-        WriteVector (
+		template <typename T>
+		inline ssize_t
+		WriteVector (
 			std::vector <T> const & out
 		) {
-            size_t const count = out.size() ;
-            ssize_t writtensize = multiwrite2file (count) ;
-            writtensize = writtensize + multiwrite2file (out[0],count) ;
-            return writtensize;
-        }
+			size_t const count = out.size() ;
+			ssize_t writtensize = multiwrite2file (count) ;
+			writtensize = writtensize + multiwrite2file (out[0],count) ;
+			return writtensize;
+		}
 
-        template <typename T>
-        inline ssize_t
-        ReadVector (
+		template <typename T>
+		inline ssize_t
+		ReadVector (
 			std::vector <T> & out
 		) {
-            size_t count = 0 ;
-            size_t const oldsize = out.size() ;
-            ssize_t writtensize = multiread2file (count) ;
-            out.resize ( oldsize + count ) ;
-            writtensize = multiread2file ( out[oldsize], count ) ;
-            return writtensize;
-        }
+			size_t count = 0 ;
+			size_t const oldsize = out.size() ;
+			ssize_t writtensize = multiread2file (count) ;
+			out.resize ( oldsize + count ) ;
+			writtensize = multiread2file ( out[oldsize], count ) ;
+			return writtensize;
+		}
 
-        inline ssize_t WriteString ( std::string &out ) {
-            size_t count       = out.size() ;
-            ssize_t writtensize = multiwrite2file ( count ) ;
-            writtensize = writtensize + multiwrite2file(out[0],count) ;
-            return writtensize;
-        }
+		inline ssize_t
+		WriteString ( std::string const &out ) {
+			size_t count       = out.size() ;
+			ssize_t writtensize = multiwrite2file ( count ) ;
+			writtensize = writtensize + multiwrite2file(out[0],count) ;
+			return writtensize;
+		}
 
-        inline ssize_t operator >> ( char      & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( char        out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator >> ( int       & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( int         out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator >> ( float     & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( float       out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator >> ( double    & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( double      out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator >> ( long      & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( long        out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator >> ( size_t    & out ) { return multiread2file  ( out ) ; }
-        inline ssize_t operator << ( size_t      out ) { return multiwrite2file ( out ) ; }
-        inline ssize_t operator << ( std::string out ) { return WriteString     ( out ) ; }
+		inline ssize_t operator >> ( char & out ) { return multiread2file (out) ; }
+		inline ssize_t operator << ( char const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator >> ( int & out ) { return multiread2file ( out ) ; }
+		inline ssize_t operator << ( int const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator >> ( float & out ) { return multiread2file ( out ) ; }
+		inline ssize_t operator << ( float const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator >> ( double & out ) { return multiread2file ( out ) ; }
+		inline ssize_t operator << ( double const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator >> ( long & out ) { return multiread2file ( out ) ; }
+		inline ssize_t operator << ( long const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator >> ( size_t & out ) { return multiread2file ( out ) ; }
+		inline ssize_t operator << ( size_t const out ) { return multiwrite2file ( out ) ; }
+		inline ssize_t operator << ( std::string const out ) { return WriteString ( out ) ; }
 
-        template <typename T> inline ssize_t operator << ( std::vector <T> &out ) { return WriteVector(out); }
-        template <typename T> inline ssize_t operator >> ( std::vector <T> &out ) { return ReadVector (out); }
+		template <typename T> inline ssize_t operator << ( std::vector <T> const & out ) { return WriteVector(out); }
+		template <typename T> inline ssize_t operator >> ( std::vector <T> &out ) { return ReadVector (out); }
     };
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -478,13 +480,20 @@
     template <typename T> void GetUnique (T & Var) { double ptr = unique() ; Var=*((T*)&ptr); } ////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    template <typename T>
-    class FileArray {
+	template <typename T>
+	class FileArray {
 
 	private:
 
 		T * mainptr  ;
-		size_t sizes[4] ;
+
+		size_t const sizes[4] = {
+			4096 ,
+			sizeof (T) ,
+			LCM (sizes[0],sizes[1]) ,
+			sizes[2] / sizes[1]
+		} ; //
+
 		std::string filename ;
 		FileFD filefd ;
 		size_t offset ;
@@ -498,25 +507,21 @@
 			std::string const Afilename = std::string ("outfile") ,
 			size_t const Aoffset = 0
 		) {
-            filename = Afilename ;
-            filefd(filename).readfile() ;
-            sizes[0] = 4096 ;
-            sizes[1] = sizeof (T) ;
-            sizes[2] = LCM (sizes[0],sizes[1]) ;
-            sizes[3] = sizes[2] / sizes[1] ;
-            offset = Aoffset ;
-            begin = 0 ; act_begin = 0 ;
-            end = 0 ; act_end = 0 ;
-            length = 0 ; act_length = 0 ;
-        }
+			filename = Afilename ;
+			filefd(filename).readfile() ;
+			offset = Aoffset ;
+			begin = 0 ; act_begin = 0 ;
+			end = 0 ; act_end = 0 ;
+			length = 0 ; act_length = 0 ;
+		}
 
-        inline void
-        destroy () {
+		inline void
+		destroy () {
 			filefd.destroy () ;
 		}
 
-        inline void
-        reconstruct (
+		inline void
+		reconstruct (
 			std::string const Afilename = std::string ("outfile") ,
 			size_t const Aoffset = 0
 		) {
@@ -524,45 +529,45 @@
 			construct(Afilename,Aoffset);
 		}
 
-        inline FileArray &
-        operator () (
+		inline FileArray &
+		operator () (
 			std::string const Afilename = std::string ("outfile") ,
 			size_t const Aoffset = 0
 		) {
-            reconstruct (Afilename,Aoffset) ;
-            return (*this) ;
-        }
+			reconstruct (Afilename,Aoffset) ;
+			return (*this) ;
+		}
 
-        FileArray (
+		FileArray (
 			std::string const Afilename = std::string ("outfile") ,
 			size_t const Aoffset = 0
 		) {
 			construct(Afilename,Aoffset);
 		}
 
-        ~FileArray () {destroy();}
+		~FileArray () {destroy();}
 
-        inline void
-        writeable (bool const arg = true ) {
-            if(arg) {filefd(filename).appendfile();}
-            else {filefd(filename).readfile();}
-        }
+		inline void
+		writeable (bool const arg = true ) {
+			if(arg) {filefd(filename).appendfile();}
+			else {filefd(filename).readfile();}
+		}
 
-        inline void
-        map (
-			size_t t_begin=0,
-			size_t t_length=1
+		inline void
+		map (
+			size_t const t_begin=0,
+			size_t const t_length=1
 		) {
-            size_t t_end = t_begin + t_length ;
-            if ((t_begin<begin)||(t_end>end)) {
-                /* Match to sector sizes: */ {
-                    begin =
+			size_t const t_end = t_begin + t_length ;
+			if ((t_begin<begin)||(t_end>end)) {
+				/* Match to sector sizes: */ {
+					begin =
 						static_cast <size_t> (
 							static_cast<double>(t_begin)/
 							static_cast<double>(sizes[3])
 						) * sizes[3]
 					; //
-                    length =
+					length =
 						static_cast <size_t> (
 							static_cast<double>(t_length) /
 							static_cast<double>(sizes[3])
@@ -570,11 +575,11 @@
 					; //
 					length++ ;
 					length = length * sizes[3] ;
-                    end = begin + length ;
-                }
-                /* Reinitiate map: */ {
-                    filefd.unmapfile () ;
-                    mainptr =
+					end = begin + length ;
+				}
+				/* Reinitiate map: */ {
+					filefd.unmapfile () ;
+					mainptr =
 						static_cast<T*>(
 							filefd.mapfile (
 								(length*sizes[1]) ,
@@ -582,60 +587,59 @@
 							)
 						)
 					; //
-                }
-            }
-        }
+				}
+			}
+		}
 
-        inline T &
-        operator () (
-			size_t A_begin=0 ,
-			size_t A_length=1
+		inline T &
+		operator () (
+			size_t const A_begin=0 ,
+			size_t const A_length=1
 		) {
-            map (A_begin,A_length) ;
-            return mainptr [A_begin-begin] ;
-        }
+			map (A_begin,A_length) ;
+			return mainptr [A_begin-begin] ;
+		}
 
         inline off_t
         filesize () {
 			return filefd.sizefile () ;
 		}
 
-        inline off_t
-        size () {
+		inline off_t
+		size () {
 			return
 				filefd.sizefile () / sizes[1]
 			; //
 		}
 
-        inline off_t
-        size ( long const num ) {
+		inline off_t
+		size ( long const num ) {
 			filefd.unmapfile();
 			filefd.truncatefile(num*sizes[1]);
 			return size();
 		}
 
-    };
+	};
 
-    template <typename T>
-    class FullFileReader {
-    private:
-        FileArray <T> MainReader ;
-        size_t limit ;
-        T const * ptr ;
-    public:
+	template <typename T>
+	class FullFileReader {
+	private:
+		FileArray <T> MainReader ;
+		size_t const limit ;
+		T const * const ptr ;
+	public:
 
 		inline T const & operator () (size_t i) const { return ptr[i] ; }
         inline size_t    operator () ()         const { return limit  ; }
 
-        FullFileReader (std::string filename) :
+		FullFileReader (std::string filename) :
 			MainReader(filename) ,
-			limit (MainReader.size()) {
-			ptr = & (MainReader(0,limit)) ;
-		}
+			limit (MainReader.size()) ,
+			ptr (&(MainReader(0,limit))) {}
 
 		~FullFileReader(){}
 
-    } ;
+	} ;
 
 	template <typename T> class FileVector {
 	private:
@@ -645,19 +649,23 @@
 
 	public:
 
-		FileVector(std::string name): infile(name){
+		FileVector (
+			std::string const name
+		) : infile(name) {
 			infile.writeable();
 			count=0;
 			infile.size(count);
 		}
 
-		~FileVector(){infile.size(count);}
+		~FileVector() {
+			infile.size(count);
+		}
 
-		inline size_t size() {return count ;}
+		inline size_t size() const {return count ;}
 		inline void resize(size_t _size) {count=_size;}
 
 		inline void
-		push_back (T indata) {
+		push_back (T const & indata) {
 			infile(count) = indata ;
 			count++ ;
 		}
@@ -666,7 +674,7 @@
 		operator [] (size_t i)
 		{return infile(i);}
 
-    };
+	};
 
 
     ///////////////////////////////////////////////////////////////////
@@ -1041,13 +1049,13 @@
 		CPPFileIO::FileArray <T> reader1 (file1) ;
 		CPPFileIO::FileArray <T> reader2 (file2) ;
 		CPPFileIO::FileVector <T> writer (fileo) ;
-		size_t limit1 = reader1.size() ;
-		size_t limit2 = reader2.size() ;
+		size_t const limit1 = reader1.size() ;
+		size_t const limit2 = reader2.size() ;
 		size_t i1 = 0 ;
 		size_t i2 = 0 ;
 		while ( (i1<limit1) && (i2<limit2) ) {
-			T const V1 = reader1(i1) ;
-			T const V2 = reader2(i2) ;
+			T const & V1 = reader1(i1) ;
+			T const & V2 = reader2(i2) ;
 			if (V1<V2) {
 				writer.push_back(V1);
 				i1++;
