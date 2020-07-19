@@ -46,7 +46,8 @@ namespace CPPFileIO {
 		inline void
 		MergeRange (
 			size_t const i1 ,
-			size_t const i2
+			size_t const i2 ,
+			size_t const dp = 0
 		) {
 			if (i1==i2) {
 				return;
@@ -63,16 +64,20 @@ namespace CPPFileIO {
 						(GetFileName(i2))
 					;
 				}
+				return;
 			} else {
+				size_t const ath = shifter(dp);
 				size_t const mid = (i1+i2) / 2 ;
-				/* Recursively sort the date: */ {
+				if(ath<=NTH) {
 					ForkMe forker ;
 					if(forker.InKid()){
-						MergeRange(i1,mid);
+						MergeRange(i1,mid,dp+1);
+					} else {
+						MergeRange(mid+1,i2,dp+1);
 					}
-					if(forker.InKid()){
-						MergeRange(mid+1,i2);
-					}
+				} else {
+					MergeRange(i1,mid,dp+1);
+					MergeRange(mid+1,i2,dp+1);
 				}
 				CPPFileIO::MergeFile <TYPE_ELEMENT> (
 					GetFileName(i1,mid) ,
@@ -86,6 +91,7 @@ namespace CPPFileIO {
 						(GetFileName(mid+1,i2))
 					;
 				}
+				return;
 			}
 		}
 
