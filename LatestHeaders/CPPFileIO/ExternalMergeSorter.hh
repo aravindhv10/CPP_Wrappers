@@ -2,13 +2,13 @@ namespace CPPFileIO {
 
 #define _MACRO_CLASS_NAME_ ExternalMergeSorter
 
-	template <typename T>
+	template <typename T, size_t NTH=1>
 	class _MACRO_CLASS_NAME_ {
 	private:
 
 		using TYPE_ELEMENT = T ;
 
-		using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT> ;
+		using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT,NTH> ;
 
 		std::string const infilename ;
 		std::string const outfilename ;
@@ -65,8 +65,15 @@ namespace CPPFileIO {
 				}
 			} else {
 				size_t const mid = (i1+i2) / 2 ;
-				MergeRange(i1,mid);
-				MergeRange(mid+1,i2);
+				/* Recursively sort the date: */ {
+					ForkMe forker ;
+					if(forker.InKid()){
+						MergeRange(i1,mid);
+					}
+					if(forker.InKid()){
+						MergeRange(mid+1,i2);
+					}
+				}
 				CPPFileIO::MergeFile <TYPE_ELEMENT> (
 					GetFileName(i1,mid) ,
 					GetFileName(mid+1,i2) ,
@@ -107,7 +114,9 @@ namespace CPPFileIO {
 
 		inline void
 		SortAllFiles () {
-			for(size_t i=0;i<N_SPLITS;i++){
+			#pragma omp parallel for
+			for(size_t j=0;j<NTH;j++)
+			for(size_t i=j;i<N_SPLITS;i+=NTH){
 				SortFile(i);
 			}
 		}
