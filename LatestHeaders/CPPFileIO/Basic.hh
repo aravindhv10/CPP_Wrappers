@@ -84,7 +84,7 @@
 		}
 	} //
 	//
-	inline size_t const
+	inline size_t constexpr
 	shifter (size_t in)
 	{return (1<<in);}
     //

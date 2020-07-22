@@ -34,6 +34,7 @@
 	#include "./ExternalMergeSorter.hh"
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"
+	#include "./FasterLineReader.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
