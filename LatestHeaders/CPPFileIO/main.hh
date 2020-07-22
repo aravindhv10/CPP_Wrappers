@@ -31,6 +31,7 @@
 	#include "./Basic.hh"
 	#include "./ExternalPrograms.hh"
 	#include "./FileIO.hh"
+	#include "./FileSplitter.hh"
 	#include "./ExternalMergeSorter.hh"
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"

@@ -130,8 +130,13 @@ namespace CPPFileIO {
 
 		inline void
 		DoSplit () {
-			size_t const I = N_SPLITS ;
 			using TYPE_WRITER = CPPFileIO::FileVector<TYPE_ELEMENT> ;
+//			std::vector <std::string> filenames(N_SPLITS);
+//			for(size_t i=0;i<N_SPLITS;i++){
+//				filenames[i]=GetFileName(i);
+//			}
+//			SplitFile<TYPE_ELEMENT>(infilename,filenames) ;
+//			return ;
 			std::vector <TYPE_WRITER*> writers(N_SPLITS) ;
 			for(size_t i=0;i<N_SPLITS;i++){
 				writers[i] = new TYPE_WRITER(GetFileName(i)) ;
