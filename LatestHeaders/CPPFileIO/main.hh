@@ -33,6 +33,7 @@
 	#include "./FileIO.hh"
 	#include "./FileSplitter.hh"
 	#include "./ExternalMergeSorter.hh"
+	#include "./ExternalMergeSorterClean.hh"
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"
 	#include "./FasterLineReader.hh"

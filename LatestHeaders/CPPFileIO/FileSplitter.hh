@@ -11,18 +11,12 @@ namespace CPPFileIO {
 		for(size_t i=0;i<outnames.size();i++){
 			FileVector <T> writer (outnames[i]) ;
 			size_t const begin =
-				limit
-				- (
-					( (outnames.size()-i) * limit )
-					/ outnames.size()
-				)
+				( limit * i )
+				/ outnames.size()
 			; //
 			size_t const end =
-				limit
-				- (
-					( (outnames.size()-(i+1)) * limit )
-					/ outnames.size()
-				)
+				( limit * (i+1) )
+				/ outnames.size()
 			; //
 			for(size_t j=begin;j<end;j++){
 				writer.push_back(reader(j));
