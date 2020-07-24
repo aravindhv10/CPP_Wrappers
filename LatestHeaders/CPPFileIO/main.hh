@@ -1,4 +1,4 @@
-﻿#ifndef CPPFileIO_HH
+#ifndef CPPFileIO_HH
 #define CPPFileIO_HH
 
 	#ifndef _GNU_SOURCE
@@ -27,7 +27,7 @@
 	#include <random>
 	#include <complex>
 
-	#include "pcg-cpp/main.hh"
+	#include "./pcg-cpp/main.hh"
 	#include "./Basic.hh"
 	#include "./ExternalPrograms.hh"
 	#include "./FileIO.hh"
@@ -37,6 +37,7 @@
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"
 	#include "./FasterLineReader.hh"
+	#include "./AnalyzeLines.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
