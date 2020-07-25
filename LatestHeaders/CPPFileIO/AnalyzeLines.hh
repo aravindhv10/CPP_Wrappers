@@ -169,7 +169,10 @@ namespace CPPFileIO {
 			fprintf(f,"\n");
 			fprintf(f,"private:\n");
 			fprintf(f,"\n");
-			fprintf(f,"#include \"\"\n");
+			fprintf(
+				f
+				,"#include \"./LatestHeaders/CPPFileIO/ReadFunctionsClean.hh\"\n"
+			);
 			fprintf(f,"\n");
 			fprintf(f,"public:\n");
 			fprintf(f,"\n");
@@ -193,11 +196,20 @@ namespace CPPFileIO {
 			fprintf(f,"\t\tstd::vector <std::string> const & in\n");
 			fprintf(f,"\t){\n");
 			for(size_t i=0;i<sizes.size();i++){
-				fprintf(f,"\t\tReal_All(L%zu_,in[%zu]);\n",i,i);
+				fprintf(f,"\t\tRead_All(L%zu_,in[%zu]);\n",i,i);
 			}
 			fprintf(f,"\t}\n");
 			fprintf(f,"\n");
-			fprintf(f,"}\n");
+
+			fprintf(f,"\tinline void\n");
+			fprintf(f,"\tShow(FILE *f = stdout){\n");
+			for(size_t i=0;i<sizes.size();i++){
+				fprintf(f,"\t\tShow_All(L%zu_,f);Show_All(f);\n",i);
+			}
+			fprintf(f,"\t\tShow_Next(f);\n");
+			fprintf(f,"\t}\n");
+
+			fprintf(f,"};\n");
 			fprintf(f,"\n");
 			fprintf(f,"#undef _MACRO_CLASS_NAME_\n");
 		}
