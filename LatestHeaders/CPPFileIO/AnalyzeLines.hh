@@ -43,15 +43,31 @@ namespace CPPFileIO {
 			size_t const in,
 			size_t const sz
 		) {
-			if( Check(in,CODE_NOT_NUMBER()) ){
+			if(
+				Check(in,CODE_NOT_NUMBER())
+			) {
 				char tmp[128] ;
-				sprintf(tmp,"Tensors::Array::ND_ARRAY <%ld,char>",sz+1);
+				sprintf(
+					tmp
+					, "Tensors::Array::ND_ARRAY <%ld,char>"
+					, (sz+1)
+				);
 				return std::string(tmp);
+			} else if(
+				Check(in,CODE_HAS_DECIMAL())
+			) {
+				return std::string("double");
+			} else if(
+				Check(in,CODE_HAS_NEGATIVE())
+			) {
+				return std::string("long");
+			} else if(
+				Check(in,CODE_BIGGER_THAN_CHAR())
+			) {
+				return std::string("size_t");
+			} else {
+				return std::string("unsigned char");
 			}
-			if( Check(in,CODE_HAS_DECIMAL()) ){return std::string("double");}
-			if( Check(in,CODE_HAS_NEGATIVE()) ){return std::string("long");}
-			if( Check(in,CODE_BIGGER_THAN_CHAR()) ){return std::string("size_t");}
-			return std::string("unsigned char");
 		}
 
 		inline std::string
@@ -82,10 +98,10 @@ namespace CPPFileIO {
 				switch (in[i]) {
 					case '.' :
 						ret = ret | CODE_HAS_DECIMAL() ;
-						goto endofswitch;
+						break;
 					case '-' :
 						ret = ret | CODE_HAS_NEGATIVE();
-						goto endofswitch;
+						break;
 					case '1'  :
 					case '2'  :
 					case '3'  :
@@ -98,12 +114,11 @@ namespace CPPFileIO {
 					case '0'  :
 					case ' '  :
 					case '\t' :
-						goto endofswitch;
+						break;
 					default   :
 						ret = ret | CODE_NOT_NUMBER() ;
-						goto endofswitch;
+						break;
 				}
-				endofswitch:;
 			}
 			if(ret==0){
 				size_t tmpbuf ;
@@ -147,12 +162,13 @@ namespace CPPFileIO {
 	public:
 
 		inline void
-		show() const {
+		show(FILE * f = stdout) const {
 			for(size_t i=0;i<sizes.size();i++){
 				char tmp[8] ;
 				sprintf(tmp,"L%zu_",i);
-				printf(
-					"%s %s; // %zu = %zu\n"
+				fprintf(
+					f
+					, "%s %s; // %zu = %zu\n"
 					, InferCodes(i).c_str()
 					, tmp
 					, i

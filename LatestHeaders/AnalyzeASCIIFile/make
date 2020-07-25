@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'g++' './AnalyzeLines.cc' '-Ofast' '-static' '-o' './AnalyzeLines.exe'
+exit '0'
