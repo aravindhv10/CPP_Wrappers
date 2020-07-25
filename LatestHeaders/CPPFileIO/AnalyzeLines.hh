@@ -163,18 +163,43 @@ namespace CPPFileIO {
 
 		inline void
 		show(FILE * f = stdout) const {
+			fprintf(f,"#define _MACRO_CLASS_NAME_ StorageElement\n");
+			fprintf(f,"\n");
+			fprintf(f,"class _MACRO_CLASS_NAME_ {\n");
+			fprintf(f,"\n");
+			fprintf(f,"private:\n");
+			fprintf(f,"\n");
+			fprintf(f,"#include \"\"\n");
+			fprintf(f,"\n");
+			fprintf(f,"public:\n");
+			fprintf(f,"\n");
+			fprintf(f,"\tusing TYPE_SELF = _MACRO_CLASS_NAME_;\n");
+			fprintf(f,"\n");
 			for(size_t i=0;i<sizes.size();i++){
 				char tmp[8] ;
 				sprintf(tmp,"L%zu_",i);
 				fprintf(
 					f
-					, "%s %s; // %zu = %zu\n"
+					, "\t%s %s; // %zu = %zu\n"
 					, InferCodes(i).c_str()
 					, tmp
 					, i
 					, sizes[i]
 				);
 			}
+			fprintf(f,"\n");
+			fprintf(f,"\tinline void\n");
+			fprintf(f,"\tRead(\n");
+			fprintf(f,"\t\tstd::vector <std::string> const & in\n");
+			fprintf(f,"\t){\n");
+			for(size_t i=0;i<sizes.size();i++){
+				fprintf(f,"\t\tReal_All(L%zu_,in[%zu]);\n",i,i);
+			}
+			fprintf(f,"\t}\n");
+			fprintf(f,"\n");
+			fprintf(f,"}\n");
+			fprintf(f,"\n");
+			fprintf(f,"#undef _MACRO_CLASS_NAME_\n");
 		}
 
 		inline size_t
