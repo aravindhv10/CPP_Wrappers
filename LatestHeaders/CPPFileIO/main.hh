@@ -1,4 +1,4 @@
-#ifndef CPPFileIO_HH
+﻿#ifndef CPPFileIO_HH
 #define CPPFileIO_HH
 
 	#ifndef _GNU_SOURCE

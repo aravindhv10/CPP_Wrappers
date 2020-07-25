@@ -149,9 +149,12 @@ namespace CPPFileIO {
 		inline void
 		show() const {
 			for(size_t i=0;i<sizes.size();i++){
+				char tmp[8] ;
+				sprintf(tmp,"L%zu_",i);
 				printf(
-					"%s ; // %zu = %zu\n"
+					"%s %s; // %zu = %zu\n"
 					, InferCodes(i).c_str()
+					, tmp
 					, i
 					, sizes[i]
 				);
