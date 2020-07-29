@@ -162,7 +162,10 @@ namespace CPPFileIO {
 	public:
 
 		inline void
-		show(FILE * f = stdout) const {
+		show_header (
+			FILE * f = stdout
+		) const {
+			fprintf(f,"\n");
 			fprintf(f,"#define _MACRO_CLASS_NAME_ StorageElement\n");
 			fprintf(f,"\n");
 			fprintf(f,"class _MACRO_CLASS_NAME_ {\n");
@@ -171,13 +174,18 @@ namespace CPPFileIO {
 			fprintf(f,"\n");
 			fprintf(
 				f
-				,"#include \"./LatestHeaders/CPPFileIO/ReadFunctionsClean.hh\"\n"
+				, "#include \"./LatestHeaders/CPPFileIO/ReadFunctionsClean.hh\"\n"
 			);
 			fprintf(f,"\n");
 			fprintf(f,"public:\n");
-			fprintf(f,"\n");
 			fprintf(f,"\tusing TYPE_SELF = _MACRO_CLASS_NAME_;\n");
 			fprintf(f,"\n");
+		}
+
+		inline void
+		show_data (
+			FILE * f = stdout
+		) const {
 			for(size_t i=0;i<sizes.size();i++){
 				char tmp[8] ;
 				sprintf(tmp,"L%zu_",i);
@@ -191,27 +199,78 @@ namespace CPPFileIO {
 				);
 			}
 			fprintf(f,"\n");
-			fprintf(f,"\tinline void\n");
-			fprintf(f,"\tRead(\n");
-			fprintf(f,"\t\tstd::vector <std::string> const & in\n");
-			fprintf(f,"\t){\n");
-			for(size_t i=0;i<sizes.size();i++){
-				fprintf(f,"\t\tRead_All(L%zu_,in[%zu]);\n",i,i);
-			}
-			fprintf(f,"\t}\n");
-			fprintf(f,"\n");
+		}
 
+		inline void
+		show_read (
+			FILE * f = stdout
+		) const {
+			fprintf(f,"\n");
 			fprintf(f,"\tinline void\n");
-			fprintf(f,"\tShow(FILE *f = stdout){\n");
-			for(size_t i=0;i<sizes.size();i++){
-				fprintf(f,"\t\tShow_All(L%zu_,f);Show_All(f);\n",i);
-			}
+			fprintf(f,"\tRead (\n");
+			fprintf(f,"\t\tstd::vector <std::string> const &\n");
+			fprintf(f,"\t\t\tin\n");
+			fprintf(f,"\t) {\n");
+			fprintf(f,"\t\tsize_t i=0 ;\n");
+			fprintf(f,"\t\t#define SA(name) Read_All(name,in[i]); i++;\n");
+			fprintf(f,"\t\t_MACRO_SA_\n");
+			fprintf(f,"\t\t#undef SA\n");
+			fprintf(f,"\t}\n");
+		}
+
+		inline void
+		show_show (
+			FILE * f = stdout
+		) const {
+			fprintf(f,"\n");
+			fprintf(f,"\tinline void\n");
+			fprintf(f,"\tShow (\n");
+			fprintf(f,"\t\tFILE *\n");
+			fprintf(f,"\t\t\tf = stdout\n");
+			fprintf(f,"\t) {\n");
+			fprintf(f,"\t\t#define SA(name) Show_All(name,f); Show_All(f);\n");
+			fprintf(f,"\t\t_MACRO_SA_\n");
+			fprintf(f,"\t\t#undef SA\n");
 			fprintf(f,"\t\tShow_Next(f);\n");
 			fprintf(f,"\t}\n");
+		}
 
+		inline void
+		show_macros (
+			FILE * f = stdout
+		) const {
+			fprintf(f,"#define _MACRO_SA_ \\\n");
+			for(size_t i=0;i<sizes.size();i++){
+				fprintf(f,"\tSA(L%ld_)",i);
+				if(i!=(sizes.size()-1)){
+					fprintf(f," \\",i);
+				}
+				fprintf(f,"\n",i);
+			}
+			show_read(f);
+			show_show(f);
+			fprintf(f,"\n#undef _MACRO_SA_\n");
+			fprintf(f,"\n");
+		}
+
+		inline void
+		show_tail(
+			FILE * f = stdout
+		) const {
 			fprintf(f,"};\n");
 			fprintf(f,"\n");
 			fprintf(f,"#undef _MACRO_CLASS_NAME_\n");
+			fprintf(f,"\n");
+		}
+
+		inline void
+		show(
+			FILE * f = stdout
+		) const {
+			show_header(f);
+			show_data(f);
+			show_macros(f);
+			show_tail(f);
 		}
 
 		inline size_t
