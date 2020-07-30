@@ -37,18 +37,20 @@
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"
 	#include "./FasterLineReader.hh"
-	#include "./AnalyzeLines.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
 	#endif
 
-	#include "Tensors3.hh"
+	#include "./Tensors3.hh"
 
-	#include "Histograms.hh"
+	#include "./Histograms.hh"
 
 	#include "./Array/DYNAMIC/main.hh"
 
-	#include "MXNET_WRAPPERS.hh"
+	#include "./MXNET_WRAPPERS.hh"
 	#include "./Polynomial/main.hh"
+	#include "./Read_Show_Functions.hh"
+	#include "./AnalyzeLines.hh"
+
 #endif
