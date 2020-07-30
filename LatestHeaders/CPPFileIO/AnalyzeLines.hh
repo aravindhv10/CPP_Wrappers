@@ -30,6 +30,11 @@ namespace CPPFileIO {
 
 	private:
 
+		std::vector <size_t> sizes ;
+		std::vector <size_t> status_codes ;
+
+	private:
+
 		static inline bool
 		Check (
 			size_t const in1 ,
@@ -84,9 +89,6 @@ namespace CPPFileIO {
 			std::stringstream ss(src) ;
 			ss >> dst ;
 		}
-
-		std::vector <size_t> sizes ;
-		std::vector <size_t> status_codes ;
 
 		inline size_t
 		AnalyzeStatus(

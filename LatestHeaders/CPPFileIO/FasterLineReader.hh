@@ -26,6 +26,7 @@ namespace CPPFileIO {
 
 		inline TYPE_LINES &
 		next () {
+
 			lines.clear();
 
 			if(current_loc>=limit) {return lines;}
@@ -47,9 +48,13 @@ namespace CPPFileIO {
 
 			std::string data ;
 			size_t i = 0 ;
+
 			start: {
+
 				if(i<max_i){
+
 					switch (buffer[i]) {
+
 						case seperator:
 							lines.push_back(data);
 							data.clear();
@@ -63,10 +68,15 @@ namespace CPPFileIO {
 							data.push_back(buffer[i]);
 							i++;
 							goto start;
+
 					}
+
 				} else {
+
 					goto end_of_line;
+
 				}
+
 			}
 
 			end_of_line:{
@@ -83,7 +93,6 @@ namespace CPPFileIO {
 			std::string const _filename
 			, size_t const _linesize = 12
 			, size_t const _memsize = 29
-
 		) :
 			filename(_filename)
 			, filereader(filename)
