@@ -4,44 +4,39 @@
 		std::vector <std::string> & lines ,
 		std::string const filename
 	) {
-        lines.clear();
-        char *line=NULL;
-        size_t len=0;
-        ssize_t read;
-        FILE *stream = fopen (&(filename[0]),"r") ;
-        while (
+		lines.clear();
+		char *line=NULL;
+		size_t len=0;
+		ssize_t read;
+		FILE *stream = fopen (&(filename[0]),"r") ;
+		while (
 			(read = getline(&line, &len, stream)) != -1
 		) {
-            std::string linename(line);
-            linename[linename.size()-1]=0;
-            lines.push_back(linename);
-        }
-        if (len>0) {free(line);}
-        fclose(stream);
-    }
+			std::string linename(line);
+			linename[linename.size()-1]=0;
+			lines.push_back(linename);
+		}
+		if (len>0) {free(line);}
+		fclose(stream);
+	}
 
-    class FileLines {
-    private:
+	class FileLines {
+	private:
 		std::vector <std::string> lines    ;
-        std::string               filename ;
-    public:
-
+		std::string               filename ;
+	public:
 		FileLines(std::string _filename):
 			filename(_filename) {
 			getnames(lines,filename);
 		}
-
-        ~FileLines () {}
-
-        inline std::string & operator [] (size_t i)       { return lines[i]      ; }
-        inline size_t        size        ()         const { return lines.size () ; }
-        inline std::string & operator () (size_t i)       { return lines[i]      ; }
-        inline size_t        operator () ()         const { return lines.size () ; }
-        inline void operator () (FILE *f) { for (size_t i=0;i<lines.size();i++) {fprintf(f,"%s\n",&(lines[i][0]));} }
-
-        void debug_show () { for (size_t i=0;i<lines.size();i++) {printf("%ld => [%s]\n",i,&(lines[i][0]));} }
-
-    };
+		~FileLines () {}
+		inline std::string & operator [] (size_t i)       { return lines[i]      ; }
+		inline size_t        size        ()         const { return lines.size () ; }
+		inline std::string & operator () (size_t i)       { return lines[i]      ; }
+		inline size_t        operator () ()         const { return lines.size () ; }
+		inline void operator () (FILE *f) { for (size_t i=0;i<lines.size();i++) {fprintf(f,"%s\n",&(lines[i][0]));} }
+		void debug_show () { for (size_t i=0;i<lines.size();i++) {printf("%ld => [%s]\n",i,&(lines[i][0]));} }
+	};
 
     class StringSplit {
     private:
@@ -113,44 +108,45 @@
     } ; ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    class FileFD {
-    private:
+	class FileFD {
 
-        std::string  filename  ;
-        int          fd        ;
-        struct stat  abtme     ;
-        int          filemode  ;
-        void        *mapped    ;
-        size_t       maplength ;
-        int          mmapprot  ;
+	private:
+
+		std::string  filename  ;
+		int          fd        ;
+		struct stat  abtme     ;
+		int          filemode  ;
+		void        *mapped    ;
+		size_t       maplength ;
+		int          mmapprot  ;
 
 		inline void
 		construct (
 			std::string const Afile =
-				std::string("outfile")
+			std::string("outfile")
 		) {
-            filename  = Afile      ;
-            fd        = -1         ;
-            filemode  = -1         ;
-            mapped    = MAP_FAILED ;
-            mmapprot  = PROT_NONE  ;
-            maplength = 0          ;
-        }
+			filename  = Afile      ;
+		        fd        = -1         ;
+			filemode  = -1         ;
+			mapped    = MAP_FAILED ;
+			mmapprot  = PROT_NONE  ;
+			maplength = 0          ;
+		}
 
 	public:
 
-        inline int
-        closefile () {
-            unmapfile()          ;
-            filemode = -1        ;
-            mmapprot = PROT_NONE ;
-            if (fd<0) {return 0;}
-            else {
-                int const ret = close (fd) ;
-                fd = -1 ;
-                return ret ;
-            }
-        }
+		inline int
+		closefile () {
+			unmapfile()          ;
+			filemode = -1        ;
+			mmapprot = PROT_NONE ;
+			if (fd<0) {return 0;}
+			else {
+				int const ret = close (fd) ;
+				fd = -1 ;
+				return ret ;
+			}
+		}
 
 		inline void
 		check_file_mode (
@@ -202,10 +198,10 @@
 			closefile() ;
 		}
 
-        FileFD  ( const char *Afile ) { construct ( Afile ) ; }
-        FileFD  (                   ) { construct (       ) ; }
-        FileFD  ( std::string Afile ) { construct ( Afile ) ; }
-        ~FileFD (                   ) { destroy   (       ) ; }
+		FileFD  ( const char *Afile ) { construct ( Afile ) ; }
+		FileFD  (                   ) { construct (       ) ; }
+		FileFD  ( std::string Afile ) { construct ( Afile ) ; }
+		~FileFD (                   ) { destroy   (       ) ; }
 
 		inline void
 		reconstruct (
@@ -335,14 +331,14 @@
 			size_t const length,
 			off_t const offset = 0
 		) {
-            if(
+			if(
 				(maplength==0) &&
 				(mmapprot!=PROT_NONE) &&
 				(mapped==MAP_FAILED)
 			) {
-                off_t const total_len = length + offset ;
-                if (sizefile()<total_len) {truncatefile(total_len);}
-                mapped =
+				off_t const total_len = length + offset ;
+				if (sizefile()<total_len) {truncatefile(total_len);}
+				mapped =
 					reinterpret_cast<void *>(
 						mmap (
 							reinterpret_cast<void *>(NULL)  ,
@@ -462,7 +458,7 @@
 		template <typename T> inline ssize_t operator >> ( std::vector <T> &out ) { return ReadVector (out); }
     };
 
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Simple function for TRUE random number generation: //////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     double unique () { /////////////////////////////////////////////////////////////////////////////////////////////////////////////

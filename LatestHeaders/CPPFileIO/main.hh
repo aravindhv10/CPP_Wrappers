@@ -37,6 +37,7 @@
 	#include "./LineReader.hh"
 	#include "./FastLineReader.hh"
 	#include "./FasterLineReader.hh"
+	#include "./Shuffel.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
