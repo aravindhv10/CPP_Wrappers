@@ -225,7 +225,7 @@ namespace CPPFileIO {
 			fprintf(f,"\tShow (\n");
 			fprintf(f,"\t\tFILE *\n");
 			fprintf(f,"\t\t\tf = stdout\n");
-			fprintf(f,"\t) {\n");
+			fprintf(f,"\t) const {\n");
 			fprintf(f,"\t\tusing namespace Read_Show_Functions;\n");
 			fprintf(f,"\t\t#define SA(name) Show_All(name,f); Show_All(f);\n");
 			fprintf(f,"\t\t_MACRO_SA_\n");
