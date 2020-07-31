@@ -174,11 +174,6 @@ namespace CPPFileIO {
 			fprintf(f,"\n");
 			fprintf(f,"private:\n");
 			fprintf(f,"\n");
-			fprintf(
-				f
-				, "#include \"./LatestHeaders/CPPFileIO/ReadFunctionsClean.hh\"\n"
-			);
-			fprintf(f,"\n");
 			fprintf(f,"public:\n");
 			fprintf(f,"\tusing TYPE_SELF = _MACRO_CLASS_NAME_;\n");
 			fprintf(f,"\n");

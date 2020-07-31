@@ -690,6 +690,8 @@
 		size() const
 		{return count;}
 
+	public:
+
 		inline void
 		push_back (
 			TYPE_ELEMENT const &
@@ -698,13 +700,11 @@
 				= count & mask
 			; //
 			if(mod==0){
-				buf = & (infile(count)) ;
+				buf = & (infile(count,bufsize)) ;
 			}
 			buf[mod] = indata ;
 			count++ ;
 		}
-
-	public:
 
 		inline size_t
 		operator () () const
@@ -1127,7 +1127,7 @@
 	) {
 		CPPFileIO::FileArray <T> reader1 (file1) ;
 		CPPFileIO::FileArray <T> reader2 (file2) ;
-		CPPFileIO::FileVector <T> writer (fileo) ;
+		CPPFileIO::FileWriter <T> writer (fileo) ;
 		size_t const limit1 = reader1.size() ;
 		size_t const limit2 = reader2.size() ;
 		size_t i1 = 0 ;
@@ -1136,19 +1136,19 @@
 			T const & V1 = reader1(i1) ;
 			T const & V2 = reader2(i2) ;
 			if (V1<V2) {
-				writer.push_back(V1);
+				writer(V1);
 				i1++;
 			} else {
-				writer.push_back(V2);
+				writer(V2);
 				i2++;
 			}
 		}
 		while(i1<limit1){
-			writer.push_back(reader1(i1));
+			writer(reader1(i1));
 			i1++;
 		}
 		while(i2<limit2){
-			writer.push_back(reader2(i2));
+			writer(reader2(i2));
 			i2++;
 		}
 	}
