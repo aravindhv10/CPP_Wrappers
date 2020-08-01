@@ -295,7 +295,7 @@ namespace CPPFileIO {
 
 		_MACRO_CLASS_NAME_(){}
 		~_MACRO_CLASS_NAME_(){}
-	
+
 	};
 
 #undef _MACRO_CLASS_NAME_
