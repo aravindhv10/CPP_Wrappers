@@ -527,8 +527,8 @@
 
 		inline FileArray &
 		operator () (
-			std::string const Afilename = std::string ("outfile") ,
-			size_t const Aoffset = 0
+			std::string const Afilename
+			, size_t const Aoffset = 0
 		) {
 			reconstruct (Afilename,Aoffset) ;
 			return (*this) ;
@@ -544,7 +544,7 @@
 		~FileArray () {destroy();}
 
 		inline void
-		writeable (bool const arg = true ) {
+		writeable (bool const arg = true) {
 			if(arg) {filefd(filename).appendfile();}
 			else {filefd(filename).readfile();}
 		}
@@ -589,7 +589,7 @@
 
 		inline T &
 		operator () (
-			size_t const A_begin=0 ,
+			size_t const A_begin ,
 			size_t const A_length=1
 		) {
 			map (A_begin,A_length) ;
@@ -607,6 +607,11 @@
 				filefd.sizefile ()
 				/ sizes[1]
 			; //
+		}
+
+		inline off_t
+		operator () () {
+			return size();
 		}
 
 		inline off_t
@@ -629,6 +634,7 @@
 
 	public:
 
+		inline size_t size () const {return limit;}
 		inline T const & operator () (size_t i) const { return ptr[i] ; }
 	        inline size_t    operator () ()         const { return limit  ; }
 

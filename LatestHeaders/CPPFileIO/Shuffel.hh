@@ -24,6 +24,34 @@ namespace CPPFileIO {
 
 	template <typename T, typename R=pcg64_fast>
 	inline void
+	Shuffle_Faster (
+		std::string const
+			filename
+	) {
+		FileArray <T> filereaderS (filename) ;
+		size_t const limit = filereaderS.size() ;
+		std::random_device randinit ;
+		R engine(randinit()) ;
+		filereaderS.writeable(true) ;
+		T * buf = & ( filereaderS(0,limit) ) ;
+		/* Shuffel the file */ {
+			for(size_t i=0;i<(limit-1);i++){
+				std::uniform_int_distribution <size_t> dis(i,limit-1) ;
+				size_t const j = dis(engine) ;
+				if(i!=j){
+					T & Src = buf[i] ;
+					T & Dst = buf[j] ;
+					T const tmp = Src ;
+					Src = Dst ;
+					Dst = tmp ;
+				}
+			}
+		}
+		filereaderS.size(limit);
+	}
+
+	template <typename T, typename R=pcg64_fast>
+	inline void
 	Shuffle (
 		std::string const
 			filename
