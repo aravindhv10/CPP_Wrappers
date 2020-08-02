@@ -32,6 +32,7 @@ namespace CPPFileIO {
 
 		std::vector <size_t> sizes ;
 		std::vector <size_t> status_codes ;
+		std::vector <std::string> labels ;
 
 	private:
 
@@ -164,6 +165,19 @@ namespace CPPFileIO {
 	public:
 
 		inline void
+		show_labels (FILE *f) const {
+			printf("\n");
+			for(size_t i=0;i<labels.size();i++){
+				fprintf(f,"#define L%zu_ %s\n",i,labels[i].c_str());
+			}
+			printf("\n");
+			for(size_t i=0;i<labels.size();i++){
+				fprintf(f,"#undef %s\n",labels[i].c_str());
+			}
+			printf("\n");
+		}
+
+		inline void
 		show_header (
 			FILE * f = stdout
 		) const {
@@ -267,9 +281,21 @@ namespace CPPFileIO {
 			FILE * f = stdout
 		) const {
 			show_header(f);
+			show_labels(f);
 			show_data(f);
 			show_macros(f);
 			show_tail(f);
+		}
+
+		inline void
+		Read_Labels (
+			std::vector <std::string> const &
+				in
+		) {
+			labels.resize(in.size());
+			for(size_t i=0;i<in.size();i++){
+				labels[i] = in[i] ;
+			}
 		}
 
 		inline size_t
