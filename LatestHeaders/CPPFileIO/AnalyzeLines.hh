@@ -165,7 +165,48 @@ namespace CPPFileIO {
 	public:
 
 		inline void
-		show_labels (FILE *f) const {
+		show_read_write_wrappers (
+			FILE * f = stdout
+		) const {
+
+			fprintf(f,"\n");
+
+			fprintf(f,"\tstatic inline CPPFileIO::FullFileReader <TYPE_SELF>\n");
+			fprintf(f,"\tGet_Reader_Full (std::string const filename) {\n");
+				fprintf(f,"\t\treturn\n");
+					fprintf(f,"\t\t\tCPPFileIO::FullFileReader <TYPE_SELF>\n");
+						fprintf(f,"\t\t\t\tret (filename)\n");
+				fprintf(f,"\t\t; //\n");
+			fprintf(f,"\t}\n");
+
+			fprintf(f,"\n");
+
+			fprintf(f,"\tstatic inline CPPFileIO::FileArray <TYPE_SELF>\n");
+			fprintf(f,"\tGet_Reader (std::string const filename) {\n");
+				fprintf(f,"\t\treturn\n");
+					fprintf(f,"\t\t\tCPPFileIO::FileArray <TYPE_SELF>\n");
+						fprintf(f,"\t\t\t\tret (filename)\n");
+				fprintf(f,"\t\t; //\n");
+			fprintf(f,"\t}\n");
+
+			fprintf(f,"\n");
+
+			fprintf(f,"\tstatic inline CPPFileIO::FileWriter <TYPE_SELF>\n");
+			fprintf(f,"\tGet_Writer (std::string const filename) {\n");
+				fprintf(f,"\t\treturn\n");
+					fprintf(f,"\t\t\tCPPFileIO::FileWriter <TYPE_SELF>\n");
+						fprintf(f,"\t\t\t\tret (filename)\n");
+				fprintf(f,"\t\t; //\n");
+			fprintf(f,"\t}\n");
+
+			fprintf(f,"\n");
+
+		}
+
+		inline void
+		show_labels (
+			FILE *f = stdout
+		) const {
 			printf("\n");
 			for(size_t i=0;i<labels.size();i++){
 				fprintf(f,"#define L%zu_ %s\n",i,labels[i].c_str());
@@ -284,6 +325,7 @@ namespace CPPFileIO {
 			show_labels(f);
 			show_data(f);
 			show_macros(f);
+			show_read_write_wrappers(f);
 			show_tail(f);
 		}
 
