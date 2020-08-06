@@ -91,8 +91,8 @@ namespace CPPFileIO {
 
 		_MACRO_CLASS_NAME_(
 			std::string const _filename
-			, size_t const _linesize = 12
-			, size_t const _memsize = 29
+			, size_t const _linesize = 15
+			, size_t const _memsize = 30
 		) :
 			filename(_filename)
 			, filereader(filename)
