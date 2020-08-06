@@ -175,7 +175,7 @@ namespace CPPFileIO {
 			fprintf(f,"\tGet_Reader_Full (std::string const filename) {\n");
 				fprintf(f,"\t\treturn\n");
 					fprintf(f,"\t\t\tCPPFileIO::FullFileReader <TYPE_SELF>\n");
-						fprintf(f,"\t\t\t\tret (filename)\n");
+						fprintf(f,"\t\t\t\t(filename)\n");
 				fprintf(f,"\t\t; //\n");
 			fprintf(f,"\t}\n");
 
@@ -185,7 +185,7 @@ namespace CPPFileIO {
 			fprintf(f,"\tGet_Reader (std::string const filename) {\n");
 				fprintf(f,"\t\treturn\n");
 					fprintf(f,"\t\t\tCPPFileIO::FileArray <TYPE_SELF>\n");
-						fprintf(f,"\t\t\t\tret (filename)\n");
+						fprintf(f,"\t\t\t\t(filename)\n");
 				fprintf(f,"\t\t; //\n");
 			fprintf(f,"\t}\n");
 
@@ -195,7 +195,7 @@ namespace CPPFileIO {
 			fprintf(f,"\tGet_Writer (std::string const filename) {\n");
 				fprintf(f,"\t\treturn\n");
 					fprintf(f,"\t\t\tCPPFileIO::FileWriter <TYPE_SELF>\n");
-						fprintf(f,"\t\t\t\tret (filename)\n");
+						fprintf(f,"\t\t\t\t(filename)\n");
 				fprintf(f,"\t\t; //\n");
 			fprintf(f,"\t}\n");
 
