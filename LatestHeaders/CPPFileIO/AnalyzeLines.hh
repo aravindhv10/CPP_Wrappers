@@ -213,7 +213,7 @@ namespace CPPFileIO {
 			}
 			printf("\n");
 			for(size_t i=0;i<labels.size();i++){
-				fprintf(f,"#undef %s\n",labels[i].c_str());
+				fprintf(f,"#undef L%zu_\n",i);
 			}
 			printf("\n");
 		}
