@@ -206,16 +206,15 @@
 
 		Dynamic1DArray (
 			size_t const _SIZE
-		) :
-		SZ(_SIZE)				,
-		DS(1)					,
-		allocated((SZ*DS)>0)	{
-			if (allocated) {
+		) :	SZ(_SIZE)
+		,	DS(1)
+		,	allocated((SZ*DS)>0)
+		{	if (allocated) {
 				STORE =
 					new
 						TYPE_DATA [
-							SIZE() *
-							DIST()
+							SIZE()
+							* DIST()
 						]
 				; //
 			}
@@ -225,11 +224,10 @@
 			TYPE_DATA * _STORE ,
 			size_t const _SIZE ,
 			size_t const _DIST = 1
-		) :
-		SZ			( _SIZE ) ,
-		DS			( _DIST ) ,
-		allocated	( false ) {
-			STORE = _STORE ;
+		) :	SZ ( _SIZE )
+		,	DS ( _DIST )
+		,	allocated (false)
+		{	STORE = _STORE ;
 		}
 
 		~Dynamic1DArray(){
@@ -309,8 +307,8 @@
 			; //
 
 			for (
-				size_t i = 0	;
-				i < I			;
+				size_t i = 0 ;
+				i < I ;
 				i++
 			) {
 				GET_ELEMENT(i) =
@@ -326,8 +324,8 @@
 				in
 		) {
 			for (
-				size_t i = 0	;
-				i < SIZE()		;
+				size_t i = 0 ;
+				i < SIZE() ;
 				i++
 			) {
 				GET_ELEMENT(i) =

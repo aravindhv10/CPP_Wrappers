@@ -38,6 +38,7 @@
 	#include "./FastLineReader.hh"
 	#include "./FasterLineReader.hh"
 	#include "./Shuffel.hh"
+	#include "./BinarySearch.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
