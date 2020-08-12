@@ -31,11 +31,25 @@ namespace Read_Show_Functions {
 		return Compare(val,0);
 	}
 
+	template <size_t n>
+	inline int
+	Compare(
+		Tensors::Array::ND_ARRAY <n,char> const & S1
+		, Tensors::Array::ND_ARRAY <n,char> const & S2
+	) {
+		return
+			Compare(
+				S1.GET_DATA()
+				, S2.GET_DATA()
+			)
+		; //
+	}
+
 	template <size_t m, size_t n>
 	inline int
 	Compare(
-		Tensors::Array::ND_ARRAY <m,char> & S1
-		, Tensors::Array::ND_ARRAY <n,char> & S2
+		Tensors::Array::ND_ARRAY <m,char> const & S1
+		, Tensors::Array::ND_ARRAY <n,char> const & S2
 	) {
 		return
 			Compare(
@@ -48,7 +62,7 @@ namespace Read_Show_Functions {
 	template <size_t n>
 	inline int
 	Compare(
-		Tensors::Array::ND_ARRAY <n,char> & S1
+		Tensors::Array::ND_ARRAY <n,char> const & S1
 		, std::string const & S2
 	) {
 		return Compare(S1.GET_DATA(),S2.c_str());
@@ -58,7 +72,7 @@ namespace Read_Show_Functions {
 	inline int
 	Compare(
 		std::string const & S1
-		, Tensors::Array::ND_ARRAY <n,char> & S2
+		, Tensors::Array::ND_ARRAY <n,char> const & S2
 	) {
 		return Compare(S2,S1) * -1 ;
 	}
