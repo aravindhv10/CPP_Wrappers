@@ -39,6 +39,7 @@
 	#include "./FasterLineReader.hh"
 	#include "./Shuffel.hh"
 	#include "./BinarySearch.hh"
+	#include "./Inner_Join.hh"
 
 	#ifdef USECBLAS
 		#include "cblas.h"
