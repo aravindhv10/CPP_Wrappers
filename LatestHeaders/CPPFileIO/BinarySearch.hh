@@ -19,115 +19,128 @@ private:
 		struct {
 			size_t begin ;
 			size_t end ;
-			int status ;
+			char status ;
 		}
 	; //
+
+	inline TYPE_RETURN
+	FAILED () const {
+		TYPE_RETURN ret ;
+		ret.begin=0;
+		ret.end=limit-1;
+		ret.status = -1 ;
+		return ret ;
+	}
+
+	inline TYPE_RETURN
+	FOUND () const {
+		return FAILED() ;
+	}
+
+	inline TYPE_RETURN
+	FOUND (
+		size_t const val
+	) const {
+		TYPE_RETURN ret ;
+		ret.begin = val ;
+		ret.end = val ;
+		ret.status = 0 ;
+		return ret ;
+	}
+	
+	inline TYPE_RETURN
+	FOUND (
+		size_t const begin ,
+		size_t const end
+	) const {
+		TYPE_RETURN ret ;
+		ret.begin = begin ;
+		ret.end = end ;
+		ret.status = 1 ;
+		return ret ;
+	}
 
 	template <typename T>
 	inline TYPE_RETURN
 	find (T const & in) {
-		
+
 		size_t begin = 0 ;
 		size_t end = limit - 1 ;
 		size_t mid ;
-		int status = 0 ;
-		TYPE_RETURN ret ;
+		int status ;
 
-		/* The main binary search loop: */ {
+		if(end<begin){return FOUND();}
 
-			start:
+		if(
+			(in<reader(begin))
+			|| (in>reader(end))
+		) { return FOUND(); }
 
+		/* Check if range is valid: */ {
+			check_range:
+			status =
+				+ ( 1 * (end==begin)      ) 
+				+ ( 2 * (end==(begin+1) ) )
+				+ ( 3 * (end>(begin+1)  ) )
+			; //
+			switch(status) {
+				case 1:
+					if(in==reader(begin))
+					{return FOUND(begin) ;}
+					else
+					{return FOUND();}
+				case 2:
+					goto small_gap;
+				case 3:
+					goto large_gap;
+			}
+		}
+
+		
+		/* The main loop: */ {
+			large_gap:
 			mid = ( begin + end ) / 2 ;
-
 			status =
-				  ( 1  * ( in < reader(begin) ) )
-				+ ( 2  * ( in == reader(begin) ) )
-				+ ( 3  * ( ( in > reader(begin) ) && ( in < reader(mid) ) ) )
-				+ ( 4  * ( in == reader(mid) ) )
-				+ ( 5  * ( ( in > reader(mid) ) && ( in < reader(end) ) ) )
-				+ ( 6  * ( in == reader(end) ) )
-				+ ( 7  * ( in > reader(end) ) )
-				+ ( 10 * ( end < (begin+2) ) )
+				+ ( -1 * ( in  <  reader(mid) ) )
+				+ (  0 * ( in  == reader(mid) ) )
+				+ (  1 * ( in  >  reader(mid) ) )
+				+ ( 10 * ( end <  (begin+2)   ) )
 			; //
-
 			switch (status) {
-
-				case 1:
-				case 7:
-					ret.begin = begin ;
-					ret.end = end ;
-					ret.status = -1 ;
-					return ret ;
-
-				case 2:
-					ret.begin = begin ;
-					ret.end = begin ;
-					ret.status = 0 ;
-					return ret ;
-
-				case 3:
+				case -1:
 					end = mid ;
-					goto start ;
-
-				case 4:
-					ret.begin = mid ;
-					ret.end = mid ;
-					ret.status = 0 ;
-					return ret ;
-
-				case 5:
-					begin = mid ;
-					goto start ;
-
-				case 6:
-					ret.begin = end ;
-					ret.end = end ;
-					ret.status = 0 ;
-					return ret ;
-
-				default:
-					break ;
-
-			}
-
-			status =
-				  ( 1 * ( in < reader(begin) ) )
-				+ ( 2 * ( in == reader(begin) ) )
-				+ ( 3 * ( ( in > reader(begin) ) && ( in < reader(end) ) ) )
-				+ ( 4 * ( in == reader(end) ) )
-				+ ( 5 * ( in > reader(end) ) )
-			; //
-
-			switch (status) {
-
-				case 2:
-					ret.begin = begin ;
-					ret.end = begin ;
-					ret.status = 0 ;
-					return ret ;
-
-				case 3:
-					ret.begin = begin ;
-					ret.end = end ;
-					ret.status = 1 ;
-					return ret ;
-
-				case 4:
-					ret.begin = end ;
-					ret.end = end ;
-					ret.status = 0 ;
-					return ret ;
-
+					goto large_gap ;
+				case 0:
+				case 10:
+					return FOUND(mid);
 				case 1:
-				case 5:
+					begin = mid ;
+					goto large_gap ;
 				default:
-					ret.begin = begin ;
-					ret.end = end ;
-					ret.status = -1 ;
-					return ret ;
-
+					goto small_gap;
 			}
+		}
 
+		/* Small Gap: */ {
+			small_gap:
+			status =
+				+ ( 1  * ( in == reader(begin) ) )
+				+ ( 2  * ( in == reader(end)   ) )
+				+ ( 3  * ( ( in > reader(begin) ) && ( in < reader(end) ) ) )
+			; //
+			switch (status) {
+				case 1:
+					return FOUND(begin);
+				case 2:
+					return FOUND(end) ;
+				case 3:
+					return FOUND(begin,end) ;
+			}
+		}
+
+		/* Search Failed: */ {
+			end:
+			return FOUND() ;
 		}
 
 	}

@@ -1,7 +1,7 @@
 namespace Read_Show_Functions {
 
 #define COMPARE_INT(intype)                  \
-	inline int                           \
+	inline char                          \
 	Compare (                            \
 		intype const a               \
 		, intype const b             \
