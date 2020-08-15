@@ -60,6 +60,97 @@ private:
 		return ret ;
 	}
 
+	template <typename T, typename F>
+	inline TYPE_RETURN
+	find (
+		T const & in ,
+		F & compare
+	) {
+
+		size_t begin = 0 ;
+		size_t end = limit - 1 ;
+		size_t mid ;
+		int status ;
+
+		if(end<begin){return FOUND();}
+
+		char res_begin = compare(in,reader(begin)) ;
+		char res_end   = compare(in,reader(end)) ;
+
+		if(
+			(res_begin<0)
+			|| (res_end>0)
+		) { return FOUND(); }
+
+		/* Check if range is valid: */ {
+			check_range:
+			status =
+				+ ( 1 * (end==begin)      ) 
+				+ ( 2 * (end==(begin+1) ) )
+				+ ( 3 * (end>(begin+1)  ) )
+			; //
+			switch(status) {
+				case 1:
+					if(res_begin==0)
+					{return FOUND(begin) ;}
+					else
+					{return FOUND();}
+				case 2:
+					goto small_gap;
+				case 3:
+					goto large_gap;
+			}
+		}
+
+		
+		/* The main loop: */ {
+			large_gap:
+			mid = ( begin + end ) / 2 ;
+			status =
+				compare(in,reader(mid))
+				+ ( 10 * ( end <  (begin+2)   ) )
+			; //
+			switch (status) {
+				case -1:
+					end = mid ;
+					goto large_gap ;
+				case 0:
+				case 10:
+					return FOUND(mid);
+				case 1:
+					begin = mid ;
+					goto large_gap ;
+				default:
+					goto small_gap;
+			}
+		}
+
+		/* Small Gap: */ {
+			small_gap:
+			res_begin = compare(in,reader(begin)) ;
+			res_end   = compare(in,reader(end)) ;
+			status =
+				  ( 1 * ( res_begin == 0 ) )
+				+ ( 2 * ( res_end == 0   ) )
+				+ ( 3 * ( (res_begin>0) && (res_end<0) ) )
+			; //
+			switch (status) {
+				case 1:
+					return FOUND(begin);
+				case 2:
+					return FOUND(end) ;
+				case 3:
+					return FOUND(begin,end) ;
+			}
+		}
+
+		/* Search Failed: */ {
+			end:
+			return FOUND() ;
+		}
+
+	}
+
 	template <typename T>
 	inline TYPE_RETURN
 	find (T const & in) {
@@ -150,7 +241,20 @@ public:
 	template <typename T>
 	inline TYPE_RETURN
 	operator () (T const & in) {
-		return find(in) ;
+		return
+			find(in)
+		; //
+	}
+
+	template <typename T, typename F>
+	inline TYPE_RETURN
+	operator () (
+		T const & in ,
+		F & compare
+	) {
+		return
+			find(in,compare)
+		; //
 	}
 
 	_MACRO_CLASS_NAME_ (
