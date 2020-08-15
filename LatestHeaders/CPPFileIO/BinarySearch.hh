@@ -90,19 +90,12 @@ private:
 				+ ( 3 * (end>(begin+1)  ) )
 			; //
 			switch(status) {
-				case 1:
-					if(res_begin==0)
-					{return FOUND(begin) ;}
-					else
-					{return FOUND();}
-				case 2:
-					goto small_gap;
-				case 3:
-					goto large_gap;
+				case 1 : return FOUND(begin);
+				case 2 : goto small_gap;
+				case 3 : goto large_gap;
 			}
 		}
 
-		
 		/* The main loop: */ {
 			large_gap:
 			mid = ( begin + end ) / 2 ;
@@ -132,15 +125,12 @@ private:
 			status =
 				  ( 1 * ( res_begin == 0 ) )
 				+ ( 2 * ( res_end == 0   ) )
-				+ ( 3 * ( (res_begin>0) && (res_end<0) ) )
 			; //
 			switch (status) {
-				case 1:
-					return FOUND(begin);
-				case 2:
-					return FOUND(end) ;
-				case 3:
-					return FOUND(begin,end) ;
+				case 1  : return FOUND(begin) ;
+				case 2  : return FOUND(end) ;
+				case 0  : return FOUND(begin,end) ;
+				default : break ;
 			}
 		}
 
@@ -175,19 +165,12 @@ private:
 				+ ( 3 * (end>(begin+1)  ) )
 			; //
 			switch(status) {
-				case 1:
-					if(in==reader(begin))
-					{return FOUND(begin) ;}
-					else
-					{return FOUND();}
-				case 2:
-					goto small_gap;
-				case 3:
-					goto large_gap;
+				case 1 : return FOUND(begin);
+				case 2 : goto small_gap;
+				case 3 : goto large_gap;
 			}
 		}
 
-		
 		/* The main loop: */ {
 			large_gap:
 			mid = ( begin + end ) / 2 ;
@@ -198,16 +181,16 @@ private:
 				+ ( 10 * ( end <  (begin+2)   ) )
 			; //
 			switch (status) {
-				case -1:
+				case -1 :
 					end = mid ;
 					goto large_gap ;
-				case 0:
-				case 10:
+				case 0  :
+				case 10 :
 					return FOUND(mid);
-				case 1:
+				case 1  :
 					begin = mid ;
 					goto large_gap ;
-				default:
+				default :
 					goto small_gap;
 			}
 		}
@@ -220,18 +203,15 @@ private:
 				+ ( 3  * ( ( in > reader(begin) ) && ( in < reader(end) ) ) )
 			; //
 			switch (status) {
-				case 1:
-					return FOUND(begin);
-				case 2:
-					return FOUND(end) ;
-				case 3:
-					return FOUND(begin,end) ;
+				case 1 : return FOUND(begin);
+				case 2 : return FOUND(end);
+				case 3 : return FOUND(begin,end);
 			}
 		}
 
 		/* Search Failed: */ {
 			end:
-			return FOUND() ;
+			return FOUND();
 		}
 
 	}
