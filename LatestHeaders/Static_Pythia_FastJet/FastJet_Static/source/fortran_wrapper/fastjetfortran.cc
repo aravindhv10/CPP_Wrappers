@@ -1,7 +1,7 @@
 //FJSTARTHEADER
-// $Id: fastjetfortran.cc 4355 2018-04-22 15:38:54Z salam $
+// $Id: fastjetfortran.cc 4442 2020-05-05 07:50:11Z soyez $
 //
-// Copyright (c) 2005-2018, Matteo Cacciari, Gavin P. Salam and Gregory Soyez
+// Copyright (c) 2005-2020, Matteo Cacciari, Gavin P. Salam and Gregory Soyez
 //
 //----------------------------------------------------------------------
 // This file is part of FastJet.

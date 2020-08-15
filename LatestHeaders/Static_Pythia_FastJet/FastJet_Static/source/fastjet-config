@@ -25,7 +25,7 @@ usage()
 if [ "xyes" == "xyes" ] ; then
   cat 1>&2 <<EOF
 
-This is FastJet 3.3.2 configuration tool.
+This is FastJet 3.3.4 configuration tool.
 Usage:
   fastjet-config [--help] [--version] [--prefix] [--cxxflags] [--libs]
       [--shared[=yes|no]] [--plugins[=yes|no]] [--rpath[=yes|no]] [--runpath]
@@ -74,7 +74,7 @@ EOF
 else
   cat 1>&2 <<EOF
 
-This is FastJet 3.3.2 configuration tool.
+This is FastJet 3.3.4 configuration tool.
 Usage:
   fastjet-config [--help] [--version] [--prefix] [--cxxflags] [--libs]
       [--plugins[=yes|no]] [--list-plugins] [--config]
@@ -345,7 +345,7 @@ case $found_query in
 	write_error "you must at least specify one query in '$arg_query_list'"
 	;;
     version)
-	echo 3.3.2
+	echo 3.3.4
 	;;
     prefix)
 	echo ${prefix}
@@ -354,14 +354,14 @@ case $found_query in
 	echo -I${includedir} 
 	;;
     libs)
-	libs_string="  -lm   -lCGAL -lgmp "
+	libs_string="  -lm "
 #       since we use the system default (use shared lib if available, static 
 #       otherwise), we only need to worry if shared available and static
 #       explicitely asked
 	if test "x$use_shared" = "xno" && test "xyes" = "xyes" ; then
-	    libs_string=$libs_string" ${libdir}/libfastjettools.a ${libdir}/libfastjet.a"
+	    libs_string="${libdir}/libfastjettools.a ${libdir}/libfastjet.a "$libs_string
 	else
-	    libs_string=$libs_string" -L${libdir} -lfastjettools -lfastjet"
+	    libs_string="-L${libdir} -lfastjettools -lfastjet "$libs_string
 	fi
 	if test "x$add_rpath" = "xyes" ; then
 	    libs_string="-Wl,-rpath,${libdir} "$libs_string
@@ -374,9 +374,9 @@ case $found_query in
 	fi
 	if test "x$plugins_included" = "xyes" ; then
 	    if test "x$use_shared" = "xno" && test "xyes" = "xyes" ; then
-		libs_string=$libs_string"  ${installationdir}/lib/libfastjetplugins.a  ${installationdir}/lib/libsiscone.a ${installationdir}/lib/libsiscone_spherical.a   -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. -lgfortran -lm -lquadmath"
+		libs_string=$libs_string"  ${installationdir}/lib/libfastjetplugins.a  ${installationdir}/lib/libsiscone.a ${installationdir}/lib/libsiscone_spherical.a"
 	    else
-		libs_string=$libs_string"  -lfastjetplugins  -lsiscone_spherical -lsiscone   -L/usr/lib/gcc/x86_64-linux-gnu/8 -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/8/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/8/../../.. -lgfortran -lm -lquadmath"
+		libs_string=$libs_string"  -lfastjetplugins  -lsiscone_spherical -lsiscone"
 	    fi
 
 	fi
@@ -389,16 +389,16 @@ case $found_query in
     list_plugins)
 	echo "Available plugins: "
 	echo -n "  "
-	echo  SISCone CDFCones PxCone D0RunIICone NestedDefs TrackJet ATLASCone CMSIterativeCone EECambridge Jade D0RunICone GridJet | sed -e "s/ /\\`printf '\n\r  '`/g"
+	echo  SISCone CDFCones NestedDefs EECambridge Jade GridJet | sed -e "s/ /\\`printf '\n\r  '`/g"
 	;;
     config)
-	echo "This is FastJet version 3.3.2"
+	echo "This is FastJet version 3.3.4"
 	echo ""
 	echo "Configuration invocation was"
 	echo ""
-	echo "  ./configure  '--enable-allplugins' '--enable-cgal'"
+	echo "  ./configure "
 	echo ""
-	printf "Configuration summary:\n----------------------\n  Installation directory     /usr/local\n  Shared libraries           yes\n  Static libraries           yes\n  Debug flag                 yes\n  CGAL support               yes\n  Plugins: EECambridge       yes\n           Jade              yes\n           NestedDefs        yes\n           SISCone           yes\n           CDFCones          yes\n           D0RunICone        yes\n           D0RunIICone       yes\n           ATLASCone         yes\n           CMSIterativeCone  yes\n           PxCone            yes\n           TrackJet          yes\n           GridJet           yes\n  Monolithic plugins lib     yes\n  Python interface           no\n  Swig python generator      no\n"
+	printf "Configuration summary:\n----------------------\n  Installation directory     /usr/local\n  Shared libraries           yes\n  Static libraries           yes\n  Debug flag                 yes\n  CGAL support               no\n  Plugins: EECambridge       yes\n           Jade              yes\n           NestedDefs        yes\n           SISCone           yes\n           CDFCones          yes\n           D0RunICone        no\n           D0RunIICone       no\n           ATLASCone         no\n           CMSIterativeCone  no\n           PxCone            no\n           TrackJet          no\n           GridJet           yes\n  Monolithic plugins lib     yes\n  Python interface           no\n  Swig python generator      no\n"
 	;;
     pythonpath)
         # we have potentially two path to include:

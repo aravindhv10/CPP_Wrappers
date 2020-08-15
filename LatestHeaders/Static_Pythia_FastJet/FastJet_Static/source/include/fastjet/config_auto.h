@@ -6,9 +6,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* The ATLASCone plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_ATLASCONE 
-#define FASTJET_ENABLE_PLUGIN_ATLASCONE  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_ATLASCONE */
 
 /* The CDFCones plugin is enabled */
 #ifndef FASTJET_ENABLE_PLUGIN_CDFCONES 
@@ -16,19 +14,13 @@
 #endif
 
 /* The CMSIterativeCone plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_CMSITERATIVECONE 
-#define FASTJET_ENABLE_PLUGIN_CMSITERATIVECONE  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_CMSITERATIVECONE */
 
 /* The D0RunICone plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_D0RUNICONE 
-#define FASTJET_ENABLE_PLUGIN_D0RUNICONE  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_D0RUNICONE */
 
 /* The D0RunIICone plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_D0RUNIICONE 
-#define FASTJET_ENABLE_PLUGIN_D0RUNIICONE  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_D0RUNIICONE */
 
 /* The EECambridge plugin is enabled */
 #ifndef FASTJET_ENABLE_PLUGIN_EECAMBRIDGE 
@@ -51,9 +43,7 @@
 #endif
 
 /* The PxCone plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_PXCONE 
-#define FASTJET_ENABLE_PLUGIN_PXCONE  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_PXCONE */
 
 /* The SISCone plugin is enabled */
 #ifndef FASTJET_ENABLE_PLUGIN_SISCONE 
@@ -61,9 +51,7 @@
 #endif
 
 /* The TrackJet plugin is enabled */
-#ifndef FASTJET_ENABLE_PLUGIN_TRACKJET 
-#define FASTJET_ENABLE_PLUGIN_TRACKJET  /**/ 
-#endif
+/* #undef ENABLE_PLUGIN_TRACKJET */
 
 /* compile the deprecated parts of the interface using auto-ptr */
 #ifndef FASTJET_HAVE_AUTO_PTR_INTERFACE 
@@ -94,6 +82,9 @@
 #define FASTJET_HAVE_EXPLICIT_FOR_OPERATORS  /**/ 
 #endif
 
+/* Define to 1 if you have the <gmp.h> header file. */
+/* #undef HAVE_GMP_H */
+
 /* compiler supports GNU c++ deprecated attribute */
 #ifndef FASTJET_HAVE_GNUCXX_DEPRECATED 
 #define FASTJET_HAVE_GNUCXX_DEPRECATED  /**/ 
@@ -113,6 +104,9 @@
 #ifndef FASTJET_HAVE_MEMORY_H 
 #define FASTJET_HAVE_MEMORY_H  1 
 #endif
+
+/* Define to 1 if you have the <mpfr.h> header file. */
+/* #undef HAVE_MPFR_H */
 
 /* compiler supports the "override" keyword */
 #ifndef FASTJET_HAVE_OVERRIDE 
@@ -176,7 +170,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef FASTJET_PACKAGE_STRING 
-#define FASTJET_PACKAGE_STRING  "FastJet 3.3.2" 
+#define FASTJET_PACKAGE_STRING  "FastJet 3.3.4" 
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -191,7 +185,7 @@
 
 /* Define to the version of this package. */
 #ifndef FASTJET_PACKAGE_VERSION 
-#define FASTJET_PACKAGE_VERSION  "3.3.2" 
+#define FASTJET_PACKAGE_VERSION  "3.3.4" 
 #endif
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -201,7 +195,7 @@
 
 /* Version number of package */
 #ifndef FASTJET_VERSION 
-#define FASTJET_VERSION  "3.3.2" 
+#define FASTJET_VERSION  "3.3.4" 
 #endif
 
 /* Major version of this package */
@@ -216,12 +210,12 @@
 
 /* Version of the package under the form XYYZZ (instead of X.Y.Z) */
 #ifndef FASTJET_VERSION_NUMBER 
-#define FASTJET_VERSION_NUMBER  30302 
+#define FASTJET_VERSION_NUMBER  30304 
 #endif
 
 /* Patch version of this package */
 #ifndef FASTJET_VERSION_PATCHLEVEL 
-#define FASTJET_VERSION_PATCHLEVEL  2 
+#define FASTJET_VERSION_PATCHLEVEL  4 
 #endif
 
 /* Pre-release version of this package */

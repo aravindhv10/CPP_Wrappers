@@ -2,6 +2,25 @@ Release Notes for FastJet
 -------------------------
 
 ================================================================
+Summary of changes from v3.3.3 -> v3.3.4: 2020-05-05
+================================================================
+This is a bug-fix release with
+* clarifications in documentation for handling of CGAL v5
+* resolved run-time crash with certain strict g++ options and
+  compilation issue with oracle c++ (both reported by Andrii
+  Verbyitskyi)
+* included SISCone v3.0.5 (fixes signed-unsigned mismatch,
+  no impact on results).
+
+================================================================
+Summary of changes from v3.3.2 -> v3.3.3: 2019-11-29
+================================================================
+
+This is a bug-fix release with
+* improved treatment of CGAL in the build system (thanks to Marco van Leeuwen)
+* fixed an overflow issue in the JadePlugin (thanks to Andrii Verbytskyi) 
+
+================================================================
 Summary of changes from v3.3.1 -> v3.3.2: 2018-10-01
 ================================================================
 
@@ -29,7 +48,7 @@ FastJet (some details may still evolve in the future).
 Enable it with --enable-pyext at configure time and see
 examples/python/ for usage.
 
-Thanks to Lily Asquith, Stefane Carrazza and Eric Metodiev for
+Thanks to Lily Asquith, Stefano Carrazza and Eric Metodiev for
 testing and helpful feedback.
 
 ================================================================
