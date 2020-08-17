@@ -14,95 +14,113 @@ namespace CPPFileIO {
 
 		std::string const filename ;
 		FileArray <char> filereader ;
+		char const * buffer ;
 		size_t current_loc ;
+		size_t memloc ;
 		size_t const limit ;
 		TYPE_LINES lines ;
-		size_t const linesize ;
 		size_t const memsize ;
-		size_t const numlines ;
-		size_t count ;
+		std::string data ;
 
-	public:
+		inline void
+		Alloc () {
+			current_loc += memloc ;
+			memloc = 0 ;
+			size_t const max_i =
+				CPPFileIO::mymin (
+					limit -	current_loc ,
+					memsize
+				)
+			; //
+			buffer =
+				&(filereader(current_loc,max_i))
+			; //
+		}
 
-		inline TYPE_LINES &
+		inline void
+		got_separator () {
+			lines.push_back(data);
+			data.clear();
+			memloc++;
+		}
+
+		inline void
+		got_normal_char () {
+			data.push_back(buffer[memloc]);
+			memloc++;
+		}
+
+
+		inline TYPE_LINES const &
 		next () {
 
 			lines.clear();
 
-			if(current_loc>=limit) {return lines;}
+			if ( (current_loc+memloc) >= limit ) {return lines;}
 
-			size_t readsize = linesize ;
+			data.clear();
 
-			if((count&(numlines-1))==0){readsize=memsize;}
+			int status ;
 
-			size_t const max_i =
-				CPPFileIO::mymin (
-					limit -	current_loc ,
-					readsize
-				)
-			; //
+			/* The main reading loop: */ {
 
-			char const * buffer =
-				&(filereader(current_loc,max_i))
-			; //
+				start:
 
-			std::string data ;
-			size_t i = 0 ;
+				status =
+					  ( 1 * ( memloc + current_loc >= limit ) )
+					+ ( 2 * ( memloc >= memsize ) )
+				; //
+				switch(status) {
+					case 3  :
+					case 1  : goto end_of_line ;
+					case 2  : Alloc () ;
+					default : break ;
+				}
 
-			start: {
+				switch (buffer[memloc]) {
 
-				if(i<max_i){
+					case seperator:
+						got_separator();
+						goto start;
 
-					switch (buffer[i]) {
+					case newline:
+						goto end_of_line;
 
-						case seperator:
-							lines.push_back(data);
-							data.clear();
-							i++;
-							goto start;
-
-						case newline:
-							goto end_of_line;
-
-						default:
-							data.push_back(buffer[i]);
-							i++;
-							goto start;
-
-					}
-
-				} else {
-
-					goto end_of_line;
+					default:
+						got_normal_char();
+						goto start;
 
 				}
 
 			}
 
-			end_of_line:{
-				lines.push_back(data);
-				i++;
-				current_loc += i ;
-				count++;
+			/* Found end of line / file: */ {
+				end_of_line:
+				got_separator();
 				return lines;
 			}
 
 		}
 
-		_MACRO_CLASS_NAME_(
-			std::string const _filename
-			, size_t const _linesize = 15
-			, size_t const _memsize = 30
-		) :
-			filename(_filename)
-			, filereader(filename)
-			, current_loc(0)
-			, limit(filereader.size())
-			, linesize(shifter(_linesize))
-			, memsize(shifter(_memsize))
-			, numlines(shifter(_memsize-_linesize))
-			, count(0)
-		   	{lines.clear();}
+	public:
+
+		inline TYPE_LINES const &
+		operator () () {
+			return next() ;
+		}
+
+		_MACRO_CLASS_NAME_
+		(	std::string const _filename
+		,	size_t const _memsize = 25
+		) :	filename(_filename)
+		,	filereader(filename)
+		,	current_loc(0)
+		,	memloc(0)
+		,	limit(filereader.size())
+		,	memsize(shifter(_memsize))
+		{	lines.clear()
+		;	Alloc()
+		; }
 
 		~_MACRO_CLASS_NAME_(){}
 
