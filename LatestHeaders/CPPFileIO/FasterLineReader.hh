@@ -21,19 +21,20 @@ namespace CPPFileIO {
 		TYPE_LINES lines ;
 		size_t const memsize ;
 		std::string data ;
+		size_t max_i ;
 
 		inline void
 		Alloc () {
 			current_loc += memloc ;
 			memloc = 0 ;
-			size_t const max_i =
+			max_i =
 				CPPFileIO::mymin (
 					limit -	current_loc ,
 					memsize
 				)
 			; //
 			buffer =
-				&(filereader(current_loc,max_i))
+				& ( filereader(current_loc,max_i) )
 			; //
 		}
 
@@ -41,13 +42,11 @@ namespace CPPFileIO {
 		got_separator () {
 			lines.push_back(data);
 			data.clear();
-			memloc++;
 		}
 
 		inline void
 		got_normal_char () {
 			data.push_back(buffer[memloc]);
-			memloc++;
 		}
 
 
@@ -63,40 +62,30 @@ namespace CPPFileIO {
 			int status ;
 
 			/* The main reading loop: */ {
-
 				start:
-
-				status =
-					  ( 1 * ( memloc + current_loc >= limit ) )
-					+ ( 2 * ( memloc >= memsize ) )
-				; //
-				switch(status) {
-					case 3  :
-					case 1  : goto end_of_line ;
-					case 2  : Alloc () ;
-					default : break ;
+				while(memloc<max_i) {
+					switch (buffer[memloc]) {
+						case seperator:
+							got_separator();
+							break ;
+						case newline:
+							goto end_of_line;
+						default:
+							got_normal_char();
+							break ;
+					}
+					memloc++;
 				}
-
-				switch (buffer[memloc]) {
-
-					case seperator:
-						got_separator();
-						goto start;
-
-					case newline:
-						goto end_of_line;
-
-					default:
-						got_normal_char();
-						goto start;
-
+				if( (current_loc+memloc) < limit ) {
+					Alloc();
+					goto start;
 				}
-
 			}
 
 			/* Found end of line / file: */ {
 				end_of_line:
 				got_separator();
+				memloc++;
 				return lines;
 			}
 
