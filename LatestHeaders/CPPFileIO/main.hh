@@ -50,6 +50,7 @@
 	#include "./Histograms.hh"
 
 	#include "./Array/DYNAMIC/main.hh"
+	#include "./DynamicStore.hh"
 
 	#include "./MXNET_WRAPPERS.hh"
 	#include "./Polynomial/main.hh"

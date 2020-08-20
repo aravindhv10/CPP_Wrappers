@@ -559,24 +559,22 @@
 				/* Match to sector sizes: */ {
 					begin =
 						static_cast <size_t> (
-							static_cast<double>(t_begin)/
-							static_cast<double>(sizes[3])
+							static_cast<double>(t_begin)
+							/ static_cast<double>(sizes[3])
 						) * sizes[3]
 					; //
-					length =
-						static_cast <size_t> (
-							static_cast<double>(t_length) /
-							static_cast<double>(sizes[3])
-						)
+					end =
+						static_cast <size_t> ( 1 + (
+							static_cast<double>(t_begin+t_length)
+							/ static_cast<double>(sizes[3])
+						) ) * sizes[3]
 					; //
-					length++ ;
-					length = length * sizes[3] ;
-					end = begin + length ;
+					length = end - begin ;
 				}
 				/* Reinitiate map: */ {
 					filefd.unmapfile () ;
 					mainptr =
-						static_cast<T*>(
+						reinterpret_cast<T*>(
 							filefd.mapfile (
 								(length*sizes[1]) ,
 								(begin*sizes[1]) + (offset*sizes[0])
