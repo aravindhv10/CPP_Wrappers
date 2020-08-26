@@ -62,9 +62,79 @@ private:
 
 	template <typename T, typename F>
 	inline TYPE_RETURN
+	find_new (
+		T const & in
+		, F & compare
+	) {
+
+		size_t begin = 0 ;
+		size_t end = limit - 1 ;
+		size_t mid ;
+		int status ;
+
+		status =
+			  ( 1 * ( end < begin ) )
+			+ ( 2 * ( end == begin ) )
+		; //
+
+		switch (status) {
+
+			case 1 : return FOUND() ;
+
+			case 2 : {
+				int const res
+					= compare(in,reader(begin))
+				; //
+				if(res==0){
+					return FOUND(begin) ;
+				} else {
+					return FOUND() ;
+				}
+			}
+
+			default : break ;
+
+		}
+
+		MainLoopBegin: {
+
+			mid = ( begin + end ) / 2 ;
+
+			status =
+				compare(in,reader(mid))
+				+ ( 10 * ( begin == mid ) )
+			; //
+
+			printf("Came here %zu %zu %zu\n",begin,mid,end);
+
+			switch (status) {
+
+				case -1 :
+					end = mid ;
+					goto MainLoopBegin ;
+
+				case 1 :
+					begin = mid ;
+					goto MainLoopBegin ;
+
+				case 0 :
+				case 10 : return FOUND(mid) ;
+
+				case 11 : return FOUND(mid,end) ;
+
+				default : return FOUND() ;
+
+			}
+
+		}
+
+	}
+
+	template <typename T, typename F>
+	inline TYPE_RETURN
 	find (
-		T const & in ,
-		F & compare
+		T const & in
+		, F & compare
 	) {
 
 		size_t begin = 0 ;
@@ -138,6 +208,71 @@ private:
 			end:
 			return FOUND() ;
 		}
+
+	}
+
+
+	template <typename T>
+	inline TYPE_RETURN
+	find_new (
+		T const & in
+	) {
+		size_t begin = 0 ;
+		size_t end = limit - 1 ;
+		size_t mid ;
+		int status ;
+
+		status =
+			  ( 1 * ( end < begin ) )
+			+ ( 2 * ( end == begin ) )
+		; //
+
+		switch (status) {
+
+			case 1 : return FOUND() ;
+
+			case 2 : {
+				if(in==reader(begin)){
+					return FOUND(begin) ;
+				} else {
+					return FOUND() ;
+				}
+			}
+
+			default : break ;
+
+		}
+
+		MainLoopBegin: {
+
+			mid = ( begin + end ) / 2 ;
+
+			status =
+				  ( -1 * ( in < reader(mid) ) )
+				+ (  1 * ( in > reader(mid) ) )
+				+ ( 10 * ( begin == mid ) )
+			; //
+
+			switch (status) {
+				case -1 :
+					end = mid ;
+					goto MainLoopBegin ;
+
+				case 1 :
+					begin = mid ;
+					goto MainLoopBegin ;
+
+				case 0 :
+				case 10 : return FOUND(mid) ;
+
+				case 11 : return FOUND(mid,end) ;
+
+				default : return FOUND() ;
+
+			}
+
+		}
+
 
 	}
 
@@ -220,20 +355,22 @@ public:
 
 	template <typename T>
 	inline TYPE_RETURN
-	operator () (T const & in) {
+	operator () (
+		T const & in
+	) {
 		return
-			find(in)
+			find_new(in)
 		; //
 	}
 
 	template <typename T, typename F>
 	inline TYPE_RETURN
 	operator () (
-		T const & in ,
-		F & compare
+		T const & in
+		, F & compare
 	) {
 		return
-			find(in,compare)
+			find_new(in,compare)
 		; //
 	}
 
