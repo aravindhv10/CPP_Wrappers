@@ -1,17 +1,15 @@
 namespace Read_Show_Functions {
 
+///////////////////////////////////////////////
 #define COMPARE_INT(intype)                  \
-	inline char                          \
-	Compare (                            \
-		intype const a               \
-		, intype const b             \
-	) {                                  \
-		return                       \
+	inline char Compare                  \
+	(	intype const a               \
+	,	intype const b               \
+	) {	return                       \
 			  ( -1 * (a  < b ) ) \
-			+ (  0 * (a == b ) ) \
 			+ (  1 * (a  > b ) ) \
-		;                            \
-	}                                    //
+	; }                                  //
+///////////////////////////////////////////////
 	COMPARE_INT(char)
 	COMPARE_INT(unsigned char)
 	COMPARE_INT(int)
@@ -20,7 +18,9 @@ namespace Read_Show_Functions {
 	COMPARE_INT(size_t)
 	COMPARE_INT(float)
 	COMPARE_INT(double)
-#undef COMPARE_INT
+/////////////////////
+#undef COMPARE_INT //
+/////////////////////
 
 	inline int
 	Compare (

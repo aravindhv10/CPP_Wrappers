@@ -5,15 +5,14 @@ namespace CPPFileIO {
 template <typename rd=char>
 class _MACRO_CLASS_NAME_ {
 
+////////////////////////
+// DEFINITIONS BEGIN: //
+////////////////////////
+
 public:
 
 	using TYPE_READER = rd ;
 	using TYPE_SELF = _MACRO_CLASS_NAME_ <rd> ;
-
-private:
-
-	TYPE_READER & reader ;
-	size_t const limit ;
 
 	using TYPE_RETURN =
 		struct {
@@ -22,6 +21,30 @@ private:
 			char status ;
 		}
 	; //
+
+//////////////////////
+// DEFINITIONS END. //
+//////////////////////
+
+
+/////////////////
+// DATA BEGIN: //
+/////////////////
+
+private:
+
+	TYPE_READER & reader ;
+	size_t const limit ;
+
+///////////////
+// DATA END. //
+///////////////
+
+//////////////////////////
+// RETURN STATUS BEGIN: //
+//////////////////////////
+
+private:
 
 	inline TYPE_RETURN
 	FAILED () const {
@@ -47,7 +70,7 @@ private:
 		ret.status = 0 ;
 		return ret ;
 	}
-	
+
 	inline TYPE_RETURN
 	FOUND (
 		size_t const begin ,
@@ -59,6 +82,134 @@ private:
 		ret.status = 1 ;
 		return ret ;
 	}
+
+////////////////////////
+// RETURN STATUS END. //
+////////////////////////
+
+//////////////////
+// RANGE BEGIN: //
+//////////////////
+
+private:
+
+	template <typename F>
+	inline size_t
+	find_start (
+		size_t end
+		, F & in
+	) {
+		size_t start = 0 ;
+		if(start>=end){return start;}
+		auto const val=reader(end);
+		char cmp=in(reader(start),val);
+		if(cmp>=0){return start;}
+		for(
+			size_t mid=(start+end)/2;
+			start<mid;
+			mid=(start+end)/2
+		) {
+			cmp=in(reader(mid),val);
+			if(cmp>=0){end=mid;}
+			else{start=mid;}
+		}
+		return end;
+	}
+
+	inline size_t
+	find_start (
+		size_t end
+	) {
+		size_t start = 0 ;
+		if(start>=end){return start;}
+		auto const val=reader(end);
+		if(reader(start)>=val){return start;}
+		for(
+			size_t mid=(start+end)/2;
+			start<mid;
+			mid=(start+end)/2
+		) {
+			if(reader(mid)>=val){end=mid;}
+			else{start=mid;}
+		}
+		return end;
+	}
+
+	template <typename F>
+	inline size_t
+	find_end (
+		size_t start
+		, F & in
+	) {
+		size_t end=reader()-1;
+		if(start>=end){return end;}
+		auto const val=reader(start);
+		char cmp=in(reader(end),val); 
+		if(cmp<=0){return end;}
+		for(
+			size_t mid=(start+end)/2;
+			start<mid;
+			mid=(start+end)/2
+		) {
+			cmp=in(reader(mid),val);
+			if(cmp<=0){start=mid;}
+			else{end=mid;}
+		}
+		return start;
+	}
+
+	inline size_t
+	find_end (
+		size_t start
+	) {
+		size_t end=reader()-1;
+		if(start>=end){return end;}
+		auto const val=reader(start);
+		if(reader(end)<=val){return end;}
+		for(
+			size_t mid=(start+end)/2;
+			start<mid;
+			mid=(start+end)/2
+		) {
+			if(reader(mid)<=val){start=mid;}
+			else{end=mid;}
+		}
+		return start;
+	}
+
+public:
+
+	inline TYPE_RETURN
+	find_range
+	(	size_t const index
+	) {	return
+			FOUND
+			(	find_start(index)
+			,	find_end(index)
+			)
+	; }
+
+	template <typename T>
+	inline TYPE_RETURN
+	find_range
+	(	size_t const index
+	,	T & in
+	) {	return
+			FOUND
+			(	find_start(index,in)
+			,	find_end(index,in)
+			)
+	; }
+
+////////////////
+// RANGE END. //
+////////////////
+
+///////////////////////////////
+// FIND WITH COMPARER BEGIN: //
+///////////////////////////////
+
+private:
 
 	template <typename T, typename F>
 	inline TYPE_RETURN
@@ -105,8 +256,6 @@ private:
 				+ ( 10 * ( begin == mid ) )
 			; //
 
-			printf("Came here %zu %zu %zu\n",begin,mid,end);
-
 			switch (status) {
 
 				case -1 :
@@ -132,7 +281,7 @@ private:
 
 	template <typename T, typename F>
 	inline TYPE_RETURN
-	find (
+	find_old (
 		T const & in
 		, F & compare
 	) {
@@ -211,6 +360,15 @@ private:
 
 	}
 
+/////////////////////////////
+// FIND WITH COMPARER END. //
+/////////////////////////////
+
+///////////////////////
+// Plain find BEGIN: //
+///////////////////////
+
+private:
 
 	template <typename T>
 	inline TYPE_RETURN
@@ -278,7 +436,9 @@ private:
 
 	template <typename T>
 	inline TYPE_RETURN
-	find (T const & in) {
+	find_old (
+		T const & in
+	) {
 
 		size_t begin = 0 ;
 		size_t end = limit - 1 ;
@@ -350,6 +510,10 @@ private:
 		}
 
 	}
+
+/////////////////////
+// Plain find END. //
+/////////////////////
 
 public:
 
