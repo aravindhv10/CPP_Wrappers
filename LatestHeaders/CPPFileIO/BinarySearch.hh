@@ -99,11 +99,49 @@ private:
 		size_t end
 		, F & in
 	) {
+
 		size_t start = 0 ;
 		if(start>=end){return start;}
 		auto const val=reader(end);
 		char cmp=in(reader(start),val);
 		if(cmp>=0){return start;}
+
+		MainLoop: {
+
+			size_t const mid
+				= (start+end)/2
+			; //
+
+			int const stat
+				= ( 10 * ( start >= mid ) )
+				+ in(reader(mid),val)
+			; //
+
+			switch (stat) {
+
+				case  9 :
+				case 11 : return end;
+
+				case 10 : return start;
+
+				case -1 :
+					start=mid;
+					goto MainLoop ;
+
+				case  0 :
+					end=mid;
+					goto MainLoop ;
+
+				case  1 : return end ;
+
+				default : break;
+
+			}
+
+		}
+
+		return end;
+
 		for(
 			size_t mid=(start+end)/2;
 			start<mid;
@@ -114,16 +152,50 @@ private:
 			else{start=mid;}
 		}
 		return end;
+
 	}
 
 	inline size_t
 	find_start (
 		size_t end
 	) {
+
 		size_t start = 0 ;
 		if(start>=end){return start;}
 		auto const val=reader(end);
 		if(reader(start)>=val){return start;}
+
+		MainLoop: {
+
+			size_t const mid
+				= (start+end)/2
+			; //
+
+			int const stat
+				= ( 10 * ( start       >= mid ) )
+				+ (  1 * ( reader(mid) >= val ) )
+			; //
+
+			switch (stat) {
+
+				case 10: return end;
+
+				case 11: return start;
+
+				case 1:
+					end=mid;
+					goto MainLoop ;
+
+				default:
+					start=mid;
+					goto MainLoop ;
+
+			}
+
+		}
+
+		return end;
+
 		for(
 			size_t mid=(start+end)/2;
 			start<mid;
@@ -133,6 +205,7 @@ private:
 			else{start=mid;}
 		}
 		return end;
+
 	}
 
 	template <typename F>
@@ -146,6 +219,37 @@ private:
 		auto const val=reader(start);
 		char cmp=in(reader(end),val); 
 		if(cmp<=0){return end;}
+
+		MainLoop: {
+
+			size_t const mid
+				= (start+end)/2
+			; //
+
+			int const stat
+				= ( 10 * ( start >= mid ) )
+				+ in(reader(mid),val)
+			; //
+
+			switch (stat) {
+				case 9:
+				case 11:
+				case 10:
+				case -1:
+					return start;
+
+				case 0:
+					start=mid;
+					goto MainLoop;
+
+				case 1:
+					end=mid;
+					goto MainLoop;
+
+			}
+
+		}
+
 		for(
 			size_t mid=(start+end)/2;
 			start<mid;
@@ -162,10 +266,42 @@ private:
 	find_end (
 		size_t start
 	) {
+
 		size_t end=reader()-1;
 		if(start>=end){return end;}
 		auto const val=reader(start);
 		if(reader(end)<=val){return end;}
+
+		MainLoop: {
+
+			size_t const mid
+				= (start+end)/2
+			; //
+
+			int const stat
+				= ( 10 * ( start       >= mid ) )
+				+ (  1 * ( reader(mid) <= val ) )
+			; //
+
+			switch (stat) {
+				case 10:
+				case 11:
+					return start;
+
+				case 1:
+					start=mid;
+					goto MainLoop ;
+
+				default:
+					end=mid;
+					goto MainLoop ;
+
+			}
+
+		}
+
+		return end;
+
 		for(
 			size_t mid=(start+end)/2;
 			start<mid;
@@ -175,6 +311,7 @@ private:
 			else{end=mid;}
 		}
 		return start;
+
 	}
 
 public:
