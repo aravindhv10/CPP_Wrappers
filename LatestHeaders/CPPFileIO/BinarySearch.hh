@@ -139,7 +139,6 @@ private:
 			}
 
 		}
-
 		return end;
 
 		for(
@@ -193,7 +192,6 @@ private:
 			}
 
 		}
-
 		return end;
 
 		for(
@@ -217,7 +215,7 @@ private:
 		size_t end=reader()-1;
 		if(start>=end){return end;}
 		auto const val=reader(start);
-		char cmp=in(reader(end),val); 
+		char cmp=in(reader(end),val);
 		if(cmp<=0){return end;}
 
 		MainLoop: {
@@ -249,6 +247,7 @@ private:
 			}
 
 		}
+		return start;
 
 		for(
 			size_t mid=(start+end)/2;
@@ -299,7 +298,6 @@ private:
 			}
 
 		}
-
 		return end;
 
 		for(

@@ -2,9 +2,13 @@
 #define CPPFileIO_HH
 
 	#ifndef _GNU_SOURCE
-	#define _GNU_SOURCE
+		#define _GNU_SOURCE
 	#endif
 
+
+	#ifndef _XOPEN_SOURCE
+		#define _XOPEN_SOURCE
+	#endif
 
 	#include <sched.h>
 	#include <stdio.h>
@@ -18,15 +22,19 @@
 	#include <fcntl.h>
 	#include <unistd.h>
 	#include <math.h>
+	#include <string.h>
 
 	#include <cmath>
-	#include <string.h>
 	#include <iostream>
 	#include <vector>
 	#include <algorithm>
 	#include <random>
 	#include <complex>
+	#include <sstream>
+	#include <locale>
+	#include <iomanip>
 
+	#include "./ParseTime.hh"
 	#include "./pcg-cpp/main.hh"
 	#include "./Basic.hh"
 	#include "./ExternalPrograms.hh"
