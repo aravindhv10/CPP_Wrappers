@@ -29,7 +29,9 @@ class _MACRO_CLASS_NAME_ {
 			double const y2 = st2*sp2 ;
 			double const z2 = ct2 ;
 
-			double const ca = (x1*x2)+(y1*y2)+(z1*z2) ;
+			double ca = (x1*x2)+(y1*y2)+(z1*z2) ;
+			if(ca>1){ca=1;}
+			else if(ca<-1){ca=-1;}
 			double const a = std::acos(ca);
 			return 	r*a ;
 
