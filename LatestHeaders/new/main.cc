@@ -1,6 +1,7 @@
 #include "./include/CPPFileIO.hh"
 #include "./include/StaticArray.hh"
 #include "./include/Histograms.hh"
+#include "./include/NewNeuralNet.hh"
 int main () {
 //	testfunc();
 	MyHist <10,float> hist(1,100) ;
