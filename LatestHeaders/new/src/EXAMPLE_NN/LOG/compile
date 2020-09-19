@@ -1,0 +1,5 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+OUT="$('echo' "${1}" | 'sed' 's@cc$@@g')exe"
+'g++' '-Ofast' '-mtune=native' '-march=native' '-fopenmp' "${1}" '-o' "${OUT}"
+exit '0'

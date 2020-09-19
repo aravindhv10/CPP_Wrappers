@@ -1,0 +1,5 @@
+#!/usr/bin/gnuplot
+set terminal svg size 1300, 1000
+set output "plot.svg"
+plot "./tmp" with lines , log(x) with lines
+exit
