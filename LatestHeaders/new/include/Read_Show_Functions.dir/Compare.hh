@@ -1,7 +1,7 @@
 
 
-#ifndef _HEADER_GUARD_Read_Show_Functions_Compare_
-#define _HEADER_GUARD_Read_Show_Functions_Compare_
+#ifndef _HEADER_GUARD_Read_Show_Functions_Compare
+#define _HEADER_GUARD_Read_Show_Functions_Compare
 
 ///////////////////
 // Header BEGIN: //

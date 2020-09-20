@@ -1,5 +1,5 @@
-#ifndef _HEADER_GUARD_Read_Show_Functions_Read_
-#define _HEADER_GUARD_Read_Show_Functions_Read_
+#ifndef _HEADER_GUARD_Read_Show_Functions_Read
+#define _HEADER_GUARD_Read_Show_Functions_Read
 
 ///////////////////
 // Header BEGIN: //
@@ -12,7 +12,7 @@
 
 	template <size_t n>
 	inline void
-	Read
+	Read_All
 	(	StaticArray::ND_ARRAY <n,char> & dest
 	,	std::string const & src
 	) {
@@ -35,7 +35,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	float & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=NAN;}
@@ -43,7 +43,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	double & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=NAN;}
@@ -51,7 +51,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	char & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}
@@ -59,7 +59,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	unsigned char & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}
@@ -67,7 +67,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	int & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=-999999;}
@@ -75,7 +75,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	long & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=-999999;}
@@ -83,7 +83,7 @@
 	}
 
 	static inline void
-	Read
+	Read_All
 	(	size_t & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}

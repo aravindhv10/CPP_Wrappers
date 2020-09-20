@@ -318,6 +318,19 @@
 			}
 		}
 
+		inline TYPE_DATA
+		operator * (TYPE_SELF const & other) const {
+			TYPE_DATA ret = 0 ;
+			size_t limit = mymin(SIZE(),other.SIZE());
+			for(size_t i=0;i<limit;i++){
+				ret += other(i) * GET_ELEMENT(i) ;
+			}
+			return
+				ret
+				/ static_cast <TYPE_DATA> (limit)
+			;
+		}
+
 		/////////////////////
 		// CONVINENCE END. //
 		/////////////////////

@@ -340,13 +340,13 @@
 		) const {
 			fprintf(f,"\n");
 			fprintf(f,"\tinline void\n");
-			fprintf(f,"\tRead_All (\n");
+			fprintf(f,"\tRead (\n");
 			fprintf(f,"\t\tstd::vector <std::string> const &\n");
 			fprintf(f,"\t\t\tin\n");
 			fprintf(f,"\t) {\n");
 			fprintf(f,"\t\tusing namespace Read_Show_Functions;\n");
 			fprintf(f,"\t\tsize_t i=0 ;\n");
-			fprintf(f,"\t\t#define SA(name) Read(name,in[i]); i++;\n");
+			fprintf(f,"\t\t#define SA(name) Read_All(name,in[i]); i++;\n");
 			fprintf(f,"\t\t_MACRO_SA_\n");
 			fprintf(f,"\t\t#undef SA\n");
 			fprintf(f,"\t}\n");
@@ -358,12 +358,12 @@
 		) const {
 			fprintf(f,"\n");
 			fprintf(f,"\tinline void\n");
-			fprintf(f,"\tShow_All (\n");
+			fprintf(f,"\tShow (\n");
 			fprintf(f,"\t\tFILE *\n");
 			fprintf(f,"\t\t\tf = stdout\n");
 			fprintf(f,"\t) const {\n");
 			fprintf(f,"\t\tusing namespace Read_Show_Functions;\n");
-			fprintf(f,"\t\t#define SA(name) Show(name,f); Show(f);\n");
+			fprintf(f,"\t\t#define SA(name) Show_All(name,f); Show_All(f);\n");
 			fprintf(f,"\t\t_MACRO_SA_\n");
 			fprintf(f,"\t\t#undef SA\n");
 			fprintf(f,"\t\tShow_Next(f);\n");
