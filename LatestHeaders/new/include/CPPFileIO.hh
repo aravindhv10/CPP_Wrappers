@@ -18,6 +18,7 @@ namespace CPPFileIO {
 	#include "./CPPFileIO.dir/Basic.hh"
 	#include "./CPPFileIO.dir/ExternalPrograms.hh"
 	#include "./CPPFileIO.dir/D1.hh"
+	#include "./CPPFileIO.dir/Polynomial.hh"
 	#include "./CPPFileIO.dir/Correlation.hh"
 	#include "./CPPFileIO.dir/D2.hh"
 	#include "./CPPFileIO.dir/symmetric_matrix.hh"
