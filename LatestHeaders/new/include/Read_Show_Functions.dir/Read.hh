@@ -12,7 +12,7 @@
 
 	template <size_t n>
 	inline void
-	Read_All
+	Read
 	(	StaticArray::ND_ARRAY <n,char> & dest
 	,	std::string const & src
 	) {
@@ -35,7 +35,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	float & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=NAN;}
@@ -43,7 +43,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	double & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=NAN;}
@@ -51,7 +51,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	char & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}
@@ -59,7 +59,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	unsigned char & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}
@@ -67,7 +67,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	int & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=-999999;}
@@ -75,7 +75,7 @@
 	}
 
 	static inline void
-	Read_All
+	Read
 	(	long & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=-999999;}

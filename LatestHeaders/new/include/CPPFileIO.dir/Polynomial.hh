@@ -108,8 +108,6 @@ public:
     TYPE_DATA xpw = 1;
     for (size_t i = 0; i <= ORDER(); i++) {
       ret += COEFFICIENT(i) * xpw;
-      // printf("DEBUG: i = %zu ; ret = %e ; xpw = %e ; coeff = %e ;
-      // \n",i,ret,xpw,COEFFICIENT(i));
       xpw *= in;
     }
     return ret;
