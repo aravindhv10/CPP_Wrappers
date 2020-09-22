@@ -68,6 +68,14 @@
 
 	static inline void
 	Read
+	(	unsigned int & dest
+	,	std::string const & src
+	) {	if(src.size()<1){dest=-999999;}
+		else{ sscanf(src.c_str(),"%u",&dest); }
+	}
+
+	static inline void
+	Read
 	(	int & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=-999999;}
@@ -83,11 +91,11 @@
 	}
 
 	static inline void
-	Read_All
-	(	size_t & dest
+	Read
+	(	unsigned long & dest
 	,	std::string const & src
 	) {	if(src.size()<1){dest=0;}
-		else{ sscanf(src.c_str(),"%zu",&dest); }
+		else{ sscanf(src.c_str(),"%lu",&dest); }
 	}
 
 #endif
