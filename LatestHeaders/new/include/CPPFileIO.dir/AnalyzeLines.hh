@@ -358,7 +358,7 @@
 		) const {
 			fprintf(f,"\n");
 			fprintf(f,"\tinline void\n");
-			fprintf(f,"\tShow (\n");
+			fprintf(f,"\tShow_All (\n");
 			fprintf(f,"\t\tFILE *\n");
 			fprintf(f,"\t\t\tf = stdout\n");
 			fprintf(f,"\t) const {\n");
