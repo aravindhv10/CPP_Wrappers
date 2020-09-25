@@ -36,7 +36,7 @@
 		) {
 
 			O tmp ;
-			int const val = tmp(R1(I1),R2(I2));
+			char const val = tmp(R1(I1),R2(I2));
 
 			switch (val) {
 
@@ -56,4 +56,5 @@
 		}
 
 	}
+
 #endif
