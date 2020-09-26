@@ -33,6 +33,7 @@
 #include <iomanip>
 #include <map>
 #include <set>
+#include <mutex>
 
 #ifdef USECBLAS
 	#include "cblas.h"

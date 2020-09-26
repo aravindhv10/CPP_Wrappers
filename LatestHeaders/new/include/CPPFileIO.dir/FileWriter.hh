@@ -121,4 +121,81 @@ public:
 
 #undef _MACRO_CLASS_NAME_
 
+#define _MACRO_CLASS_NAME_ FileWriterThreaded
+template <typename T>
+class _MACRO_CLASS_NAME_ {
+
+////////////////////////
+// Definitions BEGIN: //
+////////////////////////
+
+public:
+
+	using TYPE_ELEMENT = T ;
+	using TYPE_MAIN = FileWriter <TYPE_ELEMENT> ;
+	using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT> ;
+
+//////////////////////
+// Definitions END. //
+//////////////////////
+
+//////////////////////////
+// Data Elements BEGIN: //
+//////////////////////////
+
+private:
+	TYPE_MAIN mainwriter ;
+	std::mutex locker ;
+
+////////////////////////
+// Data Elements END. //
+////////////////////////
+
+///////////////////////////
+// Main interface BEGIN: //
+///////////////////////////
+
+public:
+
+	inline size_t
+	operator () () const
+	{return mainwriter();}
+
+	inline void
+	operator ()
+	(TYPE_ELEMENT const & indata)
+	{	locker.lock();
+		mainwriter(indata);
+		locker.unlock();
+	}
+
+/////////////////////////
+// Main interface END. //
+/////////////////////////
+
+/////////////////////////////////////
+// Constructor & Destructor BEGIN: //
+/////////////////////////////////////
+
+public:
+
+	_MACRO_CLASS_NAME_
+	(	std::string const filename
+	,	size_t const bufsize = 10
+	) :	mainwriter
+		(	filename
+		,	bufsize
+		)
+	{}
+
+	~_MACRO_CLASS_NAME_(){}
+
+///////////////////////////////////
+// Constructor & Destructor END. //
+///////////////////////////////////
+
+} ;
+
+#undef _MACRO_CLASS_NAME_
+
 #endif
