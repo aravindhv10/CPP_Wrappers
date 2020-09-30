@@ -100,7 +100,7 @@ private:
 // RANGE BEGIN: //
 //////////////////
 
-private:
+public:
 
 	template <typename F>
 	inline size_t
@@ -282,8 +282,6 @@ private:
 		return end;
 
 	}
-
-public:
 
 	inline TYPE_RETURN
 	find_range
