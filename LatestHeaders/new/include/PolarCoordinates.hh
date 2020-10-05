@@ -91,6 +91,13 @@ public:
 
 	inline TYPE_CARTITION
 	GET_CARTITION () const {
+		if(!IS_VALID()){
+			TYPE_CARTITION ret ;
+			ret[0] = -9999 ;
+			ret[1] = -9999 ;
+			ret[2] = -9999 ;
+			return ret ;
+		}
 		double const ct1 = COS_THETA();
 		double const st1 = SIN_THETA();
 		double const cp1 = COS_PHI();
@@ -107,6 +114,8 @@ public:
 
 	inline TYPE_DATA
 	HaverSineDistance (TYPE_SELF const & other) const {
+		if(!IS_VALID()){return -9999.0 ;}
+
 		double constexpr r = EarthRadius() ;
 
 		double const ct1 = COS_THETA();
@@ -145,16 +154,49 @@ public:
 
 	inline void
 	SET_THETA (TYPE_DATA const in) {
-		latitude = 90.0 - ( in * 180.0 / M_PI ) ;
+		if( (0<=in) && (in<=M_PI) ) {
+			latitude = 90.0 - ( in * 180.0 / M_PI ) ;
+		} else { latitude = -9999.0 ;}
 	}
 
 	inline void
 	SET_PHI (TYPE_DATA const in) {
-		longitude = ( in * 180.0 / M_PI ) ;
+		if( (-M_PI<=in) && (in<=M_PI) ) {
+			longitude = ( in * 180.0 / M_PI ) ;
+		} else { longitude = -9999.0 ;}
+	}
+
+	inline void
+	FROM_CARTITION (TYPE_CARTITION const & in) {
+
+		TYPE_DATA const RT2 = 
+			std::pow(in[0],2)
+			+ std::pow(in[1],2)
+		; //
+		TYPE_DATA const RT = std::sqrt(RT2) ;
+
+		TYPE_DATA const R2 =
+			RT2
+			+ std::pow(in[2],2)
+		; //
+		TYPE_DATA const R = std::sqrt(R2) ;
+
+		TYPE_DATA theta = -9999 ;
+		if(R!=0){ theta= std::acos(in[2]/R) ; }
+		SET_THETA(theta);
+
+		TYPE_DATA phi = -9999 ;
+		if(RT!=0){
+			phi = std::acos(in[0]/RT) ;
+			if(in[1]<0){phi=-phi;}
+		}
+		SET_PHI(phi);
+
 	}
 
 	_MACRO_CLASS_NAME_(){}
 	~_MACRO_CLASS_NAME_(){}
+
 } ;
 #undef _MACRO_CLASS_NAME_
 
