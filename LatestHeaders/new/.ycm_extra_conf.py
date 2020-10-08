@@ -1,2 +1,1 @@
-def Settings( **kwargs ):
- return {'flags': [ '-x', 'c++', '-Wall', '-Wextra', '-Werror' ],}
+./ycm_extra_conf.py
