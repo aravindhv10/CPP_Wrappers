@@ -2,18 +2,31 @@
 #define _HEADER_GUARD_PolarDistance_
 
 #include "./Headers.hh"
+#include "./CPPFileIO.hh"
 
 #define _MACRO_CLASS_NAME_ PolarPoint
 class _MACRO_CLASS_NAME_ {
 	public:
 
+		using TYPE_SELF = _MACRO_CLASS_NAME_ ;
+
 		double theta, phi ;
 		double latitude, longitude ;
 
-		using TYPE_SELF = _MACRO_CLASS_NAME_ ;
+		inline bool
+		IsValid () const {
+			return
+				( 0 <= theta )
+			&&	( theta <= M_PI )
+			&&	( -M_PI <= phi )
+			&&	( phi <= M_PI )
+			;
+		}
 
 		inline double
 		distance (PolarPoint const & other) const {
+
+			if(!IsValid()) {return -9999 ;}
 
 			double constexpr r = 6367000 ;
 
@@ -39,8 +52,8 @@ class _MACRO_CLASS_NAME_ {
 			if(ca>1){ca=1;}
 			else if(ca<-1){ca=-1;}
 			double const a = std::acos(ca);
-			return 	r*a ;
 
+			return CPPFileIO::mymod(r*a) ;
 		}
 
 		_MACRO_CLASS_NAME_(double const _theta, double const _phi):

@@ -9,10 +9,14 @@ int main () {
 		for(double y=-89.0;y<90.0;y=y+1.0){
 			slave.latitude = y ;
 			slave.longitude = x ;
-			auto const card = slave.GET_CARTITION() ;
-			D2GPS_Coordinates <double> slave2 = slave ;
-			slave2.FROM_CARTITION(card);
-			printf("%e %e\n",slave.latitude-slave2.latitude,slave.longitude-slave2.longitude);
+			auto const theta = slave.THETA() ;
+			auto const phi = slave.PHI() ;
+			slave.SET_PHI(phi);
+			slave.SET_THETA(theta);
+			double const diff1 = slave.latitude - y ;
+			double const diff2 = slave.longitude - x ;
+			printf("FinalDiff = %e %e\n",diff1, diff2);
+
 		}
 	}
 
