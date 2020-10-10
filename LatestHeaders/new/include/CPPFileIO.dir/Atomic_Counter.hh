@@ -4,13 +4,14 @@
 #include "../Headers.hh"
 
 #define _MACRO_CLASS_NAME_ Atomic_Counter
-class _MACRO_CLASS_NAME_ {
+template <typename T = long> class _MACRO_CLASS_NAME_ {
 
     ////////////////////////
     // Definitions BEGIN: //
     ////////////////////////
   public:
-    using TYPE_SELF  = _MACRO_CLASS_NAME_;
+    using TYPE_DATA  = T;
+    using TYPE_SELF  = _MACRO_CLASS_NAME_<TYPE_DATA>;
     using TYPE_MUTEX = std::mutex;
     using TYPE_GUARD = std::lock_guard<TYPE_MUTEX>;
     //////////////////////
@@ -21,7 +22,7 @@ class _MACRO_CLASS_NAME_ {
     // Data Elements BEGIN: //
     //////////////////////////
   private:
-    long       current;
+    TYPE_DATA  current;
     std::mutex locker;
     ////////////////////////
     // Data Elements END. //
@@ -34,17 +35,17 @@ class _MACRO_CLASS_NAME_ {
     inline void Lock() { locker.lock(); }
     inline void UnLock() { locker.unlock(); }
 
-    inline long Increase(long const value=1) {
+    inline TYPE_DATA Increase(TYPE_DATA const value = 1) {
         Lock();
-        size_t const ret = current;
+        TYPE_DATA const ret = current;
         current += value;
         UnLock();
         return ret;
     }
 
-    inline long Decrease(long const value=1) {
+    inline TYPE_DATA Decrease(TYPE_DATA const value = 1) {
         Lock();
-        size_t const ret = current;
+        TYPE_DATA const ret = current;
         current -= value;
         UnLock();
         return ret;
@@ -57,7 +58,7 @@ class _MACRO_CLASS_NAME_ {
     // Misc BEGIN: //
     /////////////////
   public:
-    inline long operator()() { return Increase(); }
+    inline TYPE_DATA operator()() { return Increase(); }
 
   public:
     _MACRO_CLASS_NAME_() : current(0) {}
