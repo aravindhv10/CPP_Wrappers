@@ -224,6 +224,9 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     inline std::string histname() const { return dirname() + "out.hist.txt"; }
     inline std::string dataname() const { return dirname() + "out.data.bin"; }
     inline std::string statsname() const { return dirname() + "out.stats.txt"; }
+    inline std::string scriptname() const {
+        return dirname() + "out.plot.gnuplot";
+    }
 
   private:
     inline void copy() {
@@ -265,6 +268,19 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     inline void MakeStats(std::vector<TYPE_DATA> const &in) {
         FILE *f = fopen(statsname().c_str(), "w");
         for (size_t i = 0; i < in.size(); i++) { MakeStats(f, in[i]); }
+        fclose(f);
+    }
+
+    inline void MakePlotScripts() {
+        FILE *f = fopen(scriptname().c_str(), "w");
+        fprintf(f, "#!/usr/bin/gnuplot\n");
+        fprintf(f, "set terminal tikz latex color size 7cm, 5cm scale 1.5,1.5 "
+                   "fulldoc createstyle\n");
+        fprintf(f, "set grid\n");
+        fprintf(f, "set log y\n");
+        fprintf(f, "set output \"out.tex\"\n");
+        fprintf(f, "plot \"out.hist.txt\" with lines notitle\n");
+        fprintf(f, "exit\n");
         fclose(f);
     }
 
