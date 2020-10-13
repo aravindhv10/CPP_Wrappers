@@ -11,171 +11,137 @@
 
 #define _MACRO_CLASS_NAME_ FasterLineReader
 
-	template
-	<	char seperator='\t'
-	,	char newline='\n'
-	>
-	class _MACRO_CLASS_NAME_ {
+template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
 
-	////////////////////////
-	// Definitions BEGIN: //
-	////////////////////////
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
 
-	public:
+  public:
+    using TYPE_SELF = _MACRO_CLASS_NAME_<seperator, newline>;
 
-		using TYPE_SELF =
-			_MACRO_CLASS_NAME_
-			<	seperator
-			,	newline
-			>
-		;
+    using TYPE_LINES = std::vector<std::string>;
 
-		using TYPE_LINES =
-			std::vector <std::string>
-		;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
 
-	//////////////////////
-	// Definitions END. //
-	//////////////////////
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
 
-	//////////////////////////
-	// Data Elements BEGIN: //
-	//////////////////////////
+  private:
+    std::string const filename;
+    FileArray<char>   filereader;
+    char const *      buffer;
+    size_t            current_loc;
+    size_t            memloc;
+    size_t const      limit;
+    TYPE_LINES        lines;
+    size_t const      memsize;
+    std::string       data;
+    size_t            max_i;
 
-	private:
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
 
-		std::string const filename ;
-		FileArray <char> filereader ;
-		char const * buffer ;
-		size_t current_loc ;
-		size_t memloc ;
-		size_t const limit ;
-		TYPE_LINES lines ;
-		size_t const memsize ;
-		std::string data ;
-		size_t max_i ;
+    ///////////////////////////////////
+    // Main Working Functions BEGIN: //
+    ///////////////////////////////////
 
-	////////////////////////
-	// Data Elements END. //
-	////////////////////////
+  private:
+    inline void Alloc() {
+        current_loc += memloc;
+        memloc = 0;
+        max_i  = mymin(limit - current_loc, memsize); //
+        buffer = &(filereader(current_loc, max_i));   //
+    }
 
-	///////////////////////////////////
-	// Main Working Functions BEGIN: //
-	///////////////////////////////////
+    inline void got_separator() {
+        lines.push_back(data);
+        data.clear();
+    }
 
-	private:
-		inline void
-		Alloc () {
-			current_loc += memloc ;
-			memloc = 0 ;
-			max_i =
-				mymin
-				(	limit -	current_loc
-				,	memsize
-				)
-			; //
-			buffer =
-				& ( filereader(current_loc,max_i) )
-			; //
-		}
+    inline void got_normal_char() { data.push_back(buffer[memloc]); }
 
-		inline void
-		got_separator () {
-			lines.push_back(data);
-			data.clear();
-		}
+    inline TYPE_LINES const &next() {
 
-		inline void
-		got_normal_char () {
-			data.push_back(buffer[memloc]);
-		}
+        lines.clear();
 
+        if ((current_loc + memloc) >= limit) { return lines; }
 
-		inline TYPE_LINES const &
-		next () {
+        data.clear();
 
-			lines.clear();
+        /* The main reading loop: */ {
+        start:
+            while (memloc < max_i) {
+                switch (buffer[memloc]) {
+                    case seperator: got_separator(); break;
+                    case newline: goto end_of_line;
+                    default: got_normal_char(); break;
+                }
+                memloc++;
+            }
+            if ((current_loc + memloc) < limit) {
+                Alloc();
+                goto start;
+            }
+        }
 
-			if ( (current_loc+memloc) >= limit )
-			{return lines;}
+        /* Found end of line / file: */ {
+        end_of_line:
+            got_separator();
+            memloc++;
+            return lines;
+        }
+    }
 
-			data.clear();
+    /////////////////////////////////
+    // Main Working Functions END. //
+    /////////////////////////////////
 
-			/* The main reading loop: */ {
-				start:
-				while(memloc<max_i) {
-					switch (buffer[memloc]) {
-						case seperator:
-							got_separator();
-							break ;
-						case newline:
-							goto end_of_line;
-						default:
-							got_normal_char();
-							break ;
-					}
-					memloc++;
-				}
-				if( (current_loc+memloc) < limit ) {
-					Alloc();
-					goto start;
-				}
-			}
+    ///////////////////////////
+    // Main Interface BEGIN: //
+    ///////////////////////////
 
-			/* Found end of line / file: */ {
-				end_of_line:
-				got_separator();
-				memloc++;
-				return lines;
-			}
+  public:
+    inline TYPE_LINES const &operator()() { return next(); }
 
-		}
+    /////////////////////////
+    // Main Interface END. //
+    /////////////////////////
 
-	/////////////////////////////////
-	// Main Working Functions END. //
-	/////////////////////////////////
+    /////////////////////////////////////
+    // Constructor & Destructor BEGIN: //
+    /////////////////////////////////////
 
-	///////////////////////////
-	// Main Interface BEGIN: //
-	///////////////////////////
+  private:
+    inline void init() {
+        lines.clear();
+        Alloc();
+    }
 
-	public:
+  public:
+    _MACRO_CLASS_NAME_(std::string const _filename, size_t const _memsize = 25)
+      : filename(_filename), filereader(filename), current_loc(0), memloc(0),
+        limit(filereader.size()), memsize(shifter(_memsize)) {
+        init();
+    }
 
-		inline TYPE_LINES const &
-		operator () ()
-		{	return next() ;
-		}
+    _MACRO_CLASS_NAME_(size_t const _start, size_t const _end,
+                       std::string const _filename, size_t const _memsize = 25)
+      : filename(_filename), filereader(filename), current_loc(_start),
+        memloc(0), limit(_end), memsize(shifter(_memsize)) {
+        init();
+    }
 
-	/////////////////////////
-	// Main Interface END. //
-	/////////////////////////
+    ~_MACRO_CLASS_NAME_() {}
 
-	/////////////////////////////////////
-	// Constructor & Destructor BEGIN: //
-	/////////////////////////////////////
-
-	public:
-
-		_MACRO_CLASS_NAME_
-		(	std::string const _filename
-		,	size_t const _memsize = 25
-		) :	filename(_filename)
-		,	filereader(filename)
-		,	current_loc(0)
-		,	memloc(0)
-		,	limit(filereader.size())
-		,	memsize(shifter(_memsize))
-		{	lines.clear()
-		;	Alloc()
-		; }
-
-		~_MACRO_CLASS_NAME_(){}
-
-	///////////////////////////////////
-	// Constructor & Destructor END. //
-	///////////////////////////////////
-
-	} ;
+    ///////////////////////////////////
+    // Constructor & Destructor END. //
+    ///////////////////////////////////
+};
 
 #undef _MACRO_CLASS_NAME_
 
