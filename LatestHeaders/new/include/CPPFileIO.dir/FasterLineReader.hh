@@ -162,28 +162,29 @@ template <char endline> class _MACRO_CLASS_NAME_ {
   private:
     inline void CRAWL(size_t const i) {
         if (i < (BOUNDARIES.size() - 1)) {
-            size_t const start  = BOUNDARIES[i];
-            size_t const length = BOUNDARIES[i + 1] - BOUNDARIES[i];
-            for (size_t j = start; j < length; j++) {
-					printf("DEBUG LOOP\n");
+            size_t const start = BOUNDARIES[i];
+            size_t const end   = BOUNDARIES[i + 1];
+            for (size_t j = start; j < end; j++) {
                 if (READER(j) == endline) {
-						printf("DEBUG TRUE\n");
-                    BOUNDARIES[i] = j;
+                    BOUNDARIES[i] = j + 1;
                     return;
                 }
             }
         }
     }
 
-  public:
-    inline TYPE_BOUNDARIES const &get_boundaries(size_t const nums = 1) {
+    inline TYPE_BOUNDARIES const &GET_BOUNDARIES(size_t const nums = 1) {
         BOUNDARIES.resize(nums + 1);
         for (size_t i = 0; i <= nums; i++) {
             BOUNDARIES[i] = (LIMIT * i) / nums;
-			printf("DEBUG %zu %zu %zu %zu\n",LIMIT,i,nums,BOUNDARIES[i]);
         }
         for (size_t i = 1; i < nums; i++) { CRAWL(i); }
         return BOUNDARIES;
+    }
+
+  public:
+    inline TYPE_BOUNDARIES const &operator()(size_t const nums = 1) {
+        return GET_BOUNDARIES(nums);
     }
 
     _MACRO_CLASS_NAME_(std::string const filename)
