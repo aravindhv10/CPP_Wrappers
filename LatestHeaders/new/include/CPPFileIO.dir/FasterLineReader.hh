@@ -16,11 +16,9 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
     ////////////////////////
-
   public:
     using TYPE_SELF  = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_LINES = std::vector<std::string>;
-
     //////////////////////
     // Definitions END. //
     //////////////////////
@@ -28,7 +26,6 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     //////////////////////////
     // Data Elements BEGIN: //
     //////////////////////////
-
   private:
     std::string const filename;
     FileArray<char>   filereader;
@@ -40,7 +37,6 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     size_t const      memsize;
     std::string       data;
     size_t            max_i;
-
     ////////////////////////
     // Data Elements END. //
     ////////////////////////
@@ -48,13 +44,12 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     ///////////////////////////////////
     // Main Working Functions BEGIN: //
     ///////////////////////////////////
-
   private:
     inline void Alloc() {
         current_loc += memloc;
         memloc = 0;
-        max_i  = mymin(limit - current_loc, memsize); //
-        buffer = &(filereader(current_loc, max_i));   //
+        max_i  = mymin(limit - current_loc, memsize);
+        buffer = &(filereader(current_loc, max_i));
     }
 
     inline void got_separator() {
@@ -95,7 +90,6 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
             return lines;
         }
     }
-
     /////////////////////////////////
     // Main Working Functions END. //
     /////////////////////////////////
@@ -103,10 +97,8 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     ///////////////////////////
     // Main Interface BEGIN: //
     ///////////////////////////
-
   public:
     inline TYPE_LINES const &operator()() { return next(); }
-
     /////////////////////////
     // Main Interface END. //
     /////////////////////////
@@ -114,7 +106,6 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////
     // Constructor & Destructor BEGIN: //
     /////////////////////////////////////
-
   private:
     inline void init() {
         lines.clear();
@@ -133,11 +124,9 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
       : filename(_filename), filereader(filename), current_loc(_start),
         memloc(0), limit(_end), memsize(shifter(_memsize)) {
         init();
-		printf("DEBUG : fasterlinereader constructed %zu %zu %s\n",current_loc,limit,filename.c_str());
     }
 
     ~_MACRO_CLASS_NAME_() {}
-
     ///////////////////////////////////
     // Constructor & Destructor END. //
     ///////////////////////////////////
@@ -239,10 +228,10 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     // Data Elements BEGIN: //
     //////////////////////////
   private:
-    std::string const             FILENAME;
-    size_t const                  NTH;
-    std::vector<TYPE_LINE_READER> LINE_READER;
-    TYPE_DIVIDER                  DIVIDER;
+    std::string const FILENAME;
+    size_t const      NTH;
+    TYPE_LINE_READER *LINE_READER;
+    TYPE_DIVIDER      DIVIDER;
     ////////////////////////
     // Data Elements END. //
     ////////////////////////
@@ -252,15 +241,19 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////
   private:
     inline void CONSTRUCT() {
-        LINE_READER.reserve(NTH);
         auto const &boundaries = DIVIDER(NTH);
+        LINE_READER            = static_cast<TYPE_LINE_READER *>(
+          malloc(NTH * sizeof(TYPE_LINE_READER)));
         for (size_t i = 0; i < NTH; i++) {
-            LINE_READER.push_back(
-              TYPE_LINE_READER(boundaries[i], boundaries[i + 1], FILENAME));
+            new (&(LINE_READER[i]))
+              TYPE_LINE_READER(boundaries[i], boundaries[i + 1], FILENAME);
         }
     }
 
-    inline void DESTROY() {}
+    inline void DESTROY() {
+        for (size_t i = 0; i < NTH; i++) { LINE_READER[i].~FasterLineReader(); }
+        free(LINE_READER);
+    }
 
   public:
     _MACRO_CLASS_NAME_(std::string const filename, size_t const nth)
