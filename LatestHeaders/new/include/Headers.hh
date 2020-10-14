@@ -34,6 +34,7 @@
 #include <map>
 #include <set>
 #include <mutex>
+#include <memory>
 
 #ifdef USECBLAS
 	#include "cblas.h"

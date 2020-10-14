@@ -18,8 +18,7 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     ////////////////////////
 
   public:
-    using TYPE_SELF = _MACRO_CLASS_NAME_<seperator, newline>;
-
+    using TYPE_SELF  = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_LINES = std::vector<std::string>;
 
     //////////////////////
@@ -134,6 +133,7 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
       : filename(_filename), filereader(filename), current_loc(_start),
         memloc(0), limit(_end), memsize(shifter(_memsize)) {
         init();
+		printf("DEBUG : fasterlinereader constructed %zu %zu %s\n",current_loc,limit,filename.c_str());
     }
 
     ~_MACRO_CLASS_NAME_() {}
@@ -148,17 +148,33 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
 #define _MACRO_CLASS_NAME_ FileDivider
 
 template <char endline> class _MACRO_CLASS_NAME_ {
+
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
   public:
     using TYPE_SELF       = _MACRO_CLASS_NAME_<endline>;
     using TYPE_BOUNDARIES = std::vector<size_t>;
     using TYPE_READER     = FileArray<char const>;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
 
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
   private:
     std::string const FILENAME;
     TYPE_READER       READER;
     TYPE_BOUNDARIES   BOUNDARIES;
     size_t const      LIMIT;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
 
+    ///////////////////////////////////
+    // Main Working Functions BEGIN: //
+    ///////////////////////////////////
   private:
     inline void CRAWL(size_t const i) {
         if (i < (BOUNDARIES.size() - 1)) {
@@ -181,7 +197,13 @@ template <char endline> class _MACRO_CLASS_NAME_ {
         for (size_t i = 1; i < nums; i++) { CRAWL(i); }
         return BOUNDARIES;
     }
+    /////////////////////////////////
+    // Main Working Functions END. //
+    /////////////////////////////////
 
+    ///////////////////////
+    // Interfaces BEGIN: //
+    ///////////////////////
   public:
     inline TYPE_BOUNDARIES const &operator()(size_t const nums = 1) {
         return GET_BOUNDARIES(nums);
@@ -189,7 +211,79 @@ template <char endline> class _MACRO_CLASS_NAME_ {
 
     _MACRO_CLASS_NAME_(std::string const filename)
       : FILENAME(filename), READER(FILENAME), LIMIT(READER()) {}
+
     ~_MACRO_CLASS_NAME_() {}
+    /////////////////////
+    // Interfaces END. //
+    /////////////////////
+};
+
+#undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ ThreadedLineReader
+
+template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
+  public:
+    using TYPE_SELF        = _MACRO_CLASS_NAME_<seperator, newline>;
+    using TYPE_LINE_READER = FasterLineReader<seperator, newline>;
+    using TYPE_LINES       = typename TYPE_LINE_READER::TYPE_LINES;
+    using TYPE_DIVIDER     = FileDivider<newline>;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
+
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
+  private:
+    std::string const             FILENAME;
+    size_t const                  NTH;
+    std::vector<TYPE_LINE_READER> LINE_READER;
+    TYPE_DIVIDER                  DIVIDER;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
+
+    /////////////////////////////////////
+    // Constructor & Destructor BEGIN: //
+    /////////////////////////////////////
+  private:
+    inline void CONSTRUCT() {
+        LINE_READER.reserve(NTH);
+        auto const &boundaries = DIVIDER(NTH);
+        for (size_t i = 0; i < NTH; i++) {
+            LINE_READER.push_back(
+              TYPE_LINE_READER(boundaries[i], boundaries[i + 1], FILENAME));
+        }
+    }
+
+    inline void DESTROY() {}
+
+  public:
+    _MACRO_CLASS_NAME_(std::string const filename, size_t const nth)
+      : FILENAME(filename), NTH(nth), DIVIDER(FILENAME) {
+        CONSTRUCT();
+    }
+
+    ~_MACRO_CLASS_NAME_() { DESTROY(); }
+    ///////////////////////////////////
+    // Constructor & Destructor END. //
+    ///////////////////////////////////
+
+    ////////////////////////////
+    // Main Interfaces BEGIN: //
+    ////////////////////////////
+  public:
+    inline size_t            operator()() const { return NTH; }
+    inline TYPE_LINES const &operator()(size_t const i) {
+        return LINE_READER[i]();
+    }
+    //////////////////////////
+    // Main Interfaces END. //
+    //////////////////////////
 };
 
 #undef _MACRO_CLASS_NAME_
