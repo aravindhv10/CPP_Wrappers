@@ -232,6 +232,7 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     size_t const      NTH;
     TYPE_LINE_READER *LINE_READER;
     TYPE_DIVIDER      DIVIDER;
+    size_t const      MEMSIZE;
     ////////////////////////
     // Data Elements END. //
     ////////////////////////
@@ -245,8 +246,8 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
         LINE_READER            = static_cast<TYPE_LINE_READER *>(
           malloc(NTH * sizeof(TYPE_LINE_READER)));
         for (size_t i = 0; i < NTH; i++) {
-            new (&(LINE_READER[i]))
-              TYPE_LINE_READER(boundaries[i], boundaries[i + 1], FILENAME);
+            new (&(LINE_READER[i])) TYPE_LINE_READER(
+              boundaries[i], boundaries[i + 1], FILENAME, MEMSIZE);
         }
     }
 
@@ -256,8 +257,9 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    _MACRO_CLASS_NAME_(std::string const filename, size_t const nth)
-      : FILENAME(filename), NTH(nth), DIVIDER(FILENAME) {
+    _MACRO_CLASS_NAME_(std::string const filename, size_t const memsize = 30,
+                       size_t const nth = 4)
+      : FILENAME(filename), NTH(nth), DIVIDER(FILENAME), MEMSIZE(memsize) {
         CONSTRUCT();
     }
 
@@ -270,7 +272,8 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
     // Main Interfaces BEGIN: //
     ////////////////////////////
   public:
-    inline size_t            operator()() const { return NTH; }
+    inline size_t operator()() const { return NTH; }
+
     inline TYPE_LINES const &operator()(size_t const i) {
         return LINE_READER[i]();
     }
