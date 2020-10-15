@@ -4,6 +4,7 @@
 ////////////////////
 // Headers BEGIN: //
 ////////////////////
+#include "./D1.hh"
 #include "./FileArray.hh"
 //////////////////
 // Headers END. //
@@ -145,6 +146,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF       = _MACRO_CLASS_NAME_<endline>;
     using TYPE_BOUNDARIES = std::vector<size_t>;
     using TYPE_READER     = FileArray<char const>;
+    using TYPE_BUFFER     = Dynamic1DArray<char>;
     //////////////////////
     // Definitions END. //
     //////////////////////
@@ -186,6 +188,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
         for (size_t i = 1; i < nums; i++) { CRAWL(i); }
         return BOUNDARIES;
     }
+
     /////////////////////////////////
     // Main Working Functions END. //
     /////////////////////////////////
@@ -196,6 +199,29 @@ template <char endline> class _MACRO_CLASS_NAME_ {
   public:
     inline TYPE_BOUNDARIES const &operator()(size_t const nums = 1) {
         return GET_BOUNDARIES(nums);
+    }
+
+    inline void GET_BUFFER(size_t const val, std::vector<char> &in) {
+        if (BOUNDARIES.size() > val + 1) {
+            size_t const start  = BOUNDARIES[val];
+            size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
+            in.resize(length);
+            char const *buf = &(READER(start, length));
+            memcpy(&(in[0]), buf, length);
+        }
+    }
+
+    inline void GET_BUFFER(size_t const val, TYPE_BUFFER &in) {
+        if (BOUNDARIES.size() > val + 1) {
+            size_t const start  = BOUNDARIES[val];
+            size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
+            char const * buf    = &(READER(start, length));
+
+            in.~Dynamic1DArray();
+            new (&in) TYPE_BUFFER(length);
+
+            memcpy(in.GET_DATA(), buf, length);
+        }
     }
 
     _MACRO_CLASS_NAME_(std::string const filename)
