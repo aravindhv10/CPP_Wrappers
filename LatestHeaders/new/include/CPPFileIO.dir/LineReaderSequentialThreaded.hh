@@ -9,7 +9,7 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Definitions BEGIN: //
     ////////////////////////
   public:
-    using TYPE_SELF       = _MACRO_CLASS_NAME_<seperator,newline>;
+    using TYPE_SELF       = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_BUFFER     = char const;
     using TYPE_MAINREADER = FileArray<TYPE_BUFFER>;
     using TYPE_LINE       = std::vector<char>;
@@ -63,6 +63,7 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
   public:
     inline void GET_LINE(TYPE_LINE &in) {
+        in.clear();
         LOCK();
     FuncStart:
         if (FILE_OVER()) {
@@ -83,6 +84,7 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     }
 
     inline void GET_WORDS(TYPE_LINE &line, TYPE_WORDS &words) {
+        words.clear();
         GET_LINE(line);
         std::string word;
         word.reserve(line.size());
@@ -94,11 +96,12 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
                 word.push_back(line[i]);
             }
         }
+        if (word.size() > 0) { words.push_back(word); }
     }
 
     inline void GET_WORDS(TYPE_WORDS &words) {
-		TYPE_LINE line; 
-		GET_WORDS(line,words);
+        TYPE_LINE line;
+        GET_WORDS(line, words);
     }
     /////////////////////////////////
     // Main Working Functions END. //
