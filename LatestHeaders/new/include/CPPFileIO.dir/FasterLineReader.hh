@@ -6,6 +6,7 @@
 ////////////////////
 #include "./D1.hh"
 #include "./FileArray.hh"
+#include "./FileWriter.hh"
 //////////////////
 // Headers END. //
 //////////////////
@@ -135,6 +136,81 @@ template <char seperator = '\t', char newline = '\n'> class _MACRO_CLASS_NAME_ {
 
 #undef _MACRO_CLASS_NAME_
 
+#define _MACRO_CLASS_NAME_ BufferLineReader
+
+template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
+  public:
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
+    using TYPE_BUFFER = char const;
+    using TYPE_WORDS  = std::vector<std::string>;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
+
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
+  private:
+    size_t       MEM_LOC;
+    size_t const MEM_SIZE;
+    TYPE_BUFFER *BUFFER;
+    TYPE_WORDS   WORDS;
+    std::string  WORD;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
+
+    ///////////////////////////////////
+    // Main Working Functions BEGIN: //
+    ///////////////////////////////////
+  private:
+    inline TYPE_BUFFER &POP() {
+        TYPE_BUFFER &ret = BUFFER[MEM_LOC];
+        MEM_LOC          = MEM_LOC + 1;
+        return ret;
+    }
+
+    inline void APPEND_WORD() {
+        WORDS.push_back(WORD);
+        WORD.clear();
+    }
+
+    inline TYPE_WORDS const &GET_WORDS() {
+        WORD.clear();
+        WORDS.clear();
+        while (MEM_LOC < MEM_SIZE) {
+            TYPE_BUFFER tmp = POP();
+            switch (tmp) {
+                case seperator: APPEND_WORD(); break;
+                case newline: APPEND_WORD(); return WORDS;
+                default: WORD.push_back(tmp); break;
+            }
+        }
+        if (WORD.size() > 0) { APPEND_WORD(); }
+        return WORDS;
+    }
+
+  public:
+    /////////////////////////////////
+    // Main Working Functions END. //
+    /////////////////////////////////
+
+    inline TYPE_WORDS const &operator()() { return GET_WORDS(); }
+
+    _MACRO_CLASS_NAME_(TYPE_BUFFER *buffer, size_t const mem_size)
+      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0) {}
+
+    _MACRO_CLASS_NAME_(Dynamic1DArray<TYPE_BUFFER> &in)
+      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0) {}
+
+    ~_MACRO_CLASS_NAME_() {}
+};
+
+#undef _MACRO_CLASS_NAME_
+
 #define _MACRO_CLASS_NAME_ FileDivider
 
 template <char endline> class _MACRO_CLASS_NAME_ {
@@ -147,6 +223,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     using TYPE_BOUNDARIES = std::vector<size_t>;
     using TYPE_READER     = FileArray<char const>;
     using TYPE_BUFFER     = Dynamic1DArray<char>;
+    using TYPE_LOCKER     = std::mutex;
     //////////////////////
     // Definitions END. //
     //////////////////////
@@ -159,6 +236,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     TYPE_READER       READER;
     TYPE_BOUNDARIES   BOUNDARIES;
     size_t const      LIMIT;
+    TYPE_LOCKER       LOCKER;
     ////////////////////////
     // Data Elements END. //
     ////////////////////////
@@ -167,6 +245,9 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     // Main Working Functions BEGIN: //
     ///////////////////////////////////
   private:
+    inline void LOCK() { LOCKER.lock(); }
+    inline void UNLOCK() { LOCKER.unlock(); }
+
     inline void CRAWL(size_t const i) {
         if (i < (BOUNDARIES.size() - 1)) {
             size_t const start = BOUNDARIES[i];
@@ -202,6 +283,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     }
 
     inline void GET_BUFFER(size_t const val, std::vector<char> &in) {
+        LOCK();
         if (BOUNDARIES.size() > val + 1) {
             size_t const start  = BOUNDARIES[val];
             size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
@@ -209,9 +291,11 @@ template <char endline> class _MACRO_CLASS_NAME_ {
             char const *buf = &(READER(start, length));
             memcpy(&(in[0]), buf, length);
         }
+        UNLOCK();
     }
 
     inline void GET_BUFFER(size_t const val, TYPE_BUFFER &in) {
+        LOCK();
         if (BOUNDARIES.size() > val + 1) {
             size_t const start  = BOUNDARIES[val];
             size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
@@ -222,6 +306,11 @@ template <char endline> class _MACRO_CLASS_NAME_ {
 
             memcpy(in.GET_DATA(), buf, length);
         }
+        UNLOCK();
+    }
+
+    inline void operator()(size_t const val, TYPE_BUFFER &in) {
+        return GET_BUFFER(val, in);
     }
 
     _MACRO_CLASS_NAME_(std::string const filename)
@@ -231,6 +320,68 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     /////////////////////
     // Interfaces END. //
     /////////////////////
+};
+
+#undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ ThreadedTxt2Bin
+
+template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_DATA       = T;
+    using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_DATA, seperator, newline>;
+    using TYPE_DIVIDER    = FileDivider<newline>;
+    using TYPE_BOUNDARIES = typename TYPE_DIVIDER::TYPE_BOUNDARIES;
+    using TYPE_BUFFER     = typename TYPE_DIVIDER::TYPE_BUFFER;
+    using TYPE_READER     = BufferLineReader<seperator, newline>;
+
+  private:
+    size_t const      NTH;
+    std::string const FILENAME;
+    std::string const DIRNAME;
+    TYPE_DIVIDER      DIVIDER;
+    TYPE_BOUNDARIES   BOUNDARIES;
+
+  private:
+    inline std::string const GET_OUT_FILENAME(size_t const i) {
+        mkdir(DIRNAME.c_str(), 0755);
+        std::string ret = DIRNAME + "/out." + std::to_string(i) + ".bin";
+        return ret;
+    }
+
+    inline void WORK(size_t const index, int const bufsize = 30) {
+        TYPE_BUFFER buffer(0);
+        DIVIDER(index, buffer);
+        BufferLineReader<'\t', '\n'> reader(buffer.GET_DATA(), buffer());
+        FileWriter<TYPE_DATA>        writer(GET_OUT_FILENAME(index), bufsize);
+        TYPE_DATA                    tmpbuf;
+    MainLoop:
+        /* The main working loop: */ {
+            auto const &lines = reader();
+            if (lines.size() > 0) {
+                tmpbuf(lines);
+                writer(tmpbuf);
+                goto MainLoop;
+            }
+        }
+    }
+
+  public:
+    inline std::string operator()(size_t const index, int bufsize = 30) {
+        WORK(index, bufsize);
+        return GET_OUT_FILENAME();
+    }
+
+    _MACRO_CLASS_NAME_(size_t const nth, std::string const filename,
+                       std::string const dirname)
+      : NTH(nth), FILENAME(filename), DIRNAME(dirname), DIVIDER(FILENAME) {
+        BOUNDARIES = DIVIDER(NTH);
+        for (size_t i = 0; i < BOUNDARIES.size(); i++) {
+            printf("%zu\n", BOUNDARIES[i]);
+        }
+    }
+
+    ~_MACRO_CLASS_NAME_() {}
 };
 
 #undef _MACRO_CLASS_NAME_
