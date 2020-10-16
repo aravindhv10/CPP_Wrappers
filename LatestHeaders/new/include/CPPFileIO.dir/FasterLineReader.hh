@@ -7,6 +7,7 @@
 #include "./D1.hh"
 #include "./FileArray.hh"
 #include "./FileWriter.hh"
+#include "./Sorter.hh"
 //////////////////
 // Headers END. //
 //////////////////
@@ -327,6 +328,9 @@ template <char endline> class _MACRO_CLASS_NAME_ {
 #define _MACRO_CLASS_NAME_ ThreadedTxt2Bin
 
 template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
   public:
     using TYPE_DATA       = T;
     using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_DATA, seperator, newline>;
@@ -334,27 +338,47 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     using TYPE_BOUNDARIES = typename TYPE_DIVIDER::TYPE_BOUNDARIES;
     using TYPE_BUFFER     = typename TYPE_DIVIDER::TYPE_BUFFER;
     using TYPE_READER     = BufferLineReader<seperator, newline>;
+    using TYPE_BUFFER_LINE_READER = BufferLineReader<'\t', '\n'>;
+    using TYPE_BIN_WRITER         = FileWriter<TYPE_DATA>;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
 
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
   private:
     size_t const      NTH;
     std::string const FILENAME;
-    std::string const DIRNAME;
+    std::string const OUTPUTNAME;
     TYPE_DIVIDER      DIVIDER;
     TYPE_BOUNDARIES   BOUNDARIES;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
 
+    //////////////////////
+    // Filenames BEGIN: //
+    //////////////////////
   private:
+    inline std::string const DIRNAME() const { return OUTPUTNAME + ".dir"; }
+
     inline std::string const GET_OUT_FILENAME(size_t const i) {
-        mkdir(DIRNAME.c_str(), 0755);
-        std::string ret = DIRNAME + "/out." + std::to_string(i) + ".bin";
+        mkdir(DIRNAME().c_str(), 0755);
+        std::string ret = DIRNAME() + "/out." + std::to_string(i) + ".bin";
         return ret;
     }
+    ////////////////////
+    // Filenames END. //
+    ////////////////////
 
-    inline void WORK(size_t const index, int const bufsize = 30) {
-        TYPE_BUFFER buffer(0);
-        DIVIDER(index, buffer);
-        BufferLineReader<'\t', '\n'> reader(buffer.GET_DATA(), buffer());
-        FileWriter<TYPE_DATA>        writer(GET_OUT_FILENAME(index), bufsize);
-        TYPE_DATA                    tmpbuf;
+    ///////////////////////////////////
+    // Main Working Functions BEGIN: //
+    ///////////////////////////////////
+  private:
+    inline void TRANSLATE(TYPE_BUFFER_LINE_READER &reader,
+                          TYPE_BIN_WRITER &        writer) {
+        TYPE_DATA tmpbuf;
     MainLoop:
         /* The main working loop: */ {
             auto const &lines = reader();
@@ -367,14 +391,29 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    inline std::string operator()(size_t const index, int bufsize = 30) {
-        WORK(index, bufsize);
-        return GET_OUT_FILENAME();
+    inline std::string const work(size_t const index,
+                                  bool const   process_header = true,
+                                  int const    bufsize        = 20) {
+        TYPE_BUFFER buffer(0);
+        DIVIDER(index, buffer);
+        TYPE_BUFFER_LINE_READER reader(buffer.GET_DATA(), buffer());
+        TYPE_BIN_WRITER         writer(GET_OUT_FILENAME(index), bufsize);
+        if ((index == 0) && (process_header)) { reader(); }
+        TRANSLATE(reader, writer);
+        return GET_OUT_FILENAME(index);
     }
 
+    inline void sort(size_t const index) {
+        SortFile<TYPE_DATA>(GET_OUT_FILENAME(index));
+    }
+    /////////////////////////////////
+    // Main Working Functions END. //
+    /////////////////////////////////
+
     _MACRO_CLASS_NAME_(size_t const nth, std::string const filename,
-                       std::string const dirname)
-      : NTH(nth), FILENAME(filename), DIRNAME(dirname), DIVIDER(FILENAME) {
+                       std::string const outputname)
+      : NTH(nth), FILENAME(filename), OUTPUTNAME(outputname),
+        DIVIDER(FILENAME) {
         BOUNDARIES = DIVIDER(NTH);
         for (size_t i = 0; i < BOUNDARIES.size(); i++) {
             printf("%zu\n", BOUNDARIES[i]);
