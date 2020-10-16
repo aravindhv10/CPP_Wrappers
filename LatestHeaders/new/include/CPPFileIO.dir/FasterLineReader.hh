@@ -5,6 +5,7 @@
 // Headers BEGIN: //
 ////////////////////
 #include "./D1.hh"
+#include "./ExternalPrograms.hh"
 #include "./FileArray.hh"
 #include "./FileWriter.hh"
 #include "./Sorter.hh"
@@ -361,12 +362,37 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Filenames BEGIN: //
     //////////////////////
   private:
-    inline std::string const DIRNAME() const { return OUTPUTNAME + ".dir"; }
+    static inline void RM(std::string const filename) {
+        ExternalStarter<true>::GET("/bin/rm")("-vf")("--")(filename);
+    }
+
+    static inline void RMDIR(std::string const filename) {
+        ExternalStarter<true>::GET("/bin/rmdir")("-v")("--")(filename);
+    }
+
+    static inline void MV(std::string const filename, std::string const outfilename) {
+        ExternalStarter<true>::GET("/bin/mv")("-vf")("--")(filename)(outfilename);
+    }
+
+    inline std::string const DIRNAME() const {
+        std::string const ret = OUTPUTNAME + ".dir/";
+        mkdir(ret.c_str(), 0755);
+        return ret;
+    }
 
     inline std::string const GET_OUT_FILENAME(size_t const i) {
-        mkdir(DIRNAME().c_str(), 0755);
-        std::string ret = DIRNAME() + "/out." + std::to_string(i) + ".bin";
+        std::string const ret = DIRNAME() + "out." + std::to_string(i) + ".bin";
         return ret;
+    }
+
+    inline std::string const GET_OUT_FILENAME(size_t const i, size_t const j) {
+        if (i == j) {
+            return GET_OUT_FILENAME(i);
+        } else {
+            std::string const ret = DIRNAME() + "out." + std::to_string(i) +
+                                    "-" + std::to_string(j) + ".bin";
+            return ret;
+        }
     }
     ////////////////////
     // Filenames END. //
@@ -378,46 +404,126 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
   private:
     inline void TRANSLATE(TYPE_BUFFER_LINE_READER &reader,
                           TYPE_BIN_WRITER &        writer) {
+
         TYPE_DATA tmpbuf;
+
     MainLoop:
         /* The main working loop: */ {
             auto const &lines = reader();
             if (lines.size() > 0) {
                 tmpbuf(lines);
-                writer(tmpbuf);
+                tmpbuf(writer);
                 goto MainLoop;
             }
         }
+    }
+
+    inline std::string const MERGE_FILE(size_t const i1, size_t const i2, size_t const nth) {
+
+        size_t const status = (1 * (i1 == i2)) + (2 * ((i1 + 1) == i2)) +
+                              (4 * ((i1 + 1) < i2)) + (8 * (i2 < i1));
+
+        switch (status) {
+
+            case 1:
+                /* Nothing to be done: */ { return GET_OUT_FILENAME(i1); }
+
+            case 2:
+                /* Merge only 2 files: */ {
+                    std::string const name_i1  = GET_OUT_FILENAME(i1);
+                    std::string const name_i2  = GET_OUT_FILENAME(i2);
+                    std::string const name_out = GET_OUT_FILENAME(i1, i2);
+                    MergeFile<TYPE_DATA>(name_i1, name_i2, name_out);
+                    RM(name_i1);
+                    RM(name_i2);
+                    return name_out;
+                }
+
+            case 4:
+                /* Merge only 2 files: */ {
+                    size_t const mid     = (i1 + i2) / 2;
+                    size_t const new_nth = nth >> 1;
+                    if (nth != 0) {
+                        ForkMe forker;
+                        if (forker.InKid()) {
+                            MERGE_FILE(i1, mid, new_nth);
+                        } else {
+                            MERGE_FILE(mid + 1, i2, new_nth);
+                        }
+                    } else {
+                        MERGE_FILE(i1, mid, 0);
+                        MERGE_FILE(mid + 1, i2, 0);
+                    }
+                    std::string const name_i1  = GET_OUT_FILENAME(i1, mid);
+                    std::string const name_i2  = GET_OUT_FILENAME(mid+1, i2);
+                    std::string const name_out = GET_OUT_FILENAME(i1, i2);
+                    MergeFile<TYPE_DATA>(name_i1, name_i2, name_out);
+                    RM(name_i1);
+                    RM(name_i2);
+                    return name_out;
+                }
+
+            case 8:
+                /* Wrong Invocation: */ {
+                    return MERGE_FILE(i2, i1, nth);
+                }
+        }
+        return GET_OUT_FILENAME(i2, i1);
+    }
+
+    inline void SORT(size_t const index) {
+        SortFile<TYPE_DATA>(GET_OUT_FILENAME(index));
     }
 
   public:
     inline std::string const work(size_t const index,
                                   bool const   process_header = true,
                                   int const    bufsize        = 20) {
+
         TYPE_BUFFER buffer(0);
         DIVIDER(index, buffer);
+
         TYPE_BUFFER_LINE_READER reader(buffer.GET_DATA(), buffer());
         TYPE_BIN_WRITER         writer(GET_OUT_FILENAME(index), bufsize);
+
         if ((index == 0) && (process_header)) { reader(); }
         TRANSLATE(reader, writer);
+
         return GET_OUT_FILENAME(index);
     }
 
-    inline void sort(size_t const index) {
-        SortFile<TYPE_DATA>(GET_OUT_FILENAME(index));
+    inline void sort_all(size_t const nth) {
+
+#pragma omp parallel for
+        for (size_t i = 0; i < nth; i++) {
+            for (size_t j = 0; j < NTH; j += nth) { SORT(j); }
+        }
+
+		std::string const outfilename = MERGE_FILE(0, NTH - 1, nth);
+		MV(outfilename,OUTPUTNAME);
+		RMDIR(DIRNAME());
+
+    }
+
+    inline void do_all(size_t const nth = 8, bool const hasheader = true) {
+
+#pragma omp parallel for
+        for (size_t i = 0; i < nth; i++) {
+            for (size_t j = i; j < NTH; j += nth) { work(j, hasheader); }
+        }
+
+        sort_all(nth);
     }
     /////////////////////////////////
     // Main Working Functions END. //
     /////////////////////////////////
 
+  public:
     _MACRO_CLASS_NAME_(size_t const nth, std::string const filename,
                        std::string const outputname)
       : NTH(nth), FILENAME(filename), OUTPUTNAME(outputname),
         DIVIDER(FILENAME) {
         BOUNDARIES = DIVIDER(NTH);
-        for (size_t i = 0; i < BOUNDARIES.size(); i++) {
-            printf("%zu\n", BOUNDARIES[i]);
-        }
     }
 
     ~_MACRO_CLASS_NAME_() {}
