@@ -472,7 +472,9 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     }
 
     inline void SORT(size_t const index) {
-        SortFile<TYPE_DATA>(GET_OUT_FILENAME(index));
+		std::string const name = GET_OUT_FILENAME(index);
+		printf("Sorting %s\n",name.c_str());
+        SortFile<TYPE_DATA>(name);
     }
 
   public:
@@ -496,7 +498,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
 #pragma omp parallel for
         for (size_t i = 0; i < nth; i++) {
-            for (size_t j = 0; j < NTH; j += nth) { SORT(j); }
+            for (size_t j = i; j < NTH; j += nth) { SORT(j); }
         }
 
 		std::string const outfilename = MERGE_FILE(0, NTH - 1, nth);
