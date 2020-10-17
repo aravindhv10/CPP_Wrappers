@@ -149,7 +149,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
   private:
     inline void SORT(size_t const index) {
         std::string const name = GET_OUT_FILENAME(index);
-        TYPE_SELF::SORT(name);
+        TYPE_SLAVE::SORT(name);
     }
 
   public:
@@ -168,9 +168,9 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Sorting END. //
     //////////////////
 
-/////////////////////////
-// Main TXT2BIN BEGIN: //
-/////////////////////////
+    /////////////////////////
+    // Main TXT2BIN BEGIN: //
+    /////////////////////////
   public:
     inline std::string const work(size_t const index,
                                   bool const   process_header = true) {
@@ -195,9 +195,9 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
         return GET_OUT_FILENAME(index);
     }
-///////////////////////
-// Main TXT2BIN END. //
-///////////////////////
+    ///////////////////////
+    // Main TXT2BIN END. //
+    ///////////////////////
 
   public:
     inline void do_all(size_t const nth = 8, bool const hasheader = true) {
@@ -222,16 +222,13 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
     ~_MACRO_CLASS_NAME_() {}
 
-	static inline void Do_All
-	(	std::string const inputname
-	,	std::string const outputname
-	,	size_t const n_splits
-	,	size_t const n_threads
-	,	bool const hasheader = true
-	) {
-		TYPE_SELF slave (n_splits,inputname,outputname) ;
-		slave.do_all(n_threads,hasheader);
-	}
+    static inline void Do_All(std::string const inputname,
+                              std::string const outputname,
+                              size_t const n_splits, size_t const n_threads,
+                              bool const hasheader = true) {
+        TYPE_SELF slave(n_splits, inputname, outputname);
+        slave.do_all(n_threads, hasheader);
+    }
 };
 
 #undef _MACRO_CLASS_NAME_
