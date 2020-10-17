@@ -221,6 +221,17 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     }
 
     ~_MACRO_CLASS_NAME_() {}
+
+	static inline void Do_All
+	(	std::string const inputname
+	,	std::string const outputname
+	,	size_t const n_splits
+	,	size_t const n_threads
+	,	bool const hasheader = true
+	) {
+		TYPE_SELF slave (n_splits,inputname,outputname) ;
+		slave.do_all(n_threads,hasheader);
+	}
 };
 
 #undef _MACRO_CLASS_NAME_
