@@ -1,5 +1,7 @@
 #!/bin/bash
 cd "$('dirname' '--' "${0}")"
-'g++' './AnalyzeLines_CSV.cc' '-Ofast' '-static' '-mtune=native' '-march=native' '-o' './AnalyzeLines_CSV.exe'
-'g++' './AnalyzeLines_TSV.cc' '-Ofast' '-static' '-mtune=native' '-march=native' '-o' './AnalyzeLines_TSV.exe'
+'./compile' './AnalyzeLines_CSV.cc'
+'./compile' './AnalyzeLines_TSV.cc'
+'./compile' './NewAnalyzeTSV.cc'
+'./compile' './NewAnalyzeCSV.cc'
 exit '0'

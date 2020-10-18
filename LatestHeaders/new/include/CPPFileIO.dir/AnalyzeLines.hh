@@ -5,6 +5,7 @@
 // Includes BEGIN: //
 /////////////////////
 #include "./Basic.hh"
+#include "./FastTXT2BIN.hh"
 #include "./FileFD.hh"
 ///////////////////
 // Includes END. //
@@ -38,6 +39,9 @@ class _MACRO_CLASS_NAME_ {
     // Data Elements END. //
     ////////////////////////
 
+    ////////////////////
+    // Merging BEGIN: //
+    ////////////////////
   private:
     inline void Merge(TYPE_SELF const &other) {
 
@@ -59,9 +63,10 @@ class _MACRO_CLASS_NAME_ {
     }
 
   public:
-	inline void operator () (TYPE_SELF const & other) {
-		Merge(other);
-	}
+    inline void operator()(TYPE_SELF const &other) { Merge(other); }
+    //////////////////
+    // Merging END. //
+    //////////////////
 
     ////////////////////
     // File IO BEGIN: //
@@ -381,4 +386,83 @@ class _MACRO_CLASS_NAME_ {
 };
 
 #undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ AnalyzeSlave
+
+class _MACRO_CLASS_NAME_ {
+
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
+  public:
+    using TYPE_SELF     = _MACRO_CLASS_NAME_;
+    using TYPE_WORD     = std::string;
+    using TYPE_LINE     = std::vector<std::string>;
+    using TYPE_ANALYZER = AnalyzeLines;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
+
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
+  private:
+    TYPE_WORD const FILENAME;
+    TYPE_ANALYZER   ANALYZER;
+    size_t          COUNT;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
+
+	////////////////////////////////
+	// Required interfaces BEGIN: //
+	////////////////////////////////
+  public:
+    static inline void SORT(TYPE_WORD const in) {}
+    static inline void MERGE(TYPE_WORD const in1, TYPE_WORD const in2,
+                             TYPE_WORD const out) {
+        TYPE_ANALYZER A1;
+        TYPE_ANALYZER A2;
+        A1 << in1;
+        A2 << in2;
+        A1(A2);
+        A1 >> out;
+    }
+
+    inline void operator()(TYPE_LINE const &in) {
+        if (COUNT == 0) {
+            ANALYZER.Read_Labels(in);
+        } else {
+            ANALYZER(in);
+        }
+        COUNT++;
+    }
+
+    _MACRO_CLASS_NAME_(std::string const filename) : FILENAME(filename) {
+        COUNT = 0;
+    }
+
+    ~_MACRO_CLASS_NAME_() { ANALYZER >> FILENAME; }
+	//////////////////////////////
+	// Required interfaces END. //
+	//////////////////////////////
+
+    template <char seperator, char newline>
+    static inline void PrepareFileSchema(std::string const infilename,
+                                  std::string const outfilename,
+                                  size_t const      n_splits  = 16,
+                                  size_t const      n_threads = 4) {
+        FastTXT2BIN<TYPE_SELF, seperator, newline>::Do_All(
+          infilename, outfilename, n_splits, n_threads, false);
+		TYPE_ANALYZER analyze;
+		analyze << outfilename;
+		std::string const headername = outfilename + ".hh";
+		FILE * f = fopen(headername.c_str(),"w");
+		analyze.show(f);
+		fclose(f);
+    }
+};
+
+#undef _MACRO_CLASS_NAME_
+
 #endif
