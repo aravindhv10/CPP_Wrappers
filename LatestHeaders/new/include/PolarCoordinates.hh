@@ -184,6 +184,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////////
 
   public:
+    _MACRO_CLASS_NAME_(TYPE_PAIR const & in) {this[0]=in;}
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
 };
