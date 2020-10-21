@@ -5,6 +5,7 @@
 #include "./StaticArray.hh"
 
 #define _MACRO_CLASS_NAME_ D2GPS_Coordinates
+
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
@@ -54,7 +55,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////////
   public:
     inline TYPE_FLOAT THETA() const {
-        return (M_PI / 2.0) - (latitude * M_PI / 180.0); //
+        return (M_PI / 2.0) - (latitude * M_PI / 180.0);
     }
 
     inline TYPE_FLOAT PHI() const { return (longitude * M_PI / 180.0); }
@@ -115,10 +116,10 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     inline void FROM_CARTITION(TYPE_CARTITION const &in) {
 
-        TYPE_FLOAT const RT2 = std::pow(in[0], 2) + std::pow(in[1], 2); //
+        TYPE_FLOAT const RT2 = std::pow(in[0], 2) + std::pow(in[1], 2);
         TYPE_FLOAT const RT  = std::sqrt(RT2);
 
-        TYPE_FLOAT const R2 = RT2 + std::pow(in[2], 2); //
+        TYPE_FLOAT const R2 = RT2 + std::pow(in[2], 2);
         TYPE_FLOAT const R  = std::sqrt(R2);
 
         TYPE_FLOAT theta = -9999;
@@ -183,11 +184,24 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main Functions END.} //
     //////////////////////////
 
+	////////////////////////
+	// Convinence BEGIN:{ //
+	////////////////////////
   public:
+	inline TYPE_FLOAT operator () (TYPE_SELF const & in) const {
+		return this->HaverSineDistance(in);
+	}
+
     _MACRO_CLASS_NAME_(TYPE_PAIR const & in) {this[0]=in;}
+
     _MACRO_CLASS_NAME_() {}
+
     ~_MACRO_CLASS_NAME_() {}
+	//////////////////////
+	// Convinence END.} //
+	//////////////////////
 };
+
 #undef _MACRO_CLASS_NAME_
 
 #endif

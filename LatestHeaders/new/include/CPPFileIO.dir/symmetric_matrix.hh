@@ -40,7 +40,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////////////////////
   private:
     static inline TYPE_INT MAKE_MAP(TYPE_INT const y, TYPE_INT const x) {
-        return x + ((y * (y + 1)) >> 1);
+        return x + ((y * (y + 1)) / 2);
     }
 
     static inline TYPE_INT MAKE_MAP_SAFE(TYPE_INT const y, TYPE_INT const x) {
@@ -89,7 +89,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////////////////////
     // Constructor & Destructor BEGIN:{ //
     //////////////////////////////////////
-    _MACRO_CLASS_NAME_(TYPE_INT const n) : N(n), STORE((N * (N + 1)) >> 2) {}
+    _MACRO_CLASS_NAME_(TYPE_INT const n) : N(n), STORE((N * (N + 1)) / 2) {}
     ~_MACRO_CLASS_NAME_() {}
     ////////////////////////////////////
     // Constructor & Destructor END.} //
