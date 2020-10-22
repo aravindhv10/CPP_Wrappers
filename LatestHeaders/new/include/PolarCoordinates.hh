@@ -184,22 +184,135 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main Functions END.} //
     //////////////////////////
 
-	////////////////////////
-	// Convinence BEGIN:{ //
-	////////////////////////
+    ////////////////////////
+    // Convinence BEGIN:{ //
+    ////////////////////////
   public:
-	inline TYPE_FLOAT operator () (TYPE_SELF const & in) const {
-		return this->HaverSineDistance(in);
-	}
+    inline TYPE_FLOAT operator()(TYPE_SELF const &in) const {
+        return this->HaverSineDistance(in);
+    }
 
-    _MACRO_CLASS_NAME_(TYPE_PAIR const & in) {this[0]=in;}
+    _MACRO_CLASS_NAME_(TYPE_PAIR const &in) { this[0] = in; }
 
     _MACRO_CLASS_NAME_() {}
 
     ~_MACRO_CLASS_NAME_() {}
-	//////////////////////
-	// Convinence END.} //
-	//////////////////////
+    //////////////////////
+    // Convinence END.} //
+    //////////////////////
+};
+
+#undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ VectorHaversineDistance
+
+template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_FLOAT   = TF;
+    using TYPE_INT     = TI;
+    using TYPE_ELEMENT = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
+    using TYPE_ARRAY  = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_OUTPUTS = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
+
+  private:
+    TYPE_INPUTS  INPUTS;
+    TYPE_OUTPUTS OUTPUTS;
+
+  private:
+    inline bool IS_VALID(TYPE_INT const i) const {
+        return INPUTS(i).IS_VALID();
+    }
+
+    static inline TYPE_FLOAT CLAMP(TYPE_FLOAT const in) {
+        bool const val1 = (1 < in);
+        bool const val2 = (in < -1);
+        bool const val3 = (!val1) && (!val2);
+        return val1 - val2 + (in * val3);
+    }
+
+    inline void EVAL_OUTPUTS() {
+        TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
+
+        TYPE_ARRAY sin_theta(INPUTS());
+        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+            sin_theta(i) = INPUTS(i).SIN_THETA();
+        }
+
+        TYPE_ARRAY cos_theta(INPUTS());
+        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+            cos_theta(i) = INPUTS(i).COS_THETA();
+        }
+
+        TYPE_ARRAY sin_phi(INPUTS());
+        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+            sin_phi(i) = INPUTS(i).SIN_PHI();
+        }
+
+        TYPE_ARRAY cos_phi(INPUTS());
+        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+            cos_phi(i) = INPUTS(i).COS_PHI();
+        }
+
+#define _MACRO_X_(i) (sin_theta(i) * cos_phi(i))
+#define _MACRO_Y_(i) (sin_theta(i) * sin_phi(i))
+#define _MACRO_Z_(i) (cos_theta(i))
+
+#define _MACRO_DOT_(i, j)                                                      \
+    (_MACRO_X_(i) * _MACRO_X_(j)) + (_MACRO_Y_(i) * _MACRO_Y_(j)) +            \
+      (_MACRO_Z_(i) * _MACRO_Z_(j))
+
+        TYPE_OUTPUTS dots(INPUTS());
+        for (TYPE_INT y = 1; y < INPUTS(); y++) {
+            for (TYPE_INT x = 0; x < y; x++) {
+                dots(y, x) = CLAMP(_MACRO_DOT_(y, x));
+            }
+        }
+
+#undef _MACRO_DOT_
+#undef _MACRO_Z_
+#undef _MACRO_Y_
+#undef _MACRO_X_
+
+        /* Evaluate the dot product: */ {
+            auto &tmp = dots();
+            for (TYPE_INT i = 0; i < tmp(); i++) {
+                tmp(i) = std::acos(tmp(i)) * r;
+            }
+        }
+
+        for (TYPE_INT y = 1; y < INPUTS(); y++) {
+            for (TYPE_INT x = 0; x < y; x++) {
+                bool const val = IS_VALID(y) && IS_VALID(x);
+                if (val) {
+                    OUTPUTS(y, x) = CPPFileIO::mymod(dots(y, x));
+                } else {
+                    OUTPUTS(y, x) = -9999;
+                }
+            }
+        }
+        for (TYPE_INT y = 0; y < INPUTS(); y++) { OUTPUTS(y, y) = 0; }
+    }
+
+  public:
+    inline TYPE_OUTPUTS const &operator()() const { return OUTPUTS; }
+
+    _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs, TYPE_INT const n)
+      : INPUTS(inputs, n), OUTPUTS(INPUTS()) {
+        EVAL_OUTPUTS();
+    }
+
+    _MACRO_CLASS_NAME_(std::vector<TYPE_ELEMENT> const &inputs)
+      : INPUTS(&(inputs[0]), inputs.size()), OUTPUTS(INPUTS()) {
+        EVAL_OUTPUTS();
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_INPUTS &inputs)
+      : INPUTS(inputs.GET_DATA(), inputs()), OUTPUTS(inputs()) {
+        EVAL_OUTPUTS();
+    }
+
+    ~_MACRO_CLASS_NAME_() {}
 };
 
 #undef _MACRO_CLASS_NAME_
