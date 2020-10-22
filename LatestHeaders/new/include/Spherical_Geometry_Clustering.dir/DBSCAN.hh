@@ -1,7 +1,9 @@
 #ifndef _HEADER_GUARD_FINALS_DBSCAN_
 #define _HEADER_GUARD_FINALS_DBSCAN_
 
-#include "./StaticArray.hh"
+#include "../Spherical_Geometry_Clustering.hh"
+
+using namespace Spherical_Geometry_Clustering;
 
 #define _MACRO_CLASS_NAME_ Point
 #define _MACRO_BASE_NAME_ D2GPS_Coordinates<TR>
