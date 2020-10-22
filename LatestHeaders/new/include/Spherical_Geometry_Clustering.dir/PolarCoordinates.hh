@@ -1,9 +1,18 @@
-#ifndef _HEADER_GUARD_PolarCoordinates_
-#define _HEADER_GUARD_PolarCoordinates_
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_PolarCoordinates_
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_PolarCoordinates_
 
-#include "./Headers.hh"
+/////////////////////
+// Headers BEGIN:{ //
+/////////////////////
+#include "../StaticArray.hh"
 #include "./Simple_KDE.hh"
-#include "./StaticArray.hh"
+///////////////////
+// Headers END.} //
+///////////////////
+
+/////////////////////////////
+// GPS Coordinates BEGIN:{ //
+/////////////////////////////
 
 #define _MACRO_CLASS_NAME_ D2GPS_Coordinates
 
@@ -205,21 +214,43 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
 #undef _MACRO_CLASS_NAME_
 
+///////////////////////////
+// GPS Coordinates END.} //
+///////////////////////////
+
+/////////////////////////////////
+// Distance Evaluation BEGIN:{ //
+/////////////////////////////////
+
 #define _MACRO_CLASS_NAME_ VectorHaversineDistance
 
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
-  public:
-    using TYPE_FLOAT   = TF;
-    using TYPE_INT     = TI;
-    using TYPE_ARRAY   = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_OUTPUTS = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_KDE     = Simple_KDE<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_ELEMENT = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
 
+	/////////////////////////
+	// Definitions BEGIN:{ //
+	/////////////////////////
+  public:
+    using TYPE_FLOAT    = TF;
+    using TYPE_INT      = TI;
+    using TYPE_ARRAY    = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_OUTPUTS  = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_KDE      = Simple_KDE<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_ELEMENT  = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_INPUTS   = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
+	using TYPE_VALIDITY = CPPFileIO::Dynamic1DArray <bool, TYPE_INT>;
+	///////////////////////
+	// Definitions END.} //
+	///////////////////////
+
+	///////////////////////////
+	// Data Elements BEGIN:{ //
+	///////////////////////////
   private:
     TYPE_INPUTS  INPUTS;
     TYPE_OUTPUTS OUTPUTS;
+	/////////////////////////
+	// Data Elements END.} //
+	/////////////////////////
 
   private:
     inline bool IS_VALID(TYPE_INT const i) const {
@@ -235,6 +266,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     inline void EVAL_OUTPUTS() {
         TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
+
+		TYPE_VALIDITY VALIDITY(INPUTS());
+		for(TYPE_INT i=0;i<INPUTS();i++){
+			VALIDITY(i) = INPUTS(i).IS_VALID();
+		}
 
         TYPE_ARRAY sin_theta(INPUTS());
         for (TYPE_INT i = 0; i < INPUTS(); i++) {
@@ -264,10 +300,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     (_MACRO_X_(i) * _MACRO_X_(j)) + (_MACRO_Y_(i) * _MACRO_Y_(j)) +            \
       (_MACRO_Z_(i) * _MACRO_Z_(j))
 
-        TYPE_OUTPUTS dots(INPUTS());
         for (TYPE_INT y = 1; y < INPUTS(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
-                dots(y, x) = CLAMP(_MACRO_DOT_(y, x));
+                OUTPUTS(y, x) = CLAMP(_MACRO_DOT_(y, x));
             }
         }
 
@@ -277,7 +312,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 #undef _MACRO_X_
 
         /* Evaluate the arc length: */ {
-            auto &tmp = dots();
+            auto &tmp = OUTPUTS();
             for (TYPE_INT i = 0; i < tmp(); i++) {
                 tmp(i) = std::acos(tmp(i)) * r;
             }
@@ -285,9 +320,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
         for (TYPE_INT y = 1; y < INPUTS(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
-                bool const val = IS_VALID(y) && IS_VALID(x);
+                bool const val = VALIDITY(y) && VALIDITY(x);
                 if (val) {
-                    OUTPUTS(y, x) = CPPFileIO::mymod(dots(y, x));
+                    OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
                 } else {
                     OUTPUTS(y, x) = -9999;
                 }
@@ -323,5 +358,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 };
 
 #undef _MACRO_CLASS_NAME_
+
+///////////////////////////////
+// Distance Evaluation END.} //
+///////////////////////////////
 
 #endif
