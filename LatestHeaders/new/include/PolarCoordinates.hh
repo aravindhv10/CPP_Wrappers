@@ -2,6 +2,7 @@
 #define _HEADER_GUARD_PolarCoordinates_
 
 #include "./Headers.hh"
+#include "./Simple_KDE.hh"
 #include "./StaticArray.hh"
 
 #define _MACRO_CLASS_NAME_ D2GPS_Coordinates
@@ -210,10 +211,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT   = TF;
     using TYPE_INT     = TI;
+    using TYPE_ARRAY   = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_OUTPUTS = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_KDE     = Simple_KDE<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ELEMENT = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
     using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
-    using TYPE_ARRAY  = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_OUTPUTS = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
 
   private:
     TYPE_INPUTS  INPUTS;
@@ -274,7 +276,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 #undef _MACRO_Y_
 #undef _MACRO_X_
 
-        /* Evaluate the dot product: */ {
+        /* Evaluate the arc length: */ {
             auto &tmp = dots();
             for (TYPE_INT i = 0; i < tmp(); i++) {
                 tmp(i) = std::acos(tmp(i)) * r;
@@ -291,11 +293,16 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                 }
             }
         }
+
         for (TYPE_INT y = 0; y < INPUTS(); y++) { OUTPUTS(y, y) = 0; }
     }
 
   public:
     inline TYPE_OUTPUTS const &operator()() const { return OUTPUTS; }
+
+    inline TYPE_INT const find_kde_center(TYPE_FLOAT const bandwidth) {
+        return TYPE_KDE::find_kde_center(OUTPUTS, bandwidth);
+    }
 
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs, TYPE_INT const n)
       : INPUTS(inputs, n), OUTPUTS(INPUTS()) {
