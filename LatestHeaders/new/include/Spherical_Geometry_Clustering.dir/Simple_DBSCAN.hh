@@ -116,7 +116,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         RESET();
         COUNT_NEIGHBOURS();
         DFS();
-		printf("DFS\n");
     }
     //////////////////////////////////
     // Main Working Functions END.} //

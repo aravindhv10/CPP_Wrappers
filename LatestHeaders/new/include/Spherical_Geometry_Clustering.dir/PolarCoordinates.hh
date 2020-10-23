@@ -255,6 +255,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Data Elements END.} //
     /////////////////////////
 
+    ///////////////////////////////////
+    // Convinence / Wrappers BEGIN:{ //
+    ///////////////////////////////////
   private:
     inline bool IS_VALID(TYPE_INT const i) const {
         return INPUTS(i).IS_VALID();
@@ -266,7 +269,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         bool const val3 = (!val1) && (!val2);
         return val1 - val2 + (in * val3);
     }
+    /////////////////////////////////
+    // Convinence / Wrappers END.} //
+    /////////////////////////////////
 
+    ////////////////////////////////////
+    // Main Working Functions BEGIN:{ //
+    ////////////////////////////////////
+  private:
     inline void EVAL_OUTPUTS() {
         TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
 
@@ -322,21 +332,39 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         }
 
         for (TYPE_INT y = 1; y < INPUTS(); y++) {
-            for (TYPE_INT x = 0; x < y; x++) {
-                bool const val = VALIDITY(y) && VALIDITY(x);
-                if (val) {
-                    OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
-                } else {
-                    OUTPUTS(y, x) = -9999;
+            if (VALIDITY(y)) {
+                for (TYPE_INT x = 0; x < y; x++) {
+                    if (VALIDITY(x)) {
+                        OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
+                    } else {
+                        OUTPUTS(y, x) = -9999;
+                    }
                 }
+            } else {
+                for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }
             }
         }
 
-        for (TYPE_INT y = 0; y < INPUTS(); y++) { OUTPUTS(y, y) = 0; }
+        for (TYPE_INT y = 0; y < INPUTS(); y++) {
+            if (VALIDITY(y)) {
+                OUTPUTS(y, y) = 0;
+            } else {
+                OUTPUTS(y, y) = -9999;
+            }
+        }
     }
 
   public:
     inline TYPE_OUTPUTS const &get_distances() const { return OUTPUTS; }
+    //////////////////////////////////
+    // Main Working Functions END.} //
+    //////////////////////////////////
+
+	////////////////////////////////
+	// Convinent wrappers BEGIN:{ //
+	////////////////////////////////
+  public:
+    inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
 
     inline TYPE_ELEMENT const &find_kde_center(TYPE_FLOAT const bandwidth) {
         return INPUTS(TYPE_KDE::find_kde_center(OUTPUTS, bandwidth));
@@ -352,7 +380,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             in.resize(num_clusters);
             auto const &element_clusters = dbscan.get_element_cluster();
             for (TYPE_INT i = 0; i < element_clusters(); i++) {
-                in[element_clusters(i)].push_back(INPUTS(i));
+                TYPE_INT const cluster_idx = element_clusters(i);
+                if (cluster_idx >= 0) { in[cluster_idx].push_back(INPUTS(i)); }
             }
         }
     }
@@ -363,15 +392,19 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         in.clear();
         std::vector<TYPE_ELEMENTS> clusters;
         find_dbscan_clusters(clusters, eps, min_pts);
-		return;
         for (TYPE_INT i = 0; i < clusters.size(); i++) {
             TYPE_SELF tmp(clusters[i]);
             in.push_back(tmp.find_kde_center(bandwidth));
         }
     }
+	//////////////////////////////
+	// Convinent wrappers END.} //
+	//////////////////////////////
 
-    inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
-
+	////////////////////////////////////////
+	// Constructors & destructors BEGIN:{ //
+	////////////////////////////////////////
+  public:
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs, TYPE_INT const n)
       : INPUTS(inputs, n), OUTPUTS(INPUTS()) {
         EVAL_OUTPUTS();
@@ -388,6 +421,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     ~_MACRO_CLASS_NAME_() {}
+	//////////////////////////////////////
+	// Constructors & destructors END.} //
+	//////////////////////////////////////
 };
 
 #undef _MACRO_CLASS_NAME_
