@@ -66,11 +66,23 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline void COUNT_NEIGHBOURS() {
-        for (TYPE_INT y = 1; y < SIZE(); y++) {
+		TYPE_INT constexpr treshhold = 100;
+		TYPE_INT const limit = SIZE();
+		TYPE_INT const loop_limit = CPPFileIO::mymin(limit,treshhold);
+
+        for (TYPE_INT y = 1; y < loop_limit; y++) {
             for (TYPE_INT x = 0; x < y; x++) {
                 ADJ_POINTS(y, x) = IS_INSIDE(y, x);
             }
         }
+
+#pragma omp parallel for
+        for (TYPE_INT y = loop_limit; y < limit; y++) {
+            for (TYPE_INT x = 0; x < y; x++) {
+                ADJ_POINTS(y, x) = IS_INSIDE(y, x);
+            }
+        }
+
         for (TYPE_INT y = 1; y < SIZE(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
                 NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x);
@@ -132,11 +144,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main Interfaces BEGIN:{ //
     /////////////////////////////
   public:
+    inline TYPE_INT const get_num_clusters() const { return NUM_CLUSTERS; }
+
     inline TYPE_COUNTS const &get_element_cluster() const {
         return ELEMENT_CLUSTER;
     }
-
-    inline TYPE_INT const get_num_clusters() const { return NUM_CLUSTERS; }
 
     inline TYPE_COUNTS const &operator()() const {
         return get_element_cluster();
