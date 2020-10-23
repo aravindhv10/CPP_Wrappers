@@ -360,9 +360,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main Working Functions END.} //
     //////////////////////////////////
 
-	////////////////////////////////
-	// Convinent wrappers BEGIN:{ //
-	////////////////////////////////
+    ////////////////////////////////
+    // Convinent wrappers BEGIN:{ //
+    ////////////////////////////////
   public:
     inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
 
@@ -381,7 +381,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             auto const &element_clusters = dbscan.get_element_cluster();
             for (TYPE_INT i = 0; i < element_clusters(); i++) {
                 TYPE_INT const cluster_idx = element_clusters(i);
-                if (cluster_idx >= 0) { in[cluster_idx].push_back(INPUTS(i)); }
+                if (cluster_idx >= 0) {
+                    if (INPUTS(i).IS_VALID()) {
+                        in[cluster_idx].push_back(INPUTS(i));
+                    }
+                }
             }
         }
     }
@@ -397,13 +401,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             in.push_back(tmp.find_kde_center(bandwidth));
         }
     }
-	//////////////////////////////
-	// Convinent wrappers END.} //
-	//////////////////////////////
+    //////////////////////////////
+    // Convinent wrappers END.} //
+    //////////////////////////////
 
-	////////////////////////////////////////
-	// Constructors & destructors BEGIN:{ //
-	////////////////////////////////////////
+    ////////////////////////////////////////
+    // Constructors & destructors BEGIN:{ //
+    ////////////////////////////////////////
   public:
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs, TYPE_INT const n)
       : INPUTS(inputs, n), OUTPUTS(INPUTS()) {
@@ -421,9 +425,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     ~_MACRO_CLASS_NAME_() {}
-	//////////////////////////////////////
-	// Constructors & destructors END.} //
-	//////////////////////////////////////
+    //////////////////////////////////////
+    // Constructors & destructors END.} //
+    //////////////////////////////////////
 };
 
 #undef _MACRO_CLASS_NAME_

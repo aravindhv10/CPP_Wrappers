@@ -68,10 +68,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline void COUNT_NEIGHBOURS() {
         for (TYPE_INT y = 1; y < SIZE(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
-                bool const val = IS_INSIDE();
-                NUM_NEIGHBOURS(y) += val;
-                NUM_NEIGHBOURS(x) += val;
-                ADJ_POINTS(y, x) = val;
+                ADJ_POINTS(y, x) = IS_INSIDE(y, x);
+            }
+        }
+        for (TYPE_INT y = 1; y < SIZE(); y++) {
+            for (TYPE_INT x = 0; x < y; x++) {
+                NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x);
+                NUM_NEIGHBOURS(x) += ADJ_POINTS(y, x);
             }
         }
     }
