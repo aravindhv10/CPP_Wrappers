@@ -370,8 +370,10 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
         ExternalStarter<true>::GET("/bin/rmdir")("-v")("--")(filename);
     }
 
-    static inline void MV(std::string const filename, std::string const outfilename) {
-        ExternalStarter<true>::GET("/bin/mv")("-vf")("--")(filename)(outfilename);
+    static inline void MV(std::string const filename,
+                          std::string const outfilename) {
+        ExternalStarter<true>::GET("/bin/mv")("-vf")("--")(filename)(
+          outfilename);
     }
 
     inline std::string const DIRNAME() const {
@@ -418,7 +420,8 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
         }
     }
 
-    inline std::string const MERGE_FILE(size_t const i1, size_t const i2, size_t const nth) {
+    inline std::string const MERGE_FILE(size_t const i1, size_t const i2,
+                                        size_t const nth) {
 
         size_t const status = (1 * (i1 == i2)) + (2 * ((i1 + 1) == i2)) +
                               (4 * ((i1 + 1) < i2)) + (8 * (i2 < i1));
@@ -455,7 +458,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
                         MERGE_FILE(mid + 1, i2, 0);
                     }
                     std::string const name_i1  = GET_OUT_FILENAME(i1, mid);
-                    std::string const name_i2  = GET_OUT_FILENAME(mid+1, i2);
+                    std::string const name_i2  = GET_OUT_FILENAME(mid + 1, i2);
                     std::string const name_out = GET_OUT_FILENAME(i1, i2);
                     MergeFile<TYPE_DATA>(name_i1, name_i2, name_out);
                     RM(name_i1);
@@ -464,16 +467,14 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
                 }
 
             case 8:
-                /* Wrong Invocation: */ {
-                    return MERGE_FILE(i2, i1, nth);
-                }
+                /* Wrong Invocation: */ { return MERGE_FILE(i2, i1, nth); }
         }
         return GET_OUT_FILENAME(i2, i1);
     }
 
     inline void SORT(size_t const index) {
-		std::string const name = GET_OUT_FILENAME(index);
-		printf("Sorting %s\n",name.c_str());
+        std::string const name = GET_OUT_FILENAME(index);
+        printf("Sorting %s\n", name.c_str());
         SortFile<TYPE_DATA>(name);
     }
 
@@ -501,10 +502,9 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
             for (size_t j = i; j < NTH; j += nth) { SORT(j); }
         }
 
-		std::string const outfilename = MERGE_FILE(0, NTH - 1, nth);
-		MV(outfilename,OUTPUTNAME);
-		RMDIR(DIRNAME());
-
+        std::string const outfilename = MERGE_FILE(0, NTH - 1, nth);
+        MV(outfilename, OUTPUTNAME);
+        RMDIR(DIRNAME());
     }
 
     inline void do_all(size_t const nth = 8, bool const hasheader = true) {
