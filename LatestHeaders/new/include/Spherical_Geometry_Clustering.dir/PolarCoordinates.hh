@@ -280,28 +280,32 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline void EVAL_OUTPUTS() {
         TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
 
+        TYPE_INT constexpr loop_treshholdl = 100;
+        TYPE_INT const limit               = INPUTS();
+        TYPE_INT const loop_limit = CPPFileIO::mymin(limit, loop_treshholdl);
+
         TYPE_VALIDITY VALIDITY(INPUTS());
-        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+        for (TYPE_INT i = 0; i < limit; i++) {
             VALIDITY(i) = INPUTS(i).IS_VALID();
         }
 
         TYPE_ARRAY sin_theta(INPUTS());
-        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+        for (TYPE_INT i = 0; i < limit; i++) {
             sin_theta(i) = INPUTS(i).SIN_THETA();
         }
 
         TYPE_ARRAY cos_theta(INPUTS());
-        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+        for (TYPE_INT i = 0; i < limit; i++) {
             cos_theta(i) = INPUTS(i).COS_THETA();
         }
 
         TYPE_ARRAY sin_phi(INPUTS());
-        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+        for (TYPE_INT i = 0; i < limit; i++) {
             sin_phi(i) = INPUTS(i).SIN_PHI();
         }
 
         TYPE_ARRAY cos_phi(INPUTS());
-        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+        for (TYPE_INT i = 0; i < limit; i++) {
             cos_phi(i) = INPUTS(i).COS_PHI();
         }
 
@@ -313,7 +317,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     (_MACRO_X_(i) * _MACRO_X_(j)) + (_MACRO_Y_(i) * _MACRO_Y_(j)) +            \
       (_MACRO_Z_(i) * _MACRO_Z_(j))
 
-        for (TYPE_INT y = 1; y < INPUTS(); y++) {
+        for (TYPE_INT y = 1; y < loop_limit; y++) {
+            for (TYPE_INT x = 0; x < y; x++) {
+                OUTPUTS(y, x) = CLAMP(_MACRO_DOT_(y, x));
+            }
+        }
+
+#pragma omp parallel for
+        for (TYPE_INT y = loop_limit; y < limit; y++) {
             for (TYPE_INT x = 0; x < y; x++) {
                 OUTPUTS(y, x) = CLAMP(_MACRO_DOT_(y, x));
             }
@@ -325,13 +336,21 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 #undef _MACRO_X_
 
         /* Evaluate the arc length: */ {
-            auto &tmp = OUTPUTS();
-            for (TYPE_INT i = 0; i < tmp(); i++) {
-                tmp(i) = std::acos(tmp(i)) * r;
+            auto &         tmp   = OUTPUTS();
+            TYPE_INT const total = tmp();
+            if (total > 100 * loop_treshholdl) {
+#pragma omp parallel for
+                for (TYPE_INT i = 0; i < tmp(); i++) {
+                    tmp(i) = std::acos(tmp(i)) * r;
+                }
+            } else {
+                for (TYPE_INT i = 0; i < tmp(); i++) {
+                    tmp(i) = std::acos(tmp(i)) * r;
+                }
             }
         }
 
-        for (TYPE_INT y = 1; y < INPUTS(); y++) {
+        for (TYPE_INT y = 1; y < loop_limit; y++) {
             if (VALIDITY(y)) {
                 for (TYPE_INT x = 0; x < y; x++) {
                     if (VALIDITY(x)) {
@@ -345,7 +364,22 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             }
         }
 
-        for (TYPE_INT y = 0; y < INPUTS(); y++) {
+#pragma omp paralllel for
+        for (TYPE_INT y = loop_limit; y < limit; y++) {
+            if (VALIDITY(y)) {
+                for (TYPE_INT x = 0; x < y; x++) {
+                    if (VALIDITY(x)) {
+                        OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
+                    } else {
+                        OUTPUTS(y, x) = -9999;
+                    }
+                }
+            } else {
+                for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }
+            }
+        }
+
+        for (TYPE_INT y = 0; y < limit; y++) {
             if (VALIDITY(y)) {
                 OUTPUTS(y, y) = 0;
             } else {
@@ -381,10 +415,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             auto const &element_clusters = dbscan.get_element_cluster();
             for (TYPE_INT i = 0; i < element_clusters(); i++) {
                 TYPE_INT const cluster_idx = element_clusters(i);
-                if (cluster_idx >= 0) {
-                    if (INPUTS(i).IS_VALID()) {
-                        in[cluster_idx].push_back(INPUTS(i));
-                    }
+                if ((cluster_idx >= 0) && (INPUTS(i).IS_VALID())) {
+                    in[cluster_idx].push_back(INPUTS(i));
                 }
             }
         }
