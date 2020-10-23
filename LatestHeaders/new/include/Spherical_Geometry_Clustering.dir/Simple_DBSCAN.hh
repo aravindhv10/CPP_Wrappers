@@ -40,6 +40,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_INT const        MIN_PTS;
     TYPE_ADJ_POINTS       ADJ_POINTS;
     TYPE_COUNTS           ELEMENT_CLUSTER;
+    TYPE_INT              NUM_CLUSTERS;
     /////////////////////////
     // Data Elements END.} //
     /////////////////////////
@@ -56,6 +57,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         }
 
         for (TYPE_INT i = 0; i < SIZE(); i++) { NUM_NEIGHBOURS(i) = 0; }
+
+        NUM_CLUSTERS = 0;
     }
 
     inline void COUNT_NEIGHBOURS() {
@@ -88,7 +91,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline void DFS() {
-        TYPE_INT cluster_idx = 0;
         for (TYPE_INT i = 0; i < SIZE(); i++) {
             TYPE_BYTE const status =
               (1 * (ELEMENT_CLUSTER(i) == NOT_CLASSIFIED())) +
@@ -96,8 +98,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
             switch (status) {
                 case 5:
-                    DFS(i, cluster_idx);
-                    cluster_idx += 1;
+                    DFS(i, NUM_CLUSTERS);
+                    NUM_CLUSTERS += 1;
                     break;
                 case 1: ELEMENT_CLUSTER(i) = NOISE();
                 case 4:
@@ -114,21 +116,24 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         RESET();
         COUNT_NEIGHBOURS();
         DFS();
-    }
-
-    inline TYPE_COUNTS const &GET_ELEMENT_CLUSTER() const {
-        return ELEMENT_CLUSTER;
+		printf("DFS\n");
     }
     //////////////////////////////////
     // Main Working Functions END.} //
     //////////////////////////////////
 
-	/////////////////////////////
-	// Main Interfaces BEGIN:{ //
-	/////////////////////////////
+    /////////////////////////////
+    // Main Interfaces BEGIN:{ //
+    /////////////////////////////
   public:
+    inline TYPE_COUNTS const &get_element_cluster() const {
+        return ELEMENT_CLUSTER;
+    }
+
+    inline TYPE_INT const get_num_clusters() const { return NUM_CLUSTERS; }
+
     inline TYPE_COUNTS const &operator()() const {
-        return GET_ELEMENT_CLUSTER();
+        return get_element_cluster();
     }
 
     _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_INT const epsilon,
@@ -139,9 +144,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     ~_MACRO_CLASS_NAME_() {}
-	///////////////////////////
-	// Main Interfaces END.} //
-	///////////////////////////
+    ///////////////////////////
+    // Main Interfaces END.} //
+    ///////////////////////////
 };
 
 #undef _MACRO_CLASS_NAME_

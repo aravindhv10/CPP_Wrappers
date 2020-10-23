@@ -5,6 +5,7 @@
 // Headers BEGIN:{ //
 /////////////////////
 #include "../StaticArray.hh"
+#include "./Simple_DBSCAN.hh"
 #include "./Simple_KDE.hh"
 ///////////////////
 // Headers END.} //
@@ -226,31 +227,33 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
-	/////////////////////////
-	// Definitions BEGIN:{ //
-	/////////////////////////
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
   public:
     using TYPE_FLOAT    = TF;
     using TYPE_INT      = TI;
+    using TYPE_SELF     = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ARRAY    = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
     using TYPE_OUTPUTS  = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
     using TYPE_KDE      = Simple_KDE<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ELEMENT  = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
-    using TYPE_INPUTS   = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
-	using TYPE_VALIDITY = CPPFileIO::Dynamic1DArray <bool, TYPE_INT>;
-	///////////////////////
-	// Definitions END.} //
-	///////////////////////
+    using TYPE_ELEMENTS = std::vector<TYPE_ELEMENT>;
+    using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
+    using TYPE_VALIDITY = CPPFileIO::Dynamic1DArray<bool, TYPE_INT>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
 
-	///////////////////////////
-	// Data Elements BEGIN:{ //
-	///////////////////////////
+    ///////////////////////////
+    // Data Elements BEGIN:{ //
+    ///////////////////////////
   private:
     TYPE_INPUTS  INPUTS;
     TYPE_OUTPUTS OUTPUTS;
-	/////////////////////////
-	// Data Elements END.} //
-	/////////////////////////
+    /////////////////////////
+    // Data Elements END.} //
+    /////////////////////////
 
   private:
     inline bool IS_VALID(TYPE_INT const i) const {
@@ -267,10 +270,10 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline void EVAL_OUTPUTS() {
         TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
 
-		TYPE_VALIDITY VALIDITY(INPUTS());
-		for(TYPE_INT i=0;i<INPUTS();i++){
-			VALIDITY(i) = INPUTS(i).IS_VALID();
-		}
+        TYPE_VALIDITY VALIDITY(INPUTS());
+        for (TYPE_INT i = 0; i < INPUTS(); i++) {
+            VALIDITY(i) = INPUTS(i).IS_VALID();
+        }
 
         TYPE_ARRAY sin_theta(INPUTS());
         for (TYPE_INT i = 0; i < INPUTS(); i++) {
@@ -333,11 +336,41 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    inline TYPE_OUTPUTS const &operator()() const { return OUTPUTS; }
+    inline TYPE_OUTPUTS const &get_distances() const { return OUTPUTS; }
 
-    inline TYPE_INT const find_kde_center(TYPE_FLOAT const bandwidth) {
-        return TYPE_KDE::find_kde_center(OUTPUTS, bandwidth);
+    inline TYPE_ELEMENT const &find_kde_center(TYPE_FLOAT const bandwidth) {
+        return INPUTS(TYPE_KDE::find_kde_center(OUTPUTS, bandwidth));
     }
+
+    inline void find_dbscan_clusters(std::vector<TYPE_ELEMENTS> &in,
+                                     TYPE_FLOAT const            eps,
+                                     TYPE_INT const              min_pts) {
+        in.clear();
+        Simple_DBSCAN<TYPE_FLOAT, TYPE_INT> dbscan(OUTPUTS, eps, min_pts);
+        TYPE_INT const num_clusters = dbscan.get_num_clusters();
+        if (num_clusters > 0) {
+            in.resize(num_clusters);
+            auto const &element_clusters = dbscan.get_element_cluster();
+            for (TYPE_INT i = 0; i < element_clusters(); i++) {
+                in[element_clusters(i)].push_back(INPUTS(i));
+            }
+        }
+    }
+
+    inline void find_dbscan_kde_centers(TYPE_ELEMENTS &in, TYPE_FLOAT const eps,
+                                        TYPE_INT const   min_pts,
+                                        TYPE_FLOAT const bandwidth) {
+        in.clear();
+        std::vector<TYPE_ELEMENTS> clusters;
+        find_dbscan_clusters(clusters, eps, min_pts);
+		return;
+        for (TYPE_INT i = 0; i < clusters.size(); i++) {
+            TYPE_SELF tmp(clusters[i]);
+            in.push_back(tmp.find_kde_center(bandwidth));
+        }
+    }
+
+    inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
 
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs, TYPE_INT const n)
       : INPUTS(inputs, n), OUTPUTS(INPUTS()) {
