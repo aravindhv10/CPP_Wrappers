@@ -61,10 +61,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         NUM_CLUSTERS = 0;
     }
 
+    inline bool IS_INSIDE(TYPE_INT const y, TYPE_INT const x) const {
+        return (0 <= DISTANCES(y, x)) && (DISTANCES(y, x) < EPSILON);
+    }
+
     inline void COUNT_NEIGHBOURS() {
         for (TYPE_INT y = 1; y < SIZE(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
-                bool const val = (DISTANCES(y, x) < EPSILON);
+                bool const val = IS_INSIDE();
                 NUM_NEIGHBOURS(y) += val;
                 NUM_NEIGHBOURS(x) += val;
                 ADJ_POINTS(y, x) = val;
