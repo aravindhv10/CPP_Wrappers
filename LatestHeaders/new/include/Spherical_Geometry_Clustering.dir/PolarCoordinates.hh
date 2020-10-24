@@ -7,6 +7,7 @@
 #include "../StaticArray.hh"
 #include "./Simple_DBSCAN.hh"
 #include "./Simple_KDE.hh"
+#include "./Threading_Treshhold.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -280,9 +281,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline void EVAL_OUTPUTS() {
         TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
 
-        TYPE_INT constexpr loop_treshholdl = 100;
-        TYPE_INT const limit               = INPUTS();
-        TYPE_INT const loop_limit = CPPFileIO::mymin(limit, loop_treshholdl);
+        TYPE_INT const limit        = INPUTS();
+        TYPE_INT const loop_limit   = Threading_Treshhold(limit);
+        TYPE_INT const loop_limit_2 = Threading_Treshhold_2(limit);
 
         TYPE_VALIDITY VALIDITY(INPUTS());
         for (TYPE_INT i = 0; i < limit; i++) {
@@ -317,18 +318,16 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     (_MACRO_X_(i) * _MACRO_X_(j)) + (_MACRO_Y_(i) * _MACRO_Y_(j)) +            \
       (_MACRO_Z_(i) * _MACRO_Z_(j))
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) {
-            for (TYPE_INT x = 0; x < y; x++) {
-                OUTPUTS(y, x) = CLAMP(_MACRO_DOT_(y, x));
-            }
-        }
+#define DO_WORK                                                                \
+    TYPE_FLOAT *outputs = &(OUTPUTS(y, 0));                                    \
+    for (TYPE_INT x = 0; x < y; x++) { outputs[x] = CLAMP(_MACRO_DOT_(y, x)); }
+
+        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
 
 #pragma omp parallel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) {
-            for (TYPE_INT x = 0; x < y; x++) {
-                OUTPUTS(y, x) = CLAMP(_MACRO_DOT_(y, x));
-            }
-        }
+        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+
+#undef DO_WORK
 
 #undef _MACRO_DOT_
 #undef _MACRO_Z_
@@ -338,46 +337,37 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         /* Evaluate the arc length: */ {
             auto &         tmp   = OUTPUTS();
             TYPE_INT const total = tmp();
-            if (total > 100 * loop_treshholdl) {
+            if (total > loop_limit_2) {
 #pragma omp parallel for
-                for (TYPE_INT i = 0; i < tmp(); i++) {
+                for (TYPE_INT i = 0; i < total; i++) {
                     tmp(i) = std::acos(tmp(i)) * r;
                 }
             } else {
-                for (TYPE_INT i = 0; i < tmp(); i++) {
+                for (TYPE_INT i = 0; i < total; i++) {
                     tmp(i) = std::acos(tmp(i)) * r;
                 }
             }
         }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) {
-            if (VALIDITY(y)) {
-                for (TYPE_INT x = 0; x < y; x++) {
-                    if (VALIDITY(x)) {
-                        OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
-                    } else {
-                        OUTPUTS(y, x) = -9999;
-                    }
-                }
-            } else {
-                for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }
-            }
-        }
+#define DO_WORK                                                                \
+    if (VALIDITY(y)) {                                                         \
+        for (TYPE_INT x = 0; x < y; x++) {                                     \
+            if (VALIDITY(x)) {                                                 \
+                OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));               \
+            } else {                                                           \
+                OUTPUTS(y, x) = -9999;                                         \
+            }                                                                  \
+        }                                                                      \
+    } else {                                                                   \
+        for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }            \
+    }
+
+        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
 
 #pragma omp paralllel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) {
-            if (VALIDITY(y)) {
-                for (TYPE_INT x = 0; x < y; x++) {
-                    if (VALIDITY(x)) {
-                        OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));
-                    } else {
-                        OUTPUTS(y, x) = -9999;
-                    }
-                }
-            } else {
-                for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }
-            }
-        }
+        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+
+#undef DO_WORK
 
         for (TYPE_INT y = 0; y < limit; y++) {
             if (VALIDITY(y)) {

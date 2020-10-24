@@ -1,10 +1,11 @@
-#ifndef _HEADER_GUARD_Simple_KDE_
-#define _HEADER_GUARD_Simple_KDE_
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_KDE_
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_KDE_
 
 /////////////////////
 // Headers BEGIN:{ //
 /////////////////////
 #include "../CPPFileIO.hh"
+#include "./Threading_Treshhold.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -48,9 +49,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline TYPE_INT const SIZE_Y() const { return DISTANCES.SIZE_Y(); }
 
     inline void EVAL_CONTRIBUTIONS() {
-        TYPE_INT constexpr treshhold = 100;
-        TYPE_INT const limit         = SIZE_Y();
-        TYPE_INT const looplimit     = CPPFileIO::mymin(treshhold, looplimit);
+        TYPE_INT const limit     = SIZE_Y();
+        TYPE_INT const looplimit = Threading_Treshhold(limit);
 
         for (TYPE_INT y = 0; y < limit; y++) {
             auto const &val     = DISTANCES(y, y);
@@ -62,11 +62,10 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_FLOAT *      contributions = &(CONTRIBUTIONS(y, 0));                  \
     for (TYPE_INT x = 0; x < y; x++) {                                         \
         contributions[x] =                                                     \
-          (distances[x] >= 0) * std::exp(-distances[0] / BANDWIDTH);           \
+          (distances[x] >= 0) * std::exp(-distances[x] / BANDWIDTH);           \
     }
 
         for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
-
 #pragma omp parallel for
         for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
 
@@ -74,9 +73,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline void EVAL_ACCUMULATOR() {
-        TYPE_INT constexpr treshhold = 100;
-        TYPE_INT const limit         = SIZE_Y();
-        TYPE_INT const looplimit     = CPPFileIO::mymin(treshhold, looplimit);
+        TYPE_INT const limit     = SIZE_Y();
+        TYPE_INT const looplimit = Threading_Treshhold(limit);
 
         for (TYPE_INT y = 0; y < limit; y++) {
             ACCUMULATOR(y) += CONTRIBUTIONS(y, y);
@@ -88,7 +86,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     for (TYPE_INT x = 0; x < y; y++) { ACCUMULATOR(x) += val[x]; }
 
         for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
-
 #pragma omp parallel for
         for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
 

@@ -1,10 +1,11 @@
-#ifndef _HEADER_GUARD_Simple_DBSCAN_
-#define _HEADER_GUARD_Simple_DBSCAN_
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_DBSCAN_
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_DBSCAN_
 
 /////////////////////
 // Headers BEGIN:{ //
 /////////////////////
 #include "../CPPFileIO.hh"
+#include "./Threading_Treshhold.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -63,33 +64,28 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline void COUNT_NEIGHBOURS() {
-        TYPE_INT constexpr treshhold = 128;
-        TYPE_INT const limit         = SIZE();
-        TYPE_INT const loop_limit    = CPPFileIO::mymin(limit, treshhold);
+        TYPE_INT const limit      = SIZE();
+        TYPE_INT const loop_limit = Threading_Treshhold(limit);
 
         for (TYPE_INT y = 0; y < limit; y++) {
             ADJ_POINTS(y, y) = (DISTANCES(y, y) >= 0);
         }
 
-#define _MACRO_ACCUMULATE_ADJ_POINTS_                                          \
+#define DO_WORK                                                                \
     TYPE_FLOAT const *distances  = &(DISTANCES(y, 0));                         \
     bool *            adj_points = &(ADJ_POINTS(y, 0));                        \
     for (TYPE_INT x = 0; x < y; x++) {                                         \
         adj_points[x] = (0 <= distances[x]) && (distances[x] < EPSILON);       \
     }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) {
-            _MACRO_ACCUMULATE_ADJ_POINTS_
-        }
+        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
 
 #pragma omp parallel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) {
-            _MACRO_ACCUMULATE_ADJ_POINTS_
-        }
+        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
-#undef _MACRO_ACCUMULATE_ADJ_POINTS_
+#undef DO_WORK
 
-		/// !!! WARNING !!! THIS PART SHOULD NOT BE THREADED ///
+        /// !!! WARNING !!! THIS PART SHOULD NOT BE THREADED ///
         for (TYPE_INT y = 1; y < limit; y++) {
             bool const *adj_points = &(ADJ_POINTS(y, 0));
 
