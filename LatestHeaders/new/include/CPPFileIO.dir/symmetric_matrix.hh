@@ -44,10 +44,10 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     static inline TYPE_INT MAKE_MAP_SAFE(TYPE_INT const y, TYPE_INT const x) {
-        if (y >= x) {
-            return MAKE_MAP(y, x);
-        } else {
+        if (x > y) {
             return MAKE_MAP(x, y);
+        } else {
+            return MAKE_MAP(y, x);
         }
     }
 
@@ -74,7 +74,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     inline TYPE_DATA const &operator()(TYPE_INT const y,
                                        TYPE_INT const x) const {
-        return GET_SAFE(x, y);
+        return GET_SAFE(y, x);
     }
 
     inline TYPE_INT          SIZE_Y() const { return N; }

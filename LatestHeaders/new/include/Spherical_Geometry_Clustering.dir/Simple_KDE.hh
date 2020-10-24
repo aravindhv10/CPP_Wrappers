@@ -49,7 +49,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline TYPE_INT const SIZE_Y() const { return DISTANCES.SIZE_Y(); }
 
     inline void EVAL_CONTRIBUTIONS() {
-        TYPE_INT const limit     = SIZE_Y();
+        TYPE_INT const limit     = SIZE_X();
         TYPE_INT const looplimit = Threading_Treshhold(limit);
 
         for (TYPE_INT y = 0; y < limit; y++) {
@@ -57,7 +57,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             CONTRIBUTIONS(y, y) = (val >= 0);
         }
 
-#define _MACRO_DO_WORK_                                                        \
+#define DO_WORK                                                                \
     TYPE_FLOAT const *distances     = &(DISTANCES(y, 0));                      \
     TYPE_FLOAT *      contributions = &(CONTRIBUTIONS(y, 0));                  \
     for (TYPE_INT x = 0; x < y; x++) {                                         \
@@ -65,31 +65,31 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
           (distances[x] >= 0) * std::exp(-distances[x] / BANDWIDTH);           \
     }
 
-        for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
+        for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
 #pragma omp parallel for
-        for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
+        for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
 
-#undef _MACRO_DO_WORK_
+#undef DO_WORK
     }
 
     inline void EVAL_ACCUMULATOR() {
-        TYPE_INT const limit     = SIZE_Y();
+        TYPE_INT const limit     = SIZE_X();
         TYPE_INT const looplimit = Threading_Treshhold(limit);
 
         for (TYPE_INT y = 0; y < limit; y++) {
             ACCUMULATOR(y) += CONTRIBUTIONS(y, y);
         }
 
-#define _MACRO_DO_WORK_                                                        \
+#define DO_WORK                                                                \
     TYPE_FLOAT const *val = &(CONTRIBUTIONS(y, 0));                            \
-    for (TYPE_INT x = 0; x < y; y++) { ACCUMULATOR(y) += val[x]; }             \
-    for (TYPE_INT x = 0; x < y; y++) { ACCUMULATOR(x) += val[x]; }
+    for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(y) += val[x]; }             \
+    for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(x) += val[x]; }
 
-        for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
+        for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
 #pragma omp parallel for
-        for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
+        for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
 
-#undef _MACRO_DO_WORK_
+#undef DO_WORK
     }
 
     inline void EVAL_MAX_INDEX() {
@@ -120,11 +120,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances,
                        TYPE_FLOAT const      bandwidth)
-      : DISTANCES(distances), CONTRIBUTIONS(DISTANCES.SIZE_X()),
-        BANDWIDTH(bandwidth), ACCUMULATOR(SIZE_X()) {
+
+      : DISTANCES(distances), CONTRIBUTIONS(SIZE_X()), BANDWIDTH(bandwidth),
+        ACCUMULATOR(SIZE_X()) {
+
         EVAL_CONTRIBUTIONS();
         EVAL_ACCUMULATOR();
-        EVAL_MAX_INDEX();
+        if (false) { EVAL_MAX_INDEX(); }
     }
 
     ~_MACRO_CLASS_NAME_() {}
@@ -132,12 +134,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     static inline TYPE_INT const
     find_kde_center(TYPE_DISTANCES const &distances,
                     TYPE_FLOAT const      bandwidth) {
+
         TYPE_SELF slave(distances, bandwidth);
         return slave.get_max_index();
     }
 
     static inline void show_debug(TYPE_DISTANCES const &distances,
                                   TYPE_FLOAT const      bandwidth) {
+
         TYPE_SELF slave(distances, bandwidth);
         slave.debug();
     }
