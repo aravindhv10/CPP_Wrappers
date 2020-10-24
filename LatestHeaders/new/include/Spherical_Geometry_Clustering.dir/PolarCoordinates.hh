@@ -323,7 +323,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     for (TYPE_INT x = 0; x < y; x++) { outputs[x] = CLAMP(_MACRO_DOT_(y, x)); }
 
         for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
-
 #pragma omp parallel for
         for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
@@ -350,20 +349,20 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         }
 
 #define DO_WORK                                                                \
+    TYPE_FLOAT *outputs = &(OUTPUTS(y, 0));                                    \
     if (VALIDITY(y)) {                                                         \
         for (TYPE_INT x = 0; x < y; x++) {                                     \
             if (VALIDITY(x)) {                                                 \
-                OUTPUTS(y, x) = CPPFileIO::mymod(OUTPUTS(y, x));               \
+                outputs[x] = CPPFileIO::mymod(outputs[x]);                     \
             } else {                                                           \
-                OUTPUTS(y, x) = -9999;                                         \
+                outputs[x] = -9999;                                            \
             }                                                                  \
         }                                                                      \
     } else {                                                                   \
-        for (TYPE_INT x = 0; x < y; x++) { OUTPUTS(y, x) = -9999; }            \
+        for (TYPE_INT x = 0; x < y; x++) { outputs[x] = -9999; }               \
     }
 
         for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
-
 #pragma omp paralllel for
         for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 

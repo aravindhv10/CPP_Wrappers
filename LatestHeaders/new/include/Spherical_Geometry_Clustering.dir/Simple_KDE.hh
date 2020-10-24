@@ -126,7 +126,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
         EVAL_CONTRIBUTIONS();
         EVAL_ACCUMULATOR();
-        if (false) { EVAL_MAX_INDEX(); }
+        EVAL_MAX_INDEX();
     }
 
     ~_MACRO_CLASS_NAME_() {}
