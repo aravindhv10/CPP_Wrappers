@@ -52,29 +52,23 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline TYPE_INT const SIZE() const { return DISTANCES.SIZE_X(); }
 
     inline void RESET() {
-        TYPE_INT const limit = SIZE();
-        for (TYPE_INT i = 0; i < limit; i++) {
+        for (TYPE_INT i = 0; i < ELEMENT_CLUSTER(); i++) {
             ELEMENT_CLUSTER(i) = NOT_CLASSIFIED();
         }
 
-        for (TYPE_INT i = 0; i < limit; i++) { NUM_NEIGHBOURS(i) = 0; }
+        for (TYPE_INT i = 0; i < SIZE(); i++) { NUM_NEIGHBOURS(i) = 0; }
 
         NUM_CLUSTERS = 0;
     }
 
     inline bool IS_INSIDE(TYPE_INT const y, TYPE_INT const x) const {
-        TYPE_FLOAT const val = DISTANCES(y, x);
-        return (0 <= val) && (val < EPSILON);
+        return (0 <= DISTANCES(y, x)) && (DISTANCES(y, x) < EPSILON);
     }
 
     inline void COUNT_NEIGHBOURS() {
-        TYPE_INT constexpr treshhold = 100;
-        TYPE_INT const limit         = SIZE();
-        TYPE_INT const loop_limit    = CPPFileIO::mymin(limit, treshhold);
-
-        for (TYPE_INT y = 0; y < limit; y++) {
-            ADJ_POINTS(y, y) = (DISTANCES(y, y) >= 0);
-        }
+		TYPE_INT constexpr treshhold = 100;
+		TYPE_INT const limit = SIZE();
+		TYPE_INT const loop_limit = CPPFileIO::mymin(limit,treshhold);
 
         for (TYPE_INT y = 1; y < loop_limit; y++) {
             for (TYPE_INT x = 0; x < y; x++) {
@@ -89,7 +83,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             }
         }
 
-        for (TYPE_INT y = 1; y < limit; y++) {
+        for (TYPE_INT y = 1; y < SIZE(); y++) {
             for (TYPE_INT x = 0; x < y; x++) {
                 NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x);
                 NUM_NEIGHBOURS(x) += ADJ_POINTS(y, x);
@@ -101,31 +95,17 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return NUM_NEIGHBOURS(idx) >= MIN_PTS;
     }
 
-    inline bool OPEN_2_CLASSIFY(TYPE_INT const i) const {
-        return ELEMENT_CLUSTER(i) < 0;
-    }
+    inline void DFS(TYPE_INT const now, TYPE_INT const c) {
+        ELEMENT_CLUSTER(now) = c;
 
-    inline void DFS(TYPE_INT now, TYPE_INT const c) {
-        std::stack<TYPE_INT> s;
-    MainLoopPart:
-        /* The main looping part: */ {
-            for (TYPE_INT i = 0; i < SIZE(); i++) {
-                TYPE_BYTE const status = (OPEN_2_CLASSIFY(i)) +
-                                         (2 * ADJ_POINTS(now, i)) +
-                                         (4 * IS_CORE_OBJECT(now));
+        if (!IS_CORE_OBJECT(now)) { return; }
 
-                switch (status) {
-                    case 7: s.push(i);
-                    case 3: ELEMENT_CLUSTER(i) = c;
-                    default: break;
-                }
-            }
+        for (TYPE_INT i = 0; i < SIZE(); i++) {
+            bool const val =
+              ADJ_POINTS(now, i) && ((ELEMENT_CLUSTER(i) == NOT_CLASSIFIED()) ||
+                                     (ELEMENT_CLUSTER(i) == NOISE()));
 
-            if (!s.empty()) {
-                now = s.top();
-                s.pop();
-                goto MainLoopPart;
-            }
+            if (val) { DFS(i, c); }
         }
     }
 
@@ -137,13 +117,16 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
             switch (status) {
                 case 5:
-                    ELEMENT_CLUSTER(i) = NUM_CLUSTERS;
                     DFS(i, NUM_CLUSTERS);
                     NUM_CLUSTERS += 1;
                     break;
-
                 case 1: ELEMENT_CLUSTER(i) = NOISE();
-                default: break;
+                case 4:
+                case 0:
+                case 16:
+                case 17:
+                case 20:
+                case 21: break;
             }
         }
     }

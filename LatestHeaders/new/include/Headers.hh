@@ -35,6 +35,7 @@
 #include <set>
 #include <mutex>
 #include <memory>
+#include <stack>
 
 #ifdef USECBLAS
 	#include "cblas.h"
