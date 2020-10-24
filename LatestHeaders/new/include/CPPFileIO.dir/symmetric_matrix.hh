@@ -56,7 +56,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return STORE(MAKE_MAP(y, x));
     }
 
-    inline TYPE_DATA const GET(TYPE_INT const y, TYPE_INT const x) const {
+    inline TYPE_DATA const &GET(TYPE_INT const y, TYPE_INT const x) const {
         return STORE(MAKE_MAP(y, x));
     }
 
@@ -64,7 +64,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return STORE(MAKE_MAP_SAFE(y, x));
     }
 
-    inline TYPE_DATA const GET_SAFE(TYPE_INT const y, TYPE_INT const x) const {
+    inline TYPE_DATA const &GET_SAFE(TYPE_INT const y, TYPE_INT const x) const {
         return STORE(MAKE_MAP_SAFE(y, x));
     }
 
@@ -72,8 +72,8 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return GET_SAFE(y, x);
     }
 
-    inline TYPE_DATA const operator()(TYPE_INT const y,
-                                      TYPE_INT const x) const {
+    inline TYPE_DATA const &operator()(TYPE_INT const y,
+                                       TYPE_INT const x) const {
         return GET_SAFE(x, y);
     }
 
