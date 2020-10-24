@@ -47,52 +47,31 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline TYPE_INT const SIZE_X() const { return DISTANCES.SIZE_X(); }
     inline TYPE_INT const SIZE_Y() const { return DISTANCES.SIZE_Y(); }
 
-    inline void EVAL_CONTRIBUTIONS() {
-        TYPE_INT constexpr treshhold = 100;
-        TYPE_INT const limit         = SIZE_Y();
-        TYPE_INT const looplimit     = CPPFileIO::mymin(treshhold, looplimit);
+    inline void EVAL_CONTRIBUTIONS(TYPE_INT const &y, TYPE_INT const &x) {
+        auto const &val     = DISTANCES(y, x);
+        CONTRIBUTIONS(y, x) = (val >= 0) * std::exp(-val / BANDWIDTH);
+    }
 
-        for (TYPE_INT y = 0; y < limit; y++) {
+    inline void EVAL_CONTRIBUTIONS() {
+        for (TYPE_INT y = 1; y < SIZE_Y(); y++) {
+            for (TYPE_INT x = 0; x < y; x++) { EVAL_CONTRIBUTIONS(y, x); }
+        }
+        for (TYPE_INT y = 0; y < SIZE_Y(); y++) {
             auto const &val     = DISTANCES(y, y);
             CONTRIBUTIONS(y, y) = (val >= 0);
         }
-
-#define _MACRO_DO_WORK_                                                        \
-    TYPE_FLOAT const *distances     = &(DISTANCES(y, 0));                      \
-    TYPE_FLOAT *      contributions = &(CONTRIBUTIONS(y, 0));                  \
-    for (TYPE_INT x = 0; x < y; x++) {                                         \
-        contributions[x] =                                                     \
-          (distances[x] >= 0) * std::exp(-distances[0] / BANDWIDTH);           \
     }
 
-        for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
-
-#pragma omp parallel for
-        for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
-
-#undef _MACRO_DO_WORK_
+    inline void EVAL_ACCUMULATOR(TYPE_INT const i, TYPE_INT const j) {
+        auto const &val = CONTRIBUTIONS(i, j);
+        ACCUMULATOR(i) += val;
+        ACCUMULATOR(j) += val;
     }
 
     inline void EVAL_ACCUMULATOR() {
-        TYPE_INT constexpr treshhold = 100;
-        TYPE_INT const limit         = SIZE_Y();
-        TYPE_INT const looplimit     = CPPFileIO::mymin(treshhold, looplimit);
-
-        for (TYPE_INT y = 0; y < limit; y++) {
-            ACCUMULATOR(y) += CONTRIBUTIONS(y, y);
+        for (TYPE_INT i = 0; i < SIZE_X(); i++) {
+            for (TYPE_INT j = 0; j <= i; j++) { EVAL_ACCUMULATOR(i, j); }
         }
-
-#define _MACRO_DO_WORK_                                                        \
-    TYPE_FLOAT const *val = &(CONTRIBUTIONS(y, 0));                            \
-    for (TYPE_INT x = 0; x < y; y++) { ACCUMULATOR(y) += val[x]; }             \
-    for (TYPE_INT x = 0; x < y; y++) { ACCUMULATOR(x) += val[x]; }
-
-        for (TYPE_INT y = 1; y < looplimit; y++) { _MACRO_DO_WORK_ }
-
-#pragma omp parallel for
-        for (TYPE_INT y = looplimit; y < limit; y++) { _MACRO_DO_WORK_ }
-
-#undef _MACRO_DO_WORK_
     }
 
     inline void EVAL_MAX_INDEX() {

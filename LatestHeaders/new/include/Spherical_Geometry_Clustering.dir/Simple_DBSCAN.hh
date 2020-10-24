@@ -62,13 +62,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         NUM_CLUSTERS = 0;
     }
 
-    inline bool IS_INSIDE(TYPE_INT const y, TYPE_INT const x) const {
-        TYPE_FLOAT const val = DISTANCES(y, x);
-        return (0 <= val) && (val < EPSILON);
-    }
-
     inline void COUNT_NEIGHBOURS() {
-        TYPE_INT constexpr treshhold = 100;
+        TYPE_INT constexpr treshhold = 128;
         TYPE_INT const limit         = SIZE();
         TYPE_INT const loop_limit    = CPPFileIO::mymin(limit, treshhold);
 
@@ -76,23 +71,34 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             ADJ_POINTS(y, y) = (DISTANCES(y, y) >= 0);
         }
 
+#define _MACRO_ACCUMULATE_ADJ_POINTS_                                          \
+    TYPE_FLOAT const *distances  = &(DISTANCES(y, 0));                         \
+    bool *            adj_points = &(ADJ_POINTS(y, 0));                        \
+    for (TYPE_INT x = 0; x < y; x++) {                                         \
+        adj_points[x] = (0 <= distances[x]) && (distances[x] < EPSILON);       \
+    }
+
         for (TYPE_INT y = 1; y < loop_limit; y++) {
-            for (TYPE_INT x = 0; x < y; x++) {
-                ADJ_POINTS(y, x) = IS_INSIDE(y, x);
-            }
+            _MACRO_ACCUMULATE_ADJ_POINTS_
         }
 
 #pragma omp parallel for
         for (TYPE_INT y = loop_limit; y < limit; y++) {
-            for (TYPE_INT x = 0; x < y; x++) {
-                ADJ_POINTS(y, x) = IS_INSIDE(y, x);
-            }
+            _MACRO_ACCUMULATE_ADJ_POINTS_
         }
 
+#undef _MACRO_ACCUMULATE_ADJ_POINTS_
+
+		/// !!! WARNING !!! THIS PART SHOULD NOT BE THREADED ///
         for (TYPE_INT y = 1; y < limit; y++) {
+            bool const *adj_points = &(ADJ_POINTS(y, 0));
+
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x);
-                NUM_NEIGHBOURS(x) += ADJ_POINTS(y, x);
+                NUM_NEIGHBOURS(y) += adj_points[x];
+            }
+
+            for (TYPE_INT x = 0; x < y; x++) {
+                NUM_NEIGHBOURS(x) += adj_points[x];
             }
         }
     }
