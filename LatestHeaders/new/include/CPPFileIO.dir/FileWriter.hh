@@ -4,6 +4,7 @@
 ////////////////////
 // Headers BEGIN: //
 ////////////////////
+#include "./D1.hh"
 #include "./FileArray.hh"
 //////////////////
 // Headers END. //
@@ -11,190 +12,170 @@
 
 #define _MACRO_CLASS_NAME_ FileWriter
 
-template <typename T>
-class _MACRO_CLASS_NAME_ {
+template <typename TD, typename TI = long> class _MACRO_CLASS_NAME_ {
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_INT      = TI;
+    using TYPE_ELEMENT  = TD;
+    using TYPE_ELEMENTS = std::vector<TYPE_ELEMENT>;
+    using TYPE_SELF     = _MACRO_CLASS_NAME_<TYPE_ELEMENT, TYPE_INT>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
 
-////////////////////////
-// Definitions BEGIN: //
-////////////////////////
+    //////////////////
+    // Data BEGIN:{ //
+    //////////////////
+  private:
+    FileArray<TYPE_ELEMENT> infile;
+    TYPE_INT                count;
+    TYPE_INT const          bufsize;
+    TYPE_INT const          mask;
+    TYPE_ELEMENT *          buf;
+    ////////////////
+    // Data END.} //
+    ////////////////
 
-public:
+    ////////////////////////////////////
+    // Main Working Functions BEGIN:{ //
+    ////////////////////////////////////
+  private:
+    inline TYPE_INT size() const { return count; }
 
-	using TYPE_ELEMENT = T ;
-	
-	using TYPE_SELF =
-		_MACRO_CLASS_NAME_ <TYPE_ELEMENT>
-	; //
+    inline TYPE_INT push_back(TYPE_ELEMENT const &indata) {
+        TYPE_INT const mod = count & mask;
+        if (mod == 0) { buf = &(infile(count, bufsize)); }
+        buf[mod] = indata;
+        count++;
+        return size();
+    }
 
-//////////////////////
-// Definitions END. //
-//////////////////////
+    inline TYPE_INT push_back(TYPE_ELEMENTS const &indata) {
+        for (TYPE_INT i = 0; i < indata.size(); i++) { push_back(indata[i]); }
+        return size();
+    }
 
-/////////////////
-// Data BEGIN: //
-/////////////////
+    template <typename TPI>
+    inline TYPE_INT push_back(Dynamic1DArray<TYPE_ELEMENT, TPI> const &in) {
+        for (TYPE_INT i = 0; i < in(); i++) { push_back(in(i)); }
+        return size();
+    }
+    //////////////////////////////////
+    // Main Working Functions END.} //
+    //////////////////////////////////
 
-private:
+    ////////////////////////////////
+    // Exposed Interfaces BEGIN:{ //
+    ////////////////////////////////
+  public:
+    inline TYPE_INT operator()() const { return size(); }
 
-	FileArray <T> infile ;
-	size_t count ;
-	size_t const bufsize ;
-	size_t const mask ;
-	TYPE_ELEMENT * buf ;
+    inline TYPE_INT operator()(TYPE_ELEMENT const &indata) {
+        return push_back(indata);
+    }
 
-///////////////
-// Data END. //
-///////////////
+    inline TYPE_INT operator()(TYPE_ELEMENTS const &indata) {
+        return push_back(indata);
+    }
 
-///////////////////////////////////
-// Main Working Functions BEGIN: //
-///////////////////////////////////
+    template <typename TPI>
+    inline TYPE_INT operator()(Dynamic1DArray<TYPE_ELEMENT, TPI> const &in) {
+        return push_back(in);
+    }
+    //////////////////////////////
+    // Exposed Interfaces END.} //
+    //////////////////////////////
 
-private:
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(std::string const name, TYPE_INT const _bufsize = 20)
+      : infile(name), bufsize(shifter(_bufsize)), mask(bufsize - 1) {
+        infile.writeable();
+        count = 0;
+        infile.size(count);
+    }
 
-	inline size_t
-	size() const
-	{return count;}
-
-	inline void
-	push_back (
-		TYPE_ELEMENT const &
-			indata
-	) {	size_t const mod 
-			= count & mask
-		; //
-		if(mod==0){
-			buf = & (infile(count,bufsize)) ;
-		}
-		buf[mod] = indata ;
-		count++ ;
-	}
-
-/////////////////////////////////
-// Main Working Functions END. //
-/////////////////////////////////
-
-///////////////////////////////
-// Exposed Interfaces BEGIN: //
-///////////////////////////////
-
-public:
-
-	inline size_t
-	operator () () const
-	{return size();}
-
-	inline void
-	operator ()
-	(TYPE_ELEMENT const & indata)
-	{push_back(indata);}
-
-/////////////////////////////
-// Exposed Interfaces END. //
-/////////////////////////////
-
-/////////////////////////////////////
-// Constructor & Destructor BEGIN: //
-/////////////////////////////////////
-
-public:
-
-	_MACRO_CLASS_NAME_
-	(	std::string const name
-	,	size_t const _bufsize = 10
-	) :	infile(name)
-	,	bufsize(shifter(_bufsize))
-	,	mask(bufsize-1)
-	{	infile.writeable();
-		count=0;
-		infile.size(count);
-	}
-
-	~_MACRO_CLASS_NAME_ ()
-	{infile.size(count);}
-
-///////////////////////////////////
-// Constructor & Destructor END. //
-///////////////////////////////////
-
-} ;
+    ~_MACRO_CLASS_NAME_() { infile.size(count); }
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
+};
 
 #undef _MACRO_CLASS_NAME_
 
 #define _MACRO_CLASS_NAME_ FileWriterThreaded
-template <typename T>
-class _MACRO_CLASS_NAME_ {
 
-////////////////////////
-// Definitions BEGIN: //
-////////////////////////
+template <typename TD, typename TI = long> class _MACRO_CLASS_NAME_ {
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_INT      = TI;
+    using TYPE_ELEMENT  = TD;
+    using TYPE_ELEMENTS = std::vector<TYPE_ELEMENT>;
+    using TYPE_MAIN     = FileWriter<TYPE_ELEMENT>;
+    using TYPE_SELF     = _MACRO_CLASS_NAME_<TYPE_ELEMENT, TYPE_INT>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
 
-public:
+    ///////////////////////////
+    // Data Elements BEGIN:{ //
+    ///////////////////////////
+  private:
+    TYPE_MAIN  mainwriter;
+    std::mutex locker;
+    /////////////////////////
+    // Data Elements END.} //
+    /////////////////////////
 
-	using TYPE_ELEMENT = T ;
-	using TYPE_MAIN = FileWriter <TYPE_ELEMENT> ;
-	using TYPE_SELF = _MACRO_CLASS_NAME_ <TYPE_ELEMENT> ;
+    ////////////////////////////
+    // Main interface BEGIN:{ //
+    ////////////////////////////
+  public:
+    inline long operator()() const { return mainwriter(); }
 
-//////////////////////
-// Definitions END. //
-//////////////////////
+    inline void operator()(TYPE_ELEMENT const &indata) {
+        locker.lock();
+        TYPE_INT ret = mainwriter(indata);
+        locker.unlock();
+        return ret;
+    }
 
-//////////////////////////
-// Data Elements BEGIN: //
-//////////////////////////
+    inline TYPE_INT operator()(TYPE_ELEMENTS const &indata) {
+        locker.lock();
+        TYPE_INT ret = mainwriter(indata);
+        locker.unlock();
+        return ret;
+    }
 
-private:
-	TYPE_MAIN mainwriter ;
-	std::mutex locker ;
+    template <typename TPI>
+    inline TYPE_INT operator()(Dynamic1DArray<TYPE_ELEMENT, TPI> const &in) {
+        locker.lock();
+        TYPE_INT ret = mainwriter(in);
+        locker.unlock();
+        return ret;
+    }
+    //////////////////////////
+    // Main interface END.} //
+    //////////////////////////
 
-////////////////////////
-// Data Elements END. //
-////////////////////////
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(std::string const filename, TYPE_INT const bufsize = 20)
+      : mainwriter(filename, bufsize) {}
 
-///////////////////////////
-// Main interface BEGIN: //
-///////////////////////////
-
-public:
-
-	inline size_t
-	operator () () const
-	{return mainwriter();}
-
-	inline void
-	operator ()
-	(TYPE_ELEMENT const & indata)
-	{	locker.lock();
-		mainwriter(indata);
-		locker.unlock();
-	}
-
-/////////////////////////
-// Main interface END. //
-/////////////////////////
-
-/////////////////////////////////////
-// Constructor & Destructor BEGIN: //
-/////////////////////////////////////
-
-public:
-
-	_MACRO_CLASS_NAME_
-	(	std::string const filename
-	,	size_t const bufsize = 10
-	) :	mainwriter
-		(	filename
-		,	bufsize
-		)
-	{}
-
-	~_MACRO_CLASS_NAME_(){}
-
-///////////////////////////////////
-// Constructor & Destructor END. //
-///////////////////////////////////
-
-} ;
+    ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
+};
 
 #undef _MACRO_CLASS_NAME_
 
