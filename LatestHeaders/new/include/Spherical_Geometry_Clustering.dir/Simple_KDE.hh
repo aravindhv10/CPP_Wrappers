@@ -22,6 +22,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     using TYPE_DISTANCES   = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ACCUMULATOR = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
     using TYPE_SELF        = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
+
+    struct TYPE_RET {
+        TYPE_INT   idx;
+        TYPE_FLOAT val;
+    };
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -109,7 +114,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Interfaces BEGIN:{ //
     ////////////////////////
   public:
-    inline TYPE_INT const get_max_index() const { return MAX_INDEX; }
+    inline TYPE_INT const   get_max_index() const { return MAX_INDEX; }
+    inline TYPE_FLOAT const get_max_value() const { return MAX_VALUE; }
 
     inline void debug() const {
         for (TYPE_INT i = 0; i < ACCUMULATOR(); i++) {
@@ -131,12 +137,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     ~_MACRO_CLASS_NAME_() {}
 
-    static inline TYPE_INT const
+    static inline TYPE_RET const
     find_kde_center(TYPE_DISTANCES const &distances,
                     TYPE_FLOAT const      bandwidth) {
 
-        TYPE_SELF slave(distances, bandwidth);
-        return slave.get_max_index();
+        TYPE_SELF      slave(distances, bandwidth);
+        TYPE_RET const rets = {slave.get_max_index(), slave.get_max_value()};
+        return rets;
     }
 
     static inline void show_debug(TYPE_DISTANCES const &distances,

@@ -242,6 +242,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     using TYPE_ELEMENTS = std::vector<TYPE_ELEMENT>;
     using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
     using TYPE_VALIDITY = CPPFileIO::Dynamic1DArray<bool, TYPE_INT>;
+
+    struct TYPE_KDE_RET {
+        TYPE_ELEMENT place;
+        TYPE_FLOAT   score;
+    };
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -389,8 +394,10 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
 
-    inline TYPE_ELEMENT const &find_kde_center(TYPE_FLOAT const bandwidth) {
-        return INPUTS(TYPE_KDE::find_kde_center(OUTPUTS, bandwidth));
+    inline TYPE_KDE_RET const find_kde_center(TYPE_FLOAT const bandwidth) {
+        auto const   res = TYPE_KDE::find_kde_center(OUTPUTS, bandwidth);
+        TYPE_KDE_RET ret = {INPUTS(res.idx), res.val};
+        return ret;
     }
 
     inline void find_dbscan_clusters(std::vector<TYPE_ELEMENTS> &in,
@@ -411,15 +418,18 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         }
     }
 
-    inline void find_dbscan_kde_centers(TYPE_ELEMENTS &in, TYPE_FLOAT const eps,
+    using TYPE_DBSCAN_RET = std::vector<TYPE_KDE_RET>;
+    inline void find_dbscan_kde_centers(TYPE_DBSCAN_RET &in,
+                                        TYPE_FLOAT const eps,
                                         TYPE_INT const   min_pts,
                                         TYPE_FLOAT const bandwidth) {
         in.clear();
         std::vector<TYPE_ELEMENTS> clusters;
         find_dbscan_clusters(clusters, eps, min_pts);
         for (TYPE_INT i = 0; i < clusters.size(); i++) {
-            TYPE_SELF tmp(clusters[i]);
-            in.push_back(tmp.find_kde_center(bandwidth));
+            TYPE_SELF  tmp(clusters[i]);
+            auto const res = tmp.find_kde_center(bandwidth);
+            in.push_back(res);
         }
     }
     //////////////////////////////
