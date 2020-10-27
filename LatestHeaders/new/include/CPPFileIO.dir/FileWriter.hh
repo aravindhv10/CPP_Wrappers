@@ -137,9 +137,9 @@ template <typename TD, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main interface BEGIN:{ //
     ////////////////////////////
   public:
-    inline long operator()() const { return mainwriter(); }
+    inline TYPE_INT operator()() const { return mainwriter(); }
 
-    inline void operator()(TYPE_ELEMENT const &indata) {
+    inline TYPE_INT operator()(TYPE_ELEMENT const &indata) {
         locker.lock();
         TYPE_INT ret = mainwriter(indata);
         locker.unlock();
