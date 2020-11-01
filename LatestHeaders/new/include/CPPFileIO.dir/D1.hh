@@ -139,6 +139,10 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         for (size_t i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in[i]; }
     }
 
+    inline void operator=(TYPE_DATA const in) {
+        for (size_t i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in; }
+    }
+
     inline TYPE_DATA operator*(TYPE_SELF const &other) const {
         TYPE_DATA ret   = 0;
         size_t    limit = mymin(SIZE(), other.SIZE());
@@ -164,6 +168,10 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         STORE = store;
     }
 
+    ~_MACRO_CLASS_NAME_() {
+        if (ALLOCATED) { delete[] STORE; }
+    }
+
     static inline TYPE_SELF CLONE(TYPE_SELF const &in) {
         TYPE_SELF ret(in.SIZE());
         ret = in;
@@ -174,10 +182,6 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         TYPE_SELF ret(in.size());
         ret = &(in[0]);
         return ret;
-    }
-
-    ~_MACRO_CLASS_NAME_() {
-        if (ALLOCATED) { delete[] STORE; }
     }
     ///////////////////////
     // CONSTRUCTOR END.} //
