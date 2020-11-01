@@ -124,9 +124,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     inline size_t operator()() const { return SIZE(); }
 
-    inline TYPE_DATA &operator()(size_t const i) {
-        return GET_ELEMENT(i);
-    }
+    inline TYPE_DATA &operator()(size_t const i) { return GET_ELEMENT(i); }
 
     inline TYPE_DATA const &operator()(size_t const i) const {
         return GET_ELEMENT(i);
@@ -134,16 +132,11 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     inline void operator=(TYPE_SELF const &other) {
         size_t I = mymin(SIZE(), other());
-
-        for (size_t i = 0; i < I; i++) {
-            GET_ELEMENT(i) = other(i);
-        }
+        for (size_t i = 0; i < I; i++) { GET_ELEMENT(i) = other(i); }
     }
 
     inline void operator=(TYPE_DATA const *in) {
-        for (size_t i = 0; i < SIZE(); i++) {
-            GET_ELEMENT(i) = in[i];
-        }
+        for (size_t i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in[i]; }
     }
 
     inline TYPE_DATA operator*(TYPE_SELF const &other) const {
@@ -162,9 +155,7 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     _MACRO_CLASS_NAME_(TYPE_INT const size)
       : SZ(size), DS(1), ALLOCATED((SZ * DS) > 0) {
-        if (ALLOCATED) {
-            STORE = new TYPE_DATA[SIZE() * DIST()];
-        }
+        if (ALLOCATED) { STORE = new TYPE_DATA[SIZE() * DIST()]; }
     }
 
     _MACRO_CLASS_NAME_(TYPE_DATA *store, TYPE_INT const size,
@@ -191,7 +182,6 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ///////////////////////
     // CONSTRUCTOR END.} //
     ///////////////////////
-
 };
 
 #undef _MACRO_CLASS_NAME_

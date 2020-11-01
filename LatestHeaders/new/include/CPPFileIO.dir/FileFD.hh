@@ -14,13 +14,18 @@
 
 class _MACRO_CLASS_NAME_ {
 
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
   public:
     using TYPE_SELF = _MACRO_CLASS_NAME_;
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
 
     //////////////////////
     // Data part BEGIN: //
     //////////////////////
-
   private:
     std::string filename;
     int         fd;
@@ -29,7 +34,6 @@ class _MACRO_CLASS_NAME_ {
     void *      mapped;
     size_t      maplength;
     int         mmapprot;
-
     ////////////////////
     // Data part END. //
     ////////////////////
@@ -37,7 +41,6 @@ class _MACRO_CLASS_NAME_ {
     //////////////////////
     // File Mode BEGIN: //
     //////////////////////
-
   private:
     inline void construct(std::string const Afile = std::string("outfile")) {
         filename  = Afile;
@@ -66,7 +69,7 @@ class _MACRO_CLASS_NAME_ {
         if (filemode != newfilemode) { closefile(); }
         if (fd < 0) {
             fd = open(static_cast<const char *>(&(filename[0])), newfilemode,
-                      static_cast<mode_t>(0755)); //
+                      static_cast<mode_t>(0755));
             filemode = newfilemode;
         }
     }
@@ -77,13 +80,13 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void writefile() {
-        check_file_mode(static_cast<int>(O_WRONLY | O_CREAT | O_TRUNC)); //
-        mmapprot = static_cast<int>(PROT_WRITE);                         //
+        check_file_mode(static_cast<int>(O_WRONLY | O_CREAT | O_TRUNC));
+        mmapprot = static_cast<int>(PROT_WRITE);
     }
 
     inline void appendfile() {
-        check_file_mode(static_cast<int>(O_RDWR | O_CREAT)); //
-        mmapprot = static_cast<int>(PROT_READ | PROT_WRITE); //
+        check_file_mode(static_cast<int>(O_RDWR | O_CREAT));
+        mmapprot = static_cast<int>(PROT_READ | PROT_WRITE);
     }
 
     inline void destroy() { closefile(); }
@@ -105,7 +108,6 @@ class _MACRO_CLASS_NAME_ {
     inline int truncatefile(off_t const length = 0) {
         return static_cast<int>(ftruncate(fd, length));
     }
-
     ////////////////////
     // File Mode END. //
     ////////////////////
@@ -113,7 +115,6 @@ class _MACRO_CLASS_NAME_ {
     /////////////////
     // Seek BEGIN: //
     /////////////////
-
   public:
     inline off_t seekfile(off_t const offset = 0, int const whence = SEEK_CUR) {
         return static_cast<off_t>(lseek(fd, offset, whence)); //
@@ -125,7 +126,6 @@ class _MACRO_CLASS_NAME_ {
         seekfile(static_cast<off_t>(pos), SEEK_SET);
         return (*this);
     }
-
     ///////////////
     // Seek END. //
     ///////////////
@@ -133,7 +133,6 @@ class _MACRO_CLASS_NAME_ {
     /////////////////
     // Info BEGIN: //
     /////////////////
-
   public:
     inline int info() {
         return static_cast<int>(fstat(fd,
@@ -148,7 +147,6 @@ class _MACRO_CLASS_NAME_ {
     inline std::string const &getfilename() const { return filename; }
 
     inline int getfd() const { return fd; }
-
     ///////////////
     // Info END. //
     ///////////////
@@ -156,7 +154,6 @@ class _MACRO_CLASS_NAME_ {
     ///////////////////////////
     // Memory Mapping BEGIN: //
     ///////////////////////////
-
   public:
     inline void *mapfile(size_t const length, off_t const offset = 0) {
         if ((maplength == 0) && (mmapprot != PROT_NONE) &&
@@ -190,7 +187,6 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline size_t getmaplength() const { return maplength; }
-
     /////////////////////////
     // Memory Mapping END. //
     /////////////////////////
@@ -198,7 +194,6 @@ class _MACRO_CLASS_NAME_ {
     /////////////////////////
     // Read & Write BEGIN: //
     /////////////////////////
-
   public:
     inline ssize_t read2file(void *buf = NULL, size_t const count = 0) {
         return static_cast<ssize_t>(read(fd, buf, count)); //
@@ -271,7 +266,6 @@ class _MACRO_CLASS_NAME_ {
         }
         return writtensize;
     }
-
     ///////////////////////
     // Read & Write END. //
     ///////////////////////
@@ -279,7 +273,6 @@ class _MACRO_CLASS_NAME_ {
     ////////////////////////////////
     // Convinence Wrappers BEGIN: //
     ////////////////////////////////
-
   public:
     inline ssize_t operator>>(char &out) { return multiread2file(out); }
     inline ssize_t operator<<(char const out) { return multiwrite2file(out); }
@@ -293,19 +286,16 @@ class _MACRO_CLASS_NAME_ {
     inline ssize_t operator<<(long const out) { return multiwrite2file(out); }
     inline ssize_t operator>>(size_t &out) { return multiread2file(out); }
     inline ssize_t operator<<(size_t const out) { return multiwrite2file(out); }
-
+    inline ssize_t operator>>(std::string &out) { return ReadString(out); }
     inline ssize_t operator<<(std::string const out) {
         return WriteString(out);
     }
-    inline ssize_t operator>>(std::string &out) { return ReadString(out); }
-
     template <typename T> inline ssize_t operator<<(std::vector<T> const &out) {
         return WriteVector(out);
     }
     template <typename T> inline ssize_t operator>>(std::vector<T> &out) {
         return ReadVector(out);
     }
-
     //////////////////////////////
     // Convinence Wrappers END. //
     //////////////////////////////
@@ -313,13 +303,11 @@ class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////
     // Constructor & Destructor BEGIN: //
     /////////////////////////////////////
-
   public:
     _MACRO_CLASS_NAME_(const char *Afile) { construct(Afile); }
     _MACRO_CLASS_NAME_() { construct(); }
     _MACRO_CLASS_NAME_(std::string Afile) { construct(Afile); }
     ~_MACRO_CLASS_NAME_() { destroy(); }
-
     ///////////////////////////////////
     // Constructor & Destructor END. //
     ///////////////////////////////////

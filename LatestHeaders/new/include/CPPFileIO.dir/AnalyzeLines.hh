@@ -414,9 +414,9 @@ class _MACRO_CLASS_NAME_ {
     // Data Elements END. //
     ////////////////////////
 
-	////////////////////////////////
-	// Required interfaces BEGIN: //
-	////////////////////////////////
+    ////////////////////////////////
+    // Required interfaces BEGIN: //
+    ////////////////////////////////
   public:
     static inline void SORT(TYPE_WORD const in) {}
     static inline void MERGE(TYPE_WORD const in1, TYPE_WORD const in2,
@@ -443,23 +443,24 @@ class _MACRO_CLASS_NAME_ {
     }
 
     ~_MACRO_CLASS_NAME_() { ANALYZER >> FILENAME; }
-	//////////////////////////////
-	// Required interfaces END. //
-	//////////////////////////////
+    //////////////////////////////
+    // Required interfaces END. //
+    //////////////////////////////
 
     template <char seperator, char newline>
     static inline void PrepareFileSchema(std::string const infilename,
-                                  std::string const outfilename,
-                                  size_t const      n_splits  = 16,
-                                  size_t const      n_threads = 4) {
+                                         std::string const outfilename,
+                                         size_t const      n_splits  = 16,
+                                         size_t const      n_threads = 4) {
+
         FastTXT2BIN<TYPE_SELF, seperator, newline>::Do_All(
           infilename, outfilename, n_splits, n_threads, false);
-		TYPE_ANALYZER analyze;
-		analyze << outfilename;
-		std::string const headername = outfilename + ".hh";
-		FILE * f = fopen(headername.c_str(),"w");
-		analyze.show(f);
-		fclose(f);
+        TYPE_ANALYZER analyze;
+        analyze << outfilename;
+        std::string const headername = outfilename + ".hh";
+        FILE *            f          = fopen(headername.c_str(), "w");
+        analyze.show(f);
+        fclose(f);
     }
 };
 

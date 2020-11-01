@@ -11,495 +11,344 @@
 
 #define _MACRO_CLASS_NAME_ BinarySearch
 
-template <typename rd=char>
-class _MACRO_CLASS_NAME_ {
-
-////////////////////////
-// DEFINITIONS BEGIN: //
-////////////////////////
-
-public:
-
-	using TYPE_READER = rd ;
-	using TYPE_SELF = _MACRO_CLASS_NAME_ <rd> ;
-
-	using TYPE_RETURN =
-		struct {
-			size_t begin ;
-			size_t end ;
-			char status ;
-		}
-	; //
-
-//////////////////////
-// DEFINITIONS END. //
-//////////////////////
-
-
-/////////////////
-// DATA BEGIN: //
-/////////////////
-
-private:
-
-	TYPE_READER & reader ;
-	size_t const limit ;
-
-///////////////
-// DATA END. //
-///////////////
-
-//////////////////////////
-// RETURN STATUS BEGIN: //
-//////////////////////////
-
-private:
-
-	inline TYPE_RETURN
-	FAILED () const {
-		TYPE_RETURN ret ;
-		ret.begin=0;
-		ret.end=limit-1;
-		ret.status = -1 ;
-		return ret ;
-	}
-
-	inline TYPE_RETURN
-	FOUND () const {
-		return FAILED() ;
-	}
-
-	inline TYPE_RETURN
-	FOUND (
-		size_t const val
-	) const {
-		TYPE_RETURN ret ;
-		ret.begin = val ;
-		ret.end = val ;
-		ret.status = 0 ;
-		return ret ;
-	}
+template <typename rd = char> class _MACRO_CLASS_NAME_ {
+
+    ////////////////////////
+    // DEFINITIONS BEGIN: //
+    ////////////////////////
+
+  public:
+    using TYPE_READER = rd;
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<rd>;
+
+    using TYPE_RETURN = struct {
+        size_t begin;
+        size_t end;
+        char   status;
+    }; //
 
-	inline TYPE_RETURN
-	FOUND
-	(	size_t const begin
-	,	size_t const end
-	) const {
-		TYPE_RETURN ret ;
-		ret.begin = begin ;
-		ret.end = end ;
-		ret.status = 1 ;
-		return ret ;
-	}
+    //////////////////////
+    // DEFINITIONS END. //
+    //////////////////////
 
-////////////////////////
-// RETURN STATUS END. //
-////////////////////////
+    /////////////////
+    // DATA BEGIN: //
+    /////////////////
 
-//////////////////
-// RANGE BEGIN: //
-//////////////////
+  private:
+    TYPE_READER &reader;
+    size_t const limit;
 
-public:
+    ///////////////
+    // DATA END. //
+    ///////////////
 
-	template <typename F>
-	inline size_t
-	find_start
-	(	size_t end
-	,	F & in
-	) {
-		size_t start = 0 ;
-		if(start>=end){return start;}
-		auto const val=reader(end);
-		char cmp=in(reader(start),val);
-		if(cmp>=0){return start;}
+    //////////////////////////
+    // RETURN STATUS BEGIN: //
+    //////////////////////////
 
-		MainLoop: {
+  private:
+    inline TYPE_RETURN FAILED() const {
+        TYPE_RETURN ret;
+        ret.begin  = 0;
+        ret.end    = limit - 1;
+        ret.status = -1;
+        return ret;
+    }
 
-			size_t const mid
-				= (start+end)/2
-			; //
+    inline TYPE_RETURN FOUND() const { return FAILED(); }
 
-			int const stat
-				= ( 10 * ( start >= mid ) )
-				+ in(reader(mid),val)
-			; //
+    inline TYPE_RETURN FOUND(size_t const val) const {
+        TYPE_RETURN ret;
+        ret.begin  = val;
+        ret.end    = val;
+        ret.status = 0;
+        return ret;
+    }
 
-			switch (stat) {
+    inline TYPE_RETURN FOUND(size_t const begin, size_t const end) const {
+        TYPE_RETURN ret;
+        ret.begin  = begin;
+        ret.end    = end;
+        ret.status = 1;
+        return ret;
+    }
 
-				case  9 :
-				case 11 : return end;
+    ////////////////////////
+    // RETURN STATUS END. //
+    ////////////////////////
 
-				case 10 : return start;
+    //////////////////
+    // RANGE BEGIN: //
+    //////////////////
 
-				case -1 :
-					start=mid;
-					goto MainLoop ;
+  public:
+    template <typename F> inline size_t find_start(size_t end, F &in) {
 
-				case  0 :
-					end=mid;
-					goto MainLoop ;
+        size_t start = 0;
+        if (start >= end) { return start; }
+        auto const val = reader(end);
+        char       cmp = in(reader(start), val);
+        if (cmp >= 0) { return start; }
 
-				default :  return end ;
+    MainLoop:
+        /* The Main Loop Body: */ {
 
-			}
+            size_t const mid = (start + end) / 2; //
 
-		}
+            int const stat = (10 * (start >= mid)) + in(reader(mid), val); //
 
-		return end;
+            switch (stat) {
+                case 10: return start;
 
-	}
+                case -1: start = mid; goto MainLoop;
 
-	inline size_t
-	find_start (
-		size_t end
-	) {
+                case 0: end = mid; goto MainLoop;
 
-		size_t start = 0 ;
-		if(start>=end){return start;}
-		auto const val=reader(end);
-		if(reader(start)>=val){return start;}
+                case 9:
+                case 11:
+                default: return end;
+            }
+        }
 
-		MainLoop: {
+        return end;
+    }
 
-			size_t const mid
-				= (start+end)/2
-			; //
+    inline size_t find_start(size_t end) {
 
-			int const stat
-				= ( 10 * ( start       >= mid ) )
-				+ (  1 * ( reader(mid) >= val ) )
-			; //
+        size_t start = 0;
+        if (start >= end) { return start; }
+        auto const val = reader(end);
+        if (reader(start) >= val) { return start; }
 
-			switch (stat) {
+    MainLoop:
+        /* The Main Loop Body */ {
 
-				case 10: return end;
+            size_t const mid = (start + end) / 2; //
 
-				case 11: return start;
+            int const stat =
+              (10 * (start >= mid)) + (1 * (reader(mid) >= val)); //
 
-				case 1:
-					end=mid;
-					goto MainLoop ;
+            switch (stat) {
 
-				default:
-					start=mid;
-					goto MainLoop ;
+                case 10: return end;
 
-			}
+                case 11: return start;
 
-		}
+                case 1: end = mid; goto MainLoop;
 
-		return end;
+                default: start = mid; goto MainLoop;
+            }
+        }
 
-	}
+        return end;
+    }
 
-	template <typename F>
-	inline size_t
-	find_end
-	(	size_t start
-	,	F & in
-	) {
-		size_t end=reader()-1;
-		if(start>=end){return end;}
-		auto const val=reader(start);
-		char cmp=in(reader(end),val);
-		if(cmp<=0){return end;}
+    template <typename F> inline size_t find_end(size_t start, F &in) {
+        size_t end = reader() - 1;
+        if (start >= end) { return end; }
+        auto const val = reader(start);
+        char       cmp = in(reader(end), val);
+        if (cmp <= 0) { return end; }
 
-		MainLoop: {
+    MainLoop:
+        /* The main loop body: */ {
 
-			size_t const mid
-				= (start+end)/2
-			; //
+            size_t const mid = (start + end) / 2; //
 
-			int const stat
-				= ( 10 * ( start >= mid ) )
-				+ in(reader(mid),val)
-			; //
+            int const stat = (10 * (start >= mid)) + in(reader(mid), val); //
 
-			switch (stat) {
+            switch (stat) {
 
-				case 9:
-				case 11:
-				case 10:
-				case -1:
-					return start;
+                case 9:
+                case 11:
+                case 10:
+                case -1: return start;
 
-				case 0:
-					start=mid;
-					goto MainLoop;
+                case 0: start = mid; goto MainLoop;
 
-				case 1:
-					end=mid;
-					goto MainLoop;
+                case 1: end = mid; goto MainLoop;
+            }
+        }
 
-			}
+        return start;
+    }
 
-		}
+    inline size_t find_end(size_t start) {
 
-		return start;
+        size_t end = reader() - 1;
+        if (start >= end) { return end; }
+        auto const val = reader(start);
+        if (reader(end) <= val) { return end; }
 
-	}
+    MainLoop:
+        /* The main loop body */ {
 
-	inline size_t
-	find_end (
-		size_t start
-	) {
+            size_t const mid = (start + end) / 2; //
 
-		size_t end=reader()-1;
-		if(start>=end){return end;}
-		auto const val=reader(start);
-		if(reader(end)<=val){return end;}
+            int const stat =
+              (10 * (start >= mid)) + (1 * (reader(mid) <= val)); //
 
-		MainLoop: {
+            switch (stat) {
 
-			size_t const mid
-				= (start+end)/2
-			; //
+                case 10:
+                case 11: return start;
 
-			int const stat
-				= ( 10 * ( start       >= mid ) )
-				+ (  1 * ( reader(mid) <= val ) )
-			; //
+                case 1: start = mid; goto MainLoop;
 
-			switch (stat) {
+                default: end = mid; goto MainLoop;
+            }
+        }
 
-				case 10:
-				case 11:
-					return start;
+        return end;
+    }
 
-				case 1:
-					start=mid;
-					goto MainLoop ;
+    inline TYPE_RETURN find_range(size_t const index) {
+        return FOUND(find_start(index), find_end(index));
+    }
 
-				default:
-					end=mid;
-					goto MainLoop ;
+    template <typename T>
+    inline TYPE_RETURN find_range(size_t const index, T &in) {
+        return FOUND(find_start(index, in), find_end(index, in));
+    }
 
-			}
+    ////////////////
+    // RANGE END. //
+    ////////////////
 
-		}
+    ///////////////////////////////
+    // FIND WITH COMPARER BEGIN: //
+    ///////////////////////////////
 
-		return end;
+  private:
+    template <typename T, typename F>
+    inline TYPE_RETURN find_new(T const &in, F &compare) {
 
-	}
+        size_t begin = 0;
+        size_t end   = limit - 1;
+        size_t mid;
+        int    status;
 
-	inline TYPE_RETURN
-	find_range
-	(	size_t const index
-	) {	return
-			FOUND
-			(	find_start(index)
-			,	find_end(index)
-			)
-	; }
+        status = (1 * (end < begin)) + (2 * (end == begin)); //
 
-	template <typename T>
-	inline TYPE_RETURN
-	find_range
-	(	size_t const index
-	,	T & in
-	) {	return
-			FOUND
-			(	find_start(index,in)
-			,	find_end(index,in)
-			)
-	; }
+        switch (status) {
 
-////////////////
-// RANGE END. //
-////////////////
+            case 1: return FOUND();
 
-///////////////////////////////
-// FIND WITH COMPARER BEGIN: //
-///////////////////////////////
+            case 2: {
+                int const res = compare(in, reader(begin));
+                if (res == 0) {
+                    return FOUND(begin);
+                } else {
+                    return FOUND();
+                }
+            }
 
-private:
+            default: break;
+        }
 
-	template <typename T, typename F>
-	inline TYPE_RETURN
-	find_new (
-		T const & in
-		, F & compare
-	) {
+    MainLoopBegin:
+        /* The main loop body: */ {
 
-		size_t begin = 0 ;
-		size_t end = limit - 1 ;
-		size_t mid ;
-		int status ;
+            mid = (begin + end) / 2;
 
-		status =
-			  ( 1 * ( end < begin ) )
-			+ ( 2 * ( end == begin ) )
-		; //
+            status = compare(in, reader(mid)) + (10 * (begin == mid)); //
 
-		switch (status) {
+            switch (status) {
 
-			case 1 : return FOUND() ;
+                case -1: end = mid; goto MainLoopBegin;
 
-			case 2 : {
-				int const res
-					= compare(in,reader(begin))
-				; //
-				if(res==0){
-					return FOUND(begin) ;
-				} else {
-					return FOUND() ;
-				}
-			}
+                case 1: begin = mid; goto MainLoopBegin;
 
-			default : break ;
+                case 0:
+                case 10: return FOUND(mid);
 
-		}
+                case 11: return FOUND(mid, end);
 
-		MainLoopBegin: {
+                default: return FOUND();
+            }
+        }
+    }
 
-			mid = ( begin + end ) / 2 ;
+    /////////////////////////////
+    // FIND WITH COMPARER END. //
+    /////////////////////////////
 
-			status =
-				compare(in,reader(mid))
-				+ ( 10 * ( begin == mid ) )
-			; //
+    ///////////////////////
+    // Plain find BEGIN: //
+    ///////////////////////
 
-			switch (status) {
+  private:
+    template <typename T> inline TYPE_RETURN find_new(T const &in) {
+        size_t begin = 0;
+        size_t end   = limit - 1;
+        size_t mid;
+        int    status;
 
-				case -1 :
-					end = mid ;
-					goto MainLoopBegin ;
+        status = (1 * (end < begin)) + (2 * (end == begin)); //
 
-				case 1 :
-					begin = mid ;
-					goto MainLoopBegin ;
+        switch (status) {
 
-				case 0 :
-				case 10 : return FOUND(mid) ;
+            case 1: return FOUND();
 
-				case 11 : return FOUND(mid,end) ;
+            case 2: {
+                if (in == reader(begin)) {
+                    return FOUND(begin);
+                } else {
+                    return FOUND();
+                }
+            }
 
-				default : return FOUND() ;
+            default: break;
+        }
 
-			}
+    MainLoopBegin:
+        /* The main loop body: */ {
 
-		}
+            mid = (begin + end) / 2;
 
-	}
+            status = (-1 * (in < reader(mid))) + (1 * (in > reader(mid))) +
+                     (10 * (begin == mid)); //
 
-/////////////////////////////
-// FIND WITH COMPARER END. //
-/////////////////////////////
+            switch (status) {
+                case -1: end = mid; goto MainLoopBegin;
 
-///////////////////////
-// Plain find BEGIN: //
-///////////////////////
+                case 1: begin = mid; goto MainLoopBegin;
 
-private:
+                case 0:
+                case 10: return FOUND(mid);
 
-	template <typename T>
-	inline TYPE_RETURN
-	find_new (
-		T const & in
-	) {
-		size_t begin = 0 ;
-		size_t end = limit - 1 ;
-		size_t mid ;
-		int status ;
+                case 11: return FOUND(mid, end);
 
-		status =
-			  ( 1 * ( end < begin ) )
-			+ ( 2 * ( end == begin ) )
-		; //
+                default: return FOUND();
+            }
+        }
+    }
 
-		switch (status) {
+    /////////////////////
+    // Plain find END. //
+    /////////////////////
 
-			case 1 : return FOUND() ;
+  public:
+    template <typename T> inline TYPE_RETURN operator()(T const &in) {
+        return find_new(in); //
+    }
 
-			case 2 : {
-				if(in==reader(begin)){
-					return FOUND(begin) ;
-				} else {
-					return FOUND() ;
-				}
-			}
+    template <typename T, typename F>
+    inline TYPE_RETURN operator()(T const &in, F &compare) {
+        return find_new(in, compare); //
+    }
 
-			default : break ;
+    _MACRO_CLASS_NAME_(TYPE_READER &_reader)
+      : reader(_reader), limit(reader()) {}
 
-		}
+    ~_MACRO_CLASS_NAME_() {}
 
-		MainLoopBegin: {
-
-			mid = ( begin + end ) / 2 ;
-
-			status =
-				  ( -1 * ( in < reader(mid) ) )
-				+ (  1 * ( in > reader(mid) ) )
-				+ ( 10 * ( begin == mid ) )
-			; //
-
-			switch (status) {
-				case -1 :
-					end = mid ;
-					goto MainLoopBegin ;
-
-				case 1 :
-					begin = mid ;
-					goto MainLoopBegin ;
-
-				case 0 :
-				case 10 : return FOUND(mid) ;
-
-				case 11 : return FOUND(mid,end) ;
-
-				default : return FOUND() ;
-
-			}
-
-		}
-
-
-	}
-
-/////////////////////
-// Plain find END. //
-/////////////////////
-
-public:
-
-	template <typename T>
-	inline TYPE_RETURN
-	operator () (
-		T const & in
-	) {
-		return
-			find_new(in)
-		; //
-	}
-
-	template <typename T, typename F>
-	inline TYPE_RETURN
-	operator () (
-		T const & in
-		, F & compare
-	) {
-		return
-			find_new(in,compare)
-		; //
-	}
-
-	_MACRO_CLASS_NAME_
-	(	TYPE_READER & _reader
-	) :	reader(_reader)
-	,	limit(reader())
-	{}
-
-	~_MACRO_CLASS_NAME_ () {}
-
-	template <typename T>
-	static inline _MACRO_CLASS_NAME_ <T>
-	GET (T & in)
-	{	_MACRO_CLASS_NAME_ <T> ret (in) ;
-		return ret ;
-	}
-
-} ;
+    template <typename T> static inline _MACRO_CLASS_NAME_<T> GET(T &in) {
+        _MACRO_CLASS_NAME_<T> ret(in);
+        return ret;
+    }
+};
 
 #undef _MACRO_CLASS_NAME_
 

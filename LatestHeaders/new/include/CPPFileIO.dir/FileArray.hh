@@ -13,221 +13,160 @@
 
 #define _MACRO_CLASS_NAME_ FileArray
 
-template <typename T>
-class _MACRO_CLASS_NAME_ {
+template <typename T> class _MACRO_CLASS_NAME_ {
+    ////////////////////////
+    // Definitions BEGIN: //
+    ////////////////////////
+  public:
+    using TYPE_SELF    = _MACRO_CLASS_NAME_;
+    using TYPE_ELEMENT = T;
 
-////////////////////////
-// Definitions BEGIN: //
-////////////////////////
+    static inline size_t constexpr Sizes(size_t const in) {
+        size_t constexpr sizes[4] = {4096, sizeof(TYPE_ELEMENT),
+                                     LCM(sizes[0], sizes[1]),
+                                     sizes[2] / sizes[1]}; //
+        return sizes[in];
+    }
+    //////////////////////
+    // Definitions END. //
+    //////////////////////
 
-public:
+    //////////////////////////
+    // Data Elements BEGIN: //
+    //////////////////////////
+  private:
+    TYPE_ELEMENT *mainptr;
+    std::string   filename;
+    FileFD        filefd;
+    size_t        offset;
+    size_t        begin, end, length;
+    size_t        act_begin, act_end, act_length;
+    ////////////////////////
+    // Data Elements END. //
+    ////////////////////////
 
-	using TYPE_SELF = _MACRO_CLASS_NAME_ ;
-	using TYPE_ELEMENT = T ;
+    //////////////////////
+    // File Mode BEGIN: //
+    //////////////////////
+  public:
+    inline void construct(std::string const Afilename = std::string("outfile"),
+                          size_t const      Aoffset   = 0) {
 
-//////////////////////
-// Definitions END. //
-//////////////////////
+        filename = Afilename;
+        filefd(filename).readfile();
+        offset     = Aoffset;
+        begin      = 0;
+        act_begin  = 0;
+        end        = 0;
+        act_end    = 0;
+        length     = 0;
+        act_length = 0;
+    }
 
-//////////////////////////
-// Data Elements BEGIN: //
-//////////////////////////
+    inline void destroy() { filefd.destroy(); }
 
-private:
+    inline void
+    reconstruct(std::string const Afilename = std::string("outfile"),
+                size_t const      Aoffset   = 0) {
+        destroy();
+        construct(Afilename, Aoffset);
+    }
 
-	TYPE_ELEMENT * mainptr  ;
+    inline void writeable(bool const arg = true) {
+        if (arg) {
+            filefd(filename).appendfile();
+        } else {
+            filefd(filename).readfile();
+        }
+    }
+    ////////////////////
+    // File Mode END. //
+    ////////////////////
 
-	static inline size_t constexpr
-	Sizes (size_t const in) {
-		size_t constexpr sizes[4] = {
-			4096 ,
-			sizeof (TYPE_ELEMENT) ,
-			LCM (sizes[0],sizes[1]) ,
-			sizes[2] / sizes[1]
-		} ; //
-		return sizes[in] ;
-	}
+    //////////////////////////////////
+    // Main Mapping Function BEGIN: //
+    //////////////////////////////////
+  public:
+    inline void map(size_t const t_begin = 0, size_t const t_length = 1) {
+        size_t const t_end = t_begin + t_length;
+        if ((t_begin < begin) || (t_end > end)) {
+            /* Match to sector sizes: */ {
+                begin = static_cast<size_t>(static_cast<double>(t_begin) /
+                                            static_cast<double>(Sizes(3))) *
+                        Sizes(3);
 
-	std::string filename ;
-	FileFD filefd ;
-	size_t offset ;
-	size_t begin, end, length ;
-	size_t act_begin, act_end, act_length ;
+                end = static_cast<size_t>(
+                        1 + (static_cast<double>(t_begin + t_length) /
+                             static_cast<double>(Sizes(3)))) *
+                      Sizes(3);
 
-////////////////////////
-// Data Elements END. //
-////////////////////////
+                length = end - begin;
+            }
+            /* Reinitiate map: */ {
+                filefd.unmapfile();
+                mainptr = reinterpret_cast<TYPE_ELEMENT *>(
+                  filefd.mapfile((length * Sizes(1)),
+                                 (begin * Sizes(1)) + (offset * Sizes(0))));
+            }
+        }
+    }
+    ////////////////////////////////
+    // Main Mapping Function END. //
+    ////////////////////////////////
 
-//////////////////////
-// File Mode BEGIN: //
-//////////////////////
+    ///////////////////////
+    // File Sizes BEGIN: //
+    ///////////////////////
+  public:
+    inline off_t filesize() { return filefd.sizefile(); }
 
-public:
+    inline off_t size() {
+        return filefd.sizefile() / Sizes(1); //
+    }
 
-	inline void
-	construct (
-		std::string const Afilename = std::string ("outfile") ,
-		size_t const Aoffset = 0
-	) {
-		filename = Afilename ;
-		filefd(filename).readfile() ;
-		offset = Aoffset ;
-		begin = 0 ; act_begin = 0 ;
-		end = 0 ; act_end = 0 ;
-		length = 0 ; act_length = 0 ;
-	}
+    inline off_t size(long const num) {
+        filefd.unmapfile();
+        filefd.truncatefile(num * Sizes(1));
+        return size();
+    }
+    /////////////////////
+    // File Sizes END. //
+    /////////////////////
 
-	inline void
-	destroy () {
-		filefd.destroy () ;
-	}
+    ///////////////////////
+    // Convinence BEGIN: //
+    ///////////////////////
+  public:
+    inline TYPE_ELEMENT &operator()(size_t const A_begin,
+                                    size_t const A_length = 1) {
+        map(A_begin, A_length);
+        return mainptr[A_begin - begin];
+    }
 
-	inline void
-	reconstruct (
-		std::string const Afilename = std::string ("outfile") ,
-		size_t const Aoffset = 0
-	) {
-		destroy();
-		construct(Afilename,Aoffset);
-	}
+    inline off_t operator()() { return size(); }
 
+    inline FileArray &operator()(std::string const Afilename,
+                                 size_t const      Aoffset = 0) {
+        reconstruct(Afilename, Aoffset);
+        return (*this);
+    }
+    /////////////////////
+    // Convinence END. //
+    /////////////////////
 
-	inline void
-	writeable (bool const arg = true) {
-		if(arg) {filefd(filename).appendfile();}
-		else {filefd(filename).readfile();}
-	}
+    /////////////////////////////////////
+    // Constructor & Destructor BEGIN: //
+    /////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(std::string const Afilename = std::string("outfile"),
+                       size_t const      Aoffset   = 0) {
+        construct(Afilename, Aoffset);
+    }
 
-////////////////////
-// File Mode END. //
-////////////////////
-
-//////////////////////////////////
-// Main Mapping Function BEGIN: //
-//////////////////////////////////
-
-public:
-
-	inline void
-	map (
-		size_t const t_begin=0,
-		size_t const t_length=1
-	) {
-		size_t const t_end = t_begin + t_length ;
-		if ((t_begin<begin)||(t_end>end)) {
-			/* Match to sector sizes: */ {
-				begin =
-					static_cast <size_t> (
-						static_cast<double>(t_begin)
-						/ static_cast<double>(Sizes(3))
-					) * Sizes(3)
-				; //
-				end =
-					static_cast <size_t> ( 1 + (
-						static_cast<double>(t_begin+t_length)
-						/ static_cast<double>(Sizes(3))
-					) ) * Sizes(3)
-				; //
-				length = end - begin ;
-			}
-			/* Reinitiate map: */ {
-				filefd.unmapfile () ;
-				mainptr =
-					reinterpret_cast<TYPE_ELEMENT*>(
-						filefd.mapfile (
-							(length*Sizes(1)) ,
-							(begin*Sizes(1)) + (offset*Sizes(0))
-						)
-					)
-				; //
-			}
-		}
-	}
-
-////////////////////////////////
-// Main Mapping Function END. //
-////////////////////////////////
-
-///////////////////////
-// File Sizes BEGIN: //
-///////////////////////
-
-public:
-
-	inline off_t
-	filesize () {
-		return filefd.sizefile () ;
-	}
-
-	inline off_t
-	size () {
-		return
-			filefd.sizefile ()
-			/ Sizes(1)
-		; //
-	}
-
-	inline off_t
-	size ( long const num ) {
-		filefd.unmapfile();
-		filefd.truncatefile(num*Sizes(1));
-		return size();
-	}
-
-/////////////////////
-// File Sizes END. //
-/////////////////////
-
-///////////////////////
-// Convinence BEGIN: //
-///////////////////////
-
-public:
-
-	inline TYPE_ELEMENT &
-	operator () (
-		size_t const A_begin ,
-		size_t const A_length=1
-	) {
-		map (A_begin,A_length) ;
-		return mainptr [A_begin-begin] ;
-	}
-
-	inline off_t
-	operator () () {
-		return size();
-	}
-
-	inline FileArray &
-	operator () (
-		std::string const Afilename
-		, size_t const Aoffset = 0
-	) {
-		reconstruct (Afilename,Aoffset) ;
-		return (*this) ;
-	}
-
-/////////////////////
-// Convinence END. //
-/////////////////////
-
-/////////////////////////////////////
-// Constructor & Destructor BEGIN: //
-/////////////////////////////////////
-
-public:
-
-	_MACRO_CLASS_NAME_ (
-		std::string const Afilename = std::string ("outfile") ,
-		size_t const Aoffset = 0
-	) {construct(Afilename,Aoffset);}
-
-	~_MACRO_CLASS_NAME_ () {destroy();}
-
-///////////////////////////////////
-// Constructor & Destructor END. //
-///////////////////////////////////
-
+    ~_MACRO_CLASS_NAME_() { destroy(); }
+    ///////////////////////////////////
+    // Constructor & Destructor END. //
+    ///////////////////////////////////
 };
 
 #undef _MACRO_CLASS_NAME_
