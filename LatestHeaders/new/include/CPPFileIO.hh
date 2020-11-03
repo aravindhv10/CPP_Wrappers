@@ -45,6 +45,7 @@ namespace CPPFileIO {
 	#include "./CPPFileIO.dir/LineReaderSequentialThreaded.hh"
 	#include "./CPPFileIO.dir/BinarySearch.hh"
 	#include "./CPPFileIO.dir/Inner_Join.hh"
+	#include "./CPPFileIO.dir/RadixSort.hh"
 	////////////////////////
 	// Main Includes END. //
 	////////////////////////

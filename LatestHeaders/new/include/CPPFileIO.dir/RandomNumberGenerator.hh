@@ -37,7 +37,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     ////////////////////////////////
     // Main Work Functions BEGIN: //
     ////////////////////////////////
-
   private:
     inline void allocate() {
         std::random_device random_seeds;
@@ -51,7 +50,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
         double ret = dist(engines[th][0]);
         return ret;
     }
-
     //////////////////////////////
     // Main Work Functions END. //
     //////////////////////////////
@@ -59,7 +57,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////
     // Constructor & Destructor BEGIN: //
     /////////////////////////////////////
-
   public:
     _MACRO_CLASS_NAME_(size_t threads, double _low = 0, double _high = 1)
       : low(_low), high(_high), dist(_low, _high) {
@@ -70,7 +67,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     ~_MACRO_CLASS_NAME_() {
         for (size_t i = 0; i < engines.size(); i++) { delete engines[i]; }
     }
-
     ///////////////////////////////////
     // Constructor & Destructor END. //
     ///////////////////////////////////

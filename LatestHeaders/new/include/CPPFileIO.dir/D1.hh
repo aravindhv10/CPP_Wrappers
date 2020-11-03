@@ -122,31 +122,31 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // CONVINENCE BEGIN:{ //
     ////////////////////////
   public:
-    inline size_t operator()() const { return SIZE(); }
+    inline TYPE_INT operator()() const { return SIZE(); }
 
-    inline TYPE_DATA &operator()(size_t const i) { return GET_ELEMENT(i); }
+    inline TYPE_DATA &operator()(TYPE_INT const i) { return GET_ELEMENT(i); }
 
-    inline TYPE_DATA const &operator()(size_t const i) const {
+    inline TYPE_DATA const &operator()(TYPE_INT const i) const {
         return GET_ELEMENT(i);
     }
 
     inline void operator=(TYPE_SELF const &other) {
-        size_t I = mymin(SIZE(), other());
-        for (size_t i = 0; i < I; i++) { GET_ELEMENT(i) = other(i); }
+        TYPE_INT I = mymin(SIZE(), other());
+        for (TYPE_INT i = 0; i < I; i++) { GET_ELEMENT(i) = other(i); }
     }
 
     inline void operator=(TYPE_DATA const *in) {
-        for (size_t i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in[i]; }
+        for (TYPE_INT i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in[i]; }
     }
 
     inline void operator=(TYPE_DATA const in) {
-        for (size_t i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in; }
+        for (TYPE_INT i = 0; i < SIZE(); i++) { GET_ELEMENT(i) = in; }
     }
 
     inline TYPE_DATA operator*(TYPE_SELF const &other) const {
         TYPE_DATA ret   = 0;
-        size_t    limit = mymin(SIZE(), other.SIZE());
-        for (size_t i = 0; i < limit; i++) { ret += other(i) * GET_ELEMENT(i); }
+        TYPE_INT    limit = mymin(SIZE(), other.SIZE());
+        for (TYPE_INT i = 0; i < limit; i++) { ret += other(i) * GET_ELEMENT(i); }
         return ret / static_cast<TYPE_DATA>(limit);
     }
     //////////////////////
