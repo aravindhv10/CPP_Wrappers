@@ -21,7 +21,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_SELF    = _MACRO_CLASS_NAME_;
     using TYPE_ELEMENT = T;
-    using TYPE_BUFFER  = Dynamic1DArray<TYPE_ELEMENT, long>;
 
     static inline size_t constexpr Sizes(size_t const in) {
         size_t constexpr sizes[4] = {4096, sizeof(TYPE_ELEMENT),
@@ -145,8 +144,9 @@ template <typename T> class _MACRO_CLASS_NAME_ {
         return mainptr[A_begin - begin];
     }
 
-    inline void operator () (size_t const A_begin, TYPE_BUFFER & in) {
-        size_t const A_length = in(); 
+    template <typename TTI>
+    inline void operator () (size_t const A_begin, Dynamic1DArray <TYPE_ELEMENT, TTI> & in) {
+        TTI const A_length = in(); 
         TYPE_ELEMENT * dest = in.GET_DATA();
         TYPE_ELEMENT * src = &(this[0](A_begin, A_length));
         memcpy(dest, src, A_length*sizeof(TYPE_ELEMENT));
