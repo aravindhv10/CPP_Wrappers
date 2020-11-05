@@ -38,6 +38,7 @@ template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_INT const     END;
     TYPE_INT           COUNTS[256];
     TYPE_INT           BOUNDARIES[257];
+    TYPE_INT const     DIGIT;
     /////////////////////////
     // Data Elements END.} //
     /////////////////////////
@@ -50,10 +51,10 @@ template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
         for (TYPE_INT i = 0; i < 256; i++) { COUNTS[i] = 0; }
     }
 
-    inline void EVALUATE_PREFIX_SUM(TYPE_INT const digit) {
+    inline void EVALUATE_PREFIX_SUM() {
         for (TYPE_INT i = START; i <= END; i++) {
             auto const &    element = BUFFER1(i);
-            TYPE_BYTE const val     = element[digit];
+            TYPE_BYTE const val     = element[DIGIT];
             COUNTS[val]++;
         }
     }
@@ -66,23 +67,23 @@ template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
         for (TYPE_INT i = 0; i < 256; i++) { COUNTS[i] = BOUNDARIES[i]; }
     }
 
-    inline void PERFORM_COPY(TYPE_INT const digit) {
+    inline void PERFORM_COPY() {
         for (TYPE_INT i = START; i <= END; i++) {
             auto const &    element = BUFFER1(i);
-            TYPE_BYTE const val     = element[digit];
+            TYPE_BYTE const val     = element[DIGIT];
             BUFFER2(COUNTS[val])    = element;
             COUNTS[val]++;
         }
     }
 
-  public:
-    inline void do_scan(TYPE_INT const digit) {
+    inline void DO_SCAN() {
         ZERO_COUNTS();
-        EVALUATE_PREFIX_SUM(digit);
+        EVALUATE_PREFIX_SUM();
         FIND_BOUNDARIES();
-        PERFORM_COPY(digit);
+        PERFORM_COPY();
     }
 
+  public:
     inline TYPE_BOUNDARIES const get_boundaries() const {
         TYPE_BOUNDARIES ret(BOUNDARIES, 257);
         return ret;
@@ -96,8 +97,8 @@ template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////////////////////
   public:
     _MACRO_CLASS_NAME_(TYPE_BUFFER const &buffer1, TYPE_BUFFER &buffer2,
-                       TYPE_INT const start, TYPE_INT const end)
-      : BUFFER1(buffer1), BUFFER2(buffer2), START(start), END(end) {}
+                       TYPE_INT const start, TYPE_INT const end, TYPE_INT const digit)
+      : BUFFER1(buffer1), BUFFER2(buffer2), START(start), END(end), DIGIT(digit) {DO_SCAN();}
 
     ~_MACRO_CLASS_NAME_() {}
     ////////////////////////////////////
