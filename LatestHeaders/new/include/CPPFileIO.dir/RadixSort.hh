@@ -10,7 +10,7 @@
 // Headers END.} //
 ///////////////////
 
-#define _MACRO_CLASS_NAME_ RadixSorter
+#define _MACRO_CLASS_NAME_ RadixSorterOld
 
 template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
 
@@ -97,8 +97,117 @@ template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////////////////////
   public:
     _MACRO_CLASS_NAME_(TYPE_BUFFER const &buffer1, TYPE_BUFFER &buffer2,
-                       TYPE_INT const start, TYPE_INT const end, TYPE_INT const digit)
-      : BUFFER1(buffer1), BUFFER2(buffer2), START(start), END(end), DIGIT(digit) {DO_SCAN();}
+                       TYPE_INT const start, TYPE_INT const end,
+                       TYPE_INT const digit)
+      : BUFFER1(buffer1), BUFFER2(buffer2), START(start), END(end),
+        DIGIT(digit) {
+        DO_SCAN();
+    }
+
+    ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
+};
+
+#undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ RadixSorter
+
+template <typename T, typename TI = long> class _MACRO_CLASS_NAME_ {
+
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_INT        = TI;
+    using TYPE_BUFFER     = T;
+    using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_BUFFER, TYPE_INT>;
+    using TYPE_BYTE       = unsigned char;
+    using TYPE_COUNTS     = Dynamic1DArray<TYPE_INT, TYPE_INT>;
+    using TYPE_BOUNDARIES = Dynamic1DArray<TYPE_INT const, TYPE_INT>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
+
+    ///////////////////////////
+    // Data Elements BEGIN:{ //
+    ///////////////////////////
+  private:
+    TYPE_BUFFER const &BUFFER1; // Input
+    TYPE_BUFFER &      BUFFER2; // Output
+    TYPE_INT const     START;
+    TYPE_INT const     END;
+    TYPE_INT           COUNTS[256];
+    TYPE_INT           BOUNDARIES[257];
+    /////////////////////////
+    // Data Elements END.} //
+    /////////////////////////
+
+    ////////////////////////////////////
+    // MAin Working Functions BEGIN:{ //
+    ////////////////////////////////////
+  private:
+    inline void ZERO_COUNTS() {
+        for (TYPE_INT i = 0; i < 256; i++) { COUNTS[i] = 0; }
+    }
+
+    template <typename digitextract>
+    inline void EVALUATE_PREFIX_SUM(digitextract &in) {
+        for (TYPE_INT i = START; i <= END; i++) {
+            auto const &    element = BUFFER1(i);
+            TYPE_BYTE const val     = in(element);
+            COUNTS[val]++;
+        }
+    }
+
+    inline void FIND_BOUNDARIES() {
+        BOUNDARIES[0] = 0;
+        for (TYPE_INT i = 1; i < 257; i++) {
+            BOUNDARIES[i] = BOUNDARIES[i - 1] + COUNTS[i - 1];
+        }
+        for (TYPE_INT i = 0; i < 256; i++) { COUNTS[i] = BOUNDARIES[i]; }
+    }
+
+    template <typename digitextract>
+    inline void PERFORM_COPY(digitextract &in) {
+        for (TYPE_INT i = START; i <= END; i++) {
+            auto const &    element = BUFFER1(i);
+            TYPE_BYTE const val     = in(element);
+            BUFFER2(COUNTS[val])    = element;
+            COUNTS[val]++;
+        }
+    }
+
+    template <typename digitextract> inline void DO_SCAN(digitextract in) {
+        ZERO_COUNTS();
+        EVALUATE_PREFIX_SUM(in);
+        FIND_BOUNDARIES();
+        PERFORM_COPY(in);
+    }
+
+  public:
+    inline TYPE_BOUNDARIES const get_boundaries() const {
+        TYPE_BOUNDARIES ret(BOUNDARIES, 257);
+        return ret;
+    }
+
+    template <typename digitextract>
+    inline TYPE_BOUNDARIES operator()(digitextract &in) {
+        DO_SCAN(in);
+        return get_boundaries();
+    }
+    //////////////////////////////////
+    // MAin Working Functions END.} //
+    //////////////////////////////////
+
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(TYPE_BUFFER const &buffer1, TYPE_BUFFER &buffer2,
+                       TYPE_INT const start, TYPE_INT const end)
+      : BUFFER1(buffer1), BUFFER2(buffer2), START(start), END(end) {}
 
     ~_MACRO_CLASS_NAME_() {}
     ////////////////////////////////////
