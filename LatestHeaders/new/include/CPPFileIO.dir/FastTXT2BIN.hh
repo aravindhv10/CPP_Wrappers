@@ -113,6 +113,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
                 /* Merge many files: */ {
                     size_t const mid     = (i1 + i2) / 2;
                     size_t const new_nth = nth >> 1;
+
                     if (nth != 0) {
                         ForkMe forker;
                         if (forker.InKid()) {
@@ -128,15 +129,18 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
                     std::string const name_i1  = GET_OUT_FILENAME(i1, mid);
                     std::string const name_i2  = GET_OUT_FILENAME(mid + 1, i2);
                     std::string const name_out = GET_OUT_FILENAME(i1, i2);
+
                     TYPE_SLAVE::MERGE(name_i1, name_i2, name_out);
                     RM(name_i1);
                     RM(name_i2);
+
                     return name_out;
                 }
 
             case 8:
                 /* Wrong Invocation: */ { return MERGE_FILE(i2, i1, nth); }
         }
+
         return GET_OUT_FILENAME(i2, i1);
     }
     //////////////////
@@ -172,8 +176,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Main TXT2BIN BEGIN: //
     /////////////////////////
   public:
-    inline std::string const work(size_t const index,
-                                  bool const   process_header = true) {
+    inline std::string const work(size_t const index) {
 
         std::string const OUT_FILENAME = GET_OUT_FILENAME(index);
 
@@ -181,9 +184,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
         DIVIDER(index, buffer);
         TYPE_BUFFER_LINE_READER reader(buffer.GET_DATA(), buffer());
 
-        if ((index == 0) && (process_header)) { reader(); }
-
-        TYPE_SLAVE tmpbuf(OUT_FILENAME);
+        TYPE_SLAVE tmpbuf(OUT_FILENAME, index);
     MainLoop:
         /* The main working loop: */ {
             auto const &lines = reader();
@@ -200,10 +201,10 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     ///////////////////////
 
   public:
-    inline void do_all(size_t const nth = 8, bool const hasheader = true) {
+    inline void do_all(size_t const nth = 8) {
 #pragma omp parallel for
         for (size_t i = 0; i < nth; i++) {
-            for (size_t j = i; j < NTH; j += nth) { work(j, hasheader); }
+            for (size_t j = i; j < NTH; j += nth) { work(j); }
         }
 
         sort_all(nth);
@@ -224,10 +225,10 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
     static inline void Do_All(std::string const inputname,
                               std::string const outputname,
-                              size_t const n_splits, size_t const n_threads,
-                              bool const hasheader = true) {
+                              size_t const n_splits, size_t const n_threads) {
+
         TYPE_SELF slave(n_splits, inputname, outputname);
-        slave.do_all(n_threads, hasheader);
+        slave.do_all(n_threads);
     }
 };
 

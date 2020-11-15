@@ -78,6 +78,7 @@ class _MACRO_CLASS_NAME_ {
         ret += in.WriteStrings(labels);
         return ret;
     }
+
     inline ssize_t WriteOut(std::string const outfilename) const {
         FileFD file(outfilename);
         file.writefile();
@@ -90,6 +91,7 @@ class _MACRO_CLASS_NAME_ {
         ret += in.ReadStrings(labels);
         return ret;
     }
+
     inline ssize_t ReadIn(std::string const infilename) {
         FileFD file(infilename);
         file.readfile();
@@ -100,6 +102,7 @@ class _MACRO_CLASS_NAME_ {
     inline ssize_t operator>>(std::string const filename) const {
         return WriteOut(filename);
     }
+
     inline ssize_t operator<<(std::string const filename) {
         return ReadIn(filename);
     }
@@ -206,7 +209,6 @@ class _MACRO_CLASS_NAME_ {
             sizes[i] = mymax(sizes[i], in[i].size());
         }
     }
-
     /////////////////////////////////
     // Main Working Functions END. //
     /////////////////////////////////
@@ -214,7 +216,6 @@ class _MACRO_CLASS_NAME_ {
     ////////////////////////////////////////
     // Header Generation Functions BEGIN: //
     ////////////////////////////////////////
-
   public:
     inline void show_read_write_wrappers(FILE *f = stdout) const {
 
@@ -344,7 +345,6 @@ class _MACRO_CLASS_NAME_ {
         show_read_write_wrappers(f);
         show_tail(f);
     }
-
     //////////////////////////////////////
     // Header Generation Functions END. //
     //////////////////////////////////////
@@ -352,7 +352,6 @@ class _MACRO_CLASS_NAME_ {
     ///////////////////////
     // Interfaces BEGIN: //
     ///////////////////////
-
   public:
     inline void Read_Labels(std::vector<std::string> const &in) {
         labels.resize(in.size());
@@ -367,7 +366,6 @@ class _MACRO_CLASS_NAME_ {
         ReadLine(in);
         AnalyzeStatus(in);
     }
-
     /////////////////////
     // Interfaces END. //
     /////////////////////
@@ -375,11 +373,9 @@ class _MACRO_CLASS_NAME_ {
     /////////////////////////////////////
     // Constructor & Destructor BEGIN: //
     /////////////////////////////////////
-
   public:
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
-
     ///////////////////////////////////
     // Constructor & Destructor END. //
     ///////////////////////////////////
@@ -410,6 +406,7 @@ class _MACRO_CLASS_NAME_ {
     TYPE_WORD const FILENAME;
     TYPE_ANALYZER   ANALYZER;
     size_t          COUNT;
+    size_t const    INDEX;
     ////////////////////////
     // Data Elements END. //
     ////////////////////////
@@ -419,8 +416,10 @@ class _MACRO_CLASS_NAME_ {
     ////////////////////////////////
   public:
     static inline void SORT(TYPE_WORD const in) {}
+
     static inline void MERGE(TYPE_WORD const in1, TYPE_WORD const in2,
                              TYPE_WORD const out) {
+
         TYPE_ANALYZER A1;
         TYPE_ANALYZER A2;
         A1 << in1;
@@ -430,7 +429,8 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void operator()(TYPE_LINE const &in) {
-        if (COUNT == 0) {
+        bool const outcome = (COUNT == 0) && (INDEX == 0);
+        if (outcome) {
             ANALYZER.Read_Labels(in);
         } else {
             ANALYZER(in);
@@ -438,7 +438,8 @@ class _MACRO_CLASS_NAME_ {
         COUNT++;
     }
 
-    _MACRO_CLASS_NAME_(std::string const filename) : FILENAME(filename) {
+    _MACRO_CLASS_NAME_(std::string const filename, size_t const index)
+      : FILENAME(filename), INDEX(index) {
         COUNT = 0;
     }
 
@@ -454,7 +455,8 @@ class _MACRO_CLASS_NAME_ {
                                          size_t const      n_threads = 4) {
 
         FastTXT2BIN<TYPE_SELF, seperator, newline>::Do_All(
-          infilename, outfilename, n_splits, n_threads, false);
+          infilename, outfilename, n_splits, n_threads);
+
         TYPE_ANALYZER analyze;
         analyze << outfilename;
         std::string const headername = outfilename + ".hh";
