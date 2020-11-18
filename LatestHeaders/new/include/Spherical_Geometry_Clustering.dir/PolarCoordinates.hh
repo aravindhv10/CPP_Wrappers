@@ -403,6 +403,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline void find_dbscan_clusters(std::vector<TYPE_ELEMENTS> &in,
                                      TYPE_FLOAT const            eps,
                                      TYPE_INT const              min_pts) {
+
         in.clear();
         Simple_DBSCAN<TYPE_FLOAT, TYPE_INT> dbscan(OUTPUTS, eps, min_pts);
         TYPE_INT const num_clusters = dbscan.get_num_clusters();
@@ -423,6 +424,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                                         TYPE_FLOAT const eps,
                                         TYPE_INT const   min_pts,
                                         TYPE_FLOAT const bandwidth) {
+
         in.clear();
         std::vector<TYPE_ELEMENTS> clusters;
         find_dbscan_clusters(clusters, eps, min_pts);
