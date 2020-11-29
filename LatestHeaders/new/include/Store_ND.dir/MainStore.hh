@@ -148,6 +148,22 @@ class _MACRO_CLASS_NAME_ {
         TRUNCATE_INDEX();
     }
 
+    inline void GET_INDICES (TYPE_INTS & indices, TYPE_FLOAT const y, TYPE_FLOAT const x) {
+      indices.clear();
+      auto const bin = FLATTEN_MAP(y,x);
+      for(TYPE_INT i=INDEX->CUMULATIVE[bin];i<INDEX->CUMULATIVE[bin+1];i++){
+        indices.push_back(STORE(i).index);
+      }
+    }
+
+    inline void GET_INDICES (TYPE_INTS & indices, TYPE_INT const y, TYPE_INT const x) {
+      indices.clear();
+      auto const bin = FLATTEN_MAP(y,x);
+      for(TYPE_INT i=INDEX->CUMULATIVE[bin];i<INDEX->CUMULATIVE[bin+1];i++){
+        indices.push_back(STORE(i).index);
+      }
+    }
+
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
       : DIRNAME(dirname), BUFFER_INDEX(NAME_INDEX), STORE(NAME_STORE()) {}

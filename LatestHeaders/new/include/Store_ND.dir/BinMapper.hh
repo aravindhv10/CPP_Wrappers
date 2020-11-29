@@ -11,7 +11,7 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF  = _MACRO_CLASS_NAME_<TYPE_INT, TYPE_FLOAT>;
 
   public:
-    TYPE_INT N_BINS;
+    TYPE_INT   N_BINS;
     TYPE_FLOAT BEGIN;
     TYPE_FLOAT END;
     TYPE_FLOAT DIFF;
@@ -32,7 +32,7 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
                        TYPE_FLOAT const end)
       : N_BINS(n_bins), BEGIN(begin), END(end), DIFF(END - BEGIN) {}
 
-    _MACRO_CLASS_NAME_(){}
+    _MACRO_CLASS_NAME_() {}
 
     ~_MACRO_CLASS_NAME_() {}
 };
