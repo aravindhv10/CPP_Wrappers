@@ -5,7 +5,7 @@
 
 namespace Store_ND {
 #include "./Store_ND.dir/BinMapper.hh"
-#include "./Store_ND.dir/MainIndex.hh"
+#include "./Store_ND.dir/MainIndex_2D.hh"
 }
 
 #endif
