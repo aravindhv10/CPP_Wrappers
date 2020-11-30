@@ -41,9 +41,7 @@ class _MACRO_CLASS_NAME_ {
   public:
     TYPE_BIN_MAPPER BIN_X;
     inline void     SET_X_RANGE(TYPE_FLOAT const x1, TYPE_FLOAT const x2) {
-        BIN_X.N_BINS = SIZE_X();
-        BIN_X.BEGIN  = x1;
-        BIN_X.END    = x2;
+        BIN_X.SET_RANGES(SIZE_X(), x1, x2);
     }
     //////////////////////////////////
     // Mapping float to int X END.} //
@@ -55,9 +53,7 @@ class _MACRO_CLASS_NAME_ {
   public:
     TYPE_BIN_MAPPER BIN_Y;
     inline void     SET_Y_RANGE(TYPE_FLOAT const y1, TYPE_FLOAT const y2) {
-        BIN_Y.N_BINS = SIZE_Y();
-        BIN_Y.BEGIN  = y1;
-        BIN_Y.END    = y2;
+      BIN_Y.SET_RANGES(SIZE_Y(), y1, y2);
     }
     //////////////////////////////////
     // Mapping float to int Y END.} //

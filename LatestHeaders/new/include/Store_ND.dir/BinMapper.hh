@@ -10,13 +10,21 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
     using TYPE_FLOAT = TF;
     using TYPE_SELF  = _MACRO_CLASS_NAME_<TYPE_INT, TYPE_FLOAT>;
 
-  public:
+  private:
     TYPE_INT   N_BINS;
     TYPE_FLOAT BEGIN;
     TYPE_FLOAT END;
     TYPE_FLOAT DIFF;
 
   public:
+    inline void SET_RANGES(TYPE_INT const n_bins, TYPE_FLOAT const begin,
+                           TYPE_FLOAT const end) {
+        N_BINS = n_bins;
+        BEGIN  = begin;
+        END    = end;
+        DIFF   = END - BEGIN;
+    }
+
     inline TYPE_INT Get_Bin(TYPE_FLOAT const in) const {
         return static_cast<TYPE_FLOAT>((in - BEGIN) * N_BINS) /
                static_cast<TYPE_FLOAT>(DIFF);

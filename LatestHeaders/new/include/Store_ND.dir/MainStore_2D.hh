@@ -100,6 +100,20 @@ class _MACRO_CLASS_NAME_ {
 
     inline void ZERO_COUNTS() { INDEX->ZERO_COUNTS(); }
     inline void EVAL_CUMULATIVE() { INDEX->EVAL_CUMULATIVE(); }
+
+    inline void DEBUG_INDEX() {
+        printf("CAME TO DEBUG FUNCTION...\n");
+
+        printf("INDEX->BIN_X.N_BINS = %ld; INDEX->BIN_X.BEGIN = %lf; "
+               "INDEX->BIN_X.END = %lf; INDEX->BIN_X.DIFF = %lf;\n",
+               INDEX->BIN_X.N_BINS, INDEX->BIN_X.BEGIN, INDEX->BIN_X.END,
+               INDEX->BIN_X.DIFF);
+
+        printf("INDEX->BIN_Y.N_BINS = %ld; INDEX->BIN_Y.BEGIN = %lf; "
+               "INDEX->BIN_Y.END = %lf; INDEX->BIN_Y.DIFF = %lf;\n",
+               INDEX->BIN_Y.N_BINS, INDEX->BIN_Y.BEGIN, INDEX->BIN_Y.END,
+               INDEX->BIN_Y.DIFF);
+    }
     /////////////////////////
     // INDEX related END.} //
     /////////////////////////
