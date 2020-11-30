@@ -10,7 +10,7 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
     using TYPE_FLOAT = TF;
     using TYPE_SELF  = _MACRO_CLASS_NAME_<TYPE_INT, TYPE_FLOAT>;
 
-  private:
+  public:
     TYPE_INT   N_BINS;
     TYPE_FLOAT BEGIN;
     TYPE_FLOAT END;
@@ -26,8 +26,11 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
     }
 
     inline TYPE_INT Get_Bin(TYPE_FLOAT const in) const {
-        return static_cast<TYPE_FLOAT>((in - BEGIN) * N_BINS) /
-               static_cast<TYPE_FLOAT>(DIFF);
+        TYPE_FLOAT const T1  = in - BEGIN;
+        TYPE_FLOAT const T2  = T1 * static_cast<TYPE_FLOAT>(N_BINS);
+        TYPE_FLOAT const T3  = T2 / DIFF;
+        TYPE_INT const   ret = static_cast<TYPE_INT>(T3);
+        return ret;
     }
 
   public:

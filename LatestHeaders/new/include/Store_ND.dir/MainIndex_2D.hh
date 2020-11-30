@@ -53,7 +53,7 @@ class _MACRO_CLASS_NAME_ {
   public:
     TYPE_BIN_MAPPER BIN_Y;
     inline void     SET_Y_RANGE(TYPE_FLOAT const y1, TYPE_FLOAT const y2) {
-      BIN_Y.SET_RANGES(SIZE_Y(), y1, y2);
+        BIN_Y.SET_RANGES(SIZE_Y(), y1, y2);
     }
     //////////////////////////////////
     // Mapping float to int Y END.} //
@@ -63,10 +63,10 @@ class _MACRO_CLASS_NAME_ {
     // Mapping to 2D Bins BEGIN:{ //
     ////////////////////////////////
   public:
-    inline void SET_RANGE(TYPE_FLOAT const x1, TYPE_FLOAT const y1,
-                          TYPE_FLOAT const x2, TYPE_FLOAT const y2) {
-        SET_X_RANGE(x1, x2);
+    inline void SET_RANGE(TYPE_FLOAT const y1, TYPE_FLOAT const x1,
+                          TYPE_FLOAT const y2, TYPE_FLOAT const x2) {
         SET_Y_RANGE(y1, y2);
+        SET_X_RANGE(x1, x2);
     }
 
     inline TYPE_PAIR_INT BINS_FLOAT_TO_INT(TYPE_FLOAT const y,
@@ -91,9 +91,7 @@ class _MACRO_CLASS_NAME_ {
   public:
     TYPE_COUNTS COUNTS;
 
-    inline void ZERO_COUNTS() {
-        for (size_t i = 0; i < COUNTS.SIZE(); i++) { COUNTS[i] = 0; }
-    }
+    inline void ZERO_COUNTS() { COUNTS = 0; }
 
     inline TYPE_INT &GET_COUNTS(TYPE_INT const y, TYPE_INT const x) {
         return COUNTS[FLATTEN_MAP(y, x)];
