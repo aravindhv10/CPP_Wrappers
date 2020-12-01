@@ -41,34 +41,64 @@ class _MACRO_CLASS_NAME_ {
     //////////////////////
     // File Mode BEGIN: //
     //////////////////////
-  private:
-    inline void construct(std::string const Afile = std::string("outfile")) {
-        filename  = Afile;
-        fd        = -1;
-        filemode  = -1;
+  public:
+    inline void reset_map() {
         mapped    = MAP_FAILED;
         mmapprot  = PROT_NONE;
         maplength = 0;
     }
-
-  public:
-    inline int closefile() {
-        unmapfile();
+    inline void pre_init() {
+        fd       = -1;
         filemode = -1;
-        mmapprot = PROT_NONE;
-        if (fd < 0) {
-            return 0;
-        } else {
-            int const ret = close(fd);
-            fd            = -1;
-            return ret;
+        reset_map();
+    }
+
+    inline bool is_mapped() const {
+        bool const ret = ((maplength > 0) && (mmapprot != PROT_NONE) &&
+                          (mapped != MAP_FAILED));
+        return ret;
+    }
+
+    inline bool mappable() const {
+        bool const ret = ((maplength == 0) && (mmapprot != PROT_NONE) &&
+                          (mapped == MAP_FAILED));
+        return ret;
+    }
+
+    inline void construct() {
+        pre_init();
+        if (filename.length() == 0) { filename = std::string("./tmpfile"); }
+    }
+    inline void construct(std::string const Afile) {
+        construct();
+        filename = Afile;
+    }
+
+    inline int unmapfile() {
+        int ret = 0;
+        if (is_mapped()) {
+            ret       = munmap(reinterpret_cast<void *>(mapped),
+                         reinterpret_cast<size_t>(maplength)); //
+            maplength = 0;
+            mapped    = MAP_FAILED;
         }
+        return ret;
+    }
+
+    inline int closefile() {
+        int ret = 0;
+        if (fd >= 0) {
+            unmapfile();
+            ret = close(fd);
+        }
+        pre_init();
+        return ret;
     }
 
     inline void check_file_mode(int const newfilemode = -1) {
         if (filemode != newfilemode) { closefile(); }
         if (fd < 0) {
-            fd = open(static_cast<const char *>(&(filename[0])), newfilemode,
+            fd = open(static_cast<const char *>(filename.c_str()), newfilemode,
                       static_cast<mode_t>(0755));
             filemode = newfilemode;
         }
@@ -91,13 +121,14 @@ class _MACRO_CLASS_NAME_ {
 
     inline void destroy() { closefile(); }
 
-    inline void reconstruct(std::string const Afile = std::string("outfile")) {
+    inline void reconstruct() {
         destroy();
-        construct(Afile);
+        construct();
     }
 
-    inline void reconstruct(char const *Afile) {
-        reconstruct(std::string(Afile));
+    inline void reconstruct(std::string const Afile) {
+        destroy();
+        construct(Afile);
     }
 
     inline FileFD &operator()(std::string const name) {
@@ -133,12 +164,12 @@ class _MACRO_CLASS_NAME_ {
     /////////////////
     // Info BEGIN: //
     /////////////////
-  public:
+  private:
     inline int info() {
-        return static_cast<int>(fstat(fd,
-                                      static_cast<struct stat *>(&abtme))); //
+        return static_cast<int>(fstat(fd, static_cast<struct stat *>(&abtme)));
     }
 
+  public:
     inline off_t sizefile() {
         info();
         return static_cast<off_t>(abtme.st_size);
@@ -156,13 +187,18 @@ class _MACRO_CLASS_NAME_ {
     ///////////////////////////
   public:
     inline void *mapfile(size_t const length, off_t const offset = 0) {
-        if ((maplength == 0) && (mmapprot != PROT_NONE) &&
-            (mapped == MAP_FAILED)) {
+        if (mappable()) {
             off_t const total_len = length + offset;
             if (sizefile() < total_len) { truncatefile(total_len); }
-            mapped = reinterpret_cast<void *>(
-              mmap(reinterpret_cast<void *>(NULL), length, mmapprot,
-                   static_cast<int>(MAP_SHARED), fd, offset)); //
+
+            mapped = reinterpret_cast<void *>(mmap(
+              /*void *addr=*/reinterpret_cast<void *>(NULL),
+              /*size_t length=*/length,
+              /*int prot=*/mmapprot,
+              /*int flags=*/static_cast<int>(MAP_SHARED),
+              /*int fd=*/fd,
+              /*off_t offset=*/offset));
+
             if (mapped != MAP_FAILED) {
                 maplength = length;
             } else {
@@ -172,18 +208,6 @@ class _MACRO_CLASS_NAME_ {
             printf("MMAP FAILED 2 !!!\n");
         }
         return mapped;
-    }
-
-    inline int unmapfile() {
-        int ret = 0;
-        if ((mapped != MAP_FAILED) && (maplength > 0) &&
-            (mmapprot != PROT_NONE)) {
-            ret       = munmap(reinterpret_cast<void *>(mapped),
-                         reinterpret_cast<size_t>(maplength)); //
-            maplength = 0;
-            mapped    = MAP_FAILED;
-        }
-        return ret;
     }
 
     inline size_t getmaplength() const { return maplength; }
