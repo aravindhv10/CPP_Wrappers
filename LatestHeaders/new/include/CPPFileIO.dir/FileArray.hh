@@ -50,12 +50,7 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // File Mode BEGIN: //
     //////////////////////
   public:
-    inline void construct(std::string const Afilename = std::string("outfile"),
-                          size_t const      Aoffset   = 0) {
-
-        filename = Afilename;
-        filefd(filename).readfile();
-        offset     = Aoffset;
+    inline void Reset () {
         begin      = 0;
         act_begin  = 0;
         end        = 0;
@@ -64,19 +59,31 @@ template <typename T> class _MACRO_CLASS_NAME_ {
         act_length = 0;
     }
 
-    inline void destroy() { filefd.destroy(); }
+    inline void construct(std::string const Afilename = std::string("outfile"),
+                          size_t const      Aoffset   = 0) {
+
+        filename = Afilename;
+        offset     = Aoffset;
+        Reset();
+        filefd(filename).readfile();
+    }
+
+    inline void destroy() {Reset(); filefd.destroy();}
 
     inline void
     reconstruct(std::string const Afilename = std::string("outfile"),
                 size_t const      Aoffset   = 0) {
+
         destroy();
         construct(Afilename, Aoffset);
     }
 
     inline void writeable(bool const arg = true) {
         if (arg) {
+            Reset();
             filefd(filename).appendfile();
         } else {
+            Reset();
             filefd(filename).readfile();
         }
     }
@@ -141,7 +148,8 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     inline TYPE_ELEMENT &operator()(size_t const A_begin,
                                     size_t const A_length = 1) {
         map(A_begin, A_length);
-        return mainptr[A_begin - begin];
+        TYPE_ELEMENT & ret = mainptr[A_begin - begin];
+        return ret;
     }
 
     template <typename TTI>
