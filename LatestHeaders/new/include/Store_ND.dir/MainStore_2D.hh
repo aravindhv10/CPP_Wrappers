@@ -100,7 +100,7 @@ class _MACRO_CLASS_NAME_ {
     CPPFileIO::FileArray<TYPE_INT> STORE;
 
     template <typename Reader, typename Converter>
-    inline void WRITE_STORE(Reader reader, Converter converter) {
+    inline void WRITE_STORE(Reader reader) {
 
         //////////////////////////////////////////
         // Allocate the writeable index BEGIN:{ //
@@ -128,12 +128,11 @@ class _MACRO_CLASS_NAME_ {
                 max                           = tmp;
             }
             for (size_t i = 1; i < limit; i++) {
-                auto const &          element = reader(i);
-                TYPE_PAIR_FLOAT const tmp     = converter(element);
-                min[0] = CPPFileIO::mymin(min[0], tmp[0]);
-                min[1] = CPPFileIO::mymin(min[1], tmp[1]);
-                max[0] = CPPFileIO::mymax(max[0], tmp[0]);
-                max[1] = CPPFileIO::mymax(max[1], tmp[1]);
+                TYPE_PAIR_FLOAT const tmp = reader(i);
+                min[0]                    = CPPFileIO::mymin(min[0], tmp[0]);
+                min[1]                    = CPPFileIO::mymin(min[1], tmp[1]);
+                max[0]                    = CPPFileIO::mymax(max[0], tmp[0]);
+                max[1]                    = CPPFileIO::mymax(max[1], tmp[1]);
             }
             index_rw->SET_RANGE(min[0], min[1], max[0], max[1]);
         }
@@ -141,9 +140,7 @@ class _MACRO_CLASS_NAME_ {
         /* pass-1): Count elements in the bins: */ {
             index_rw->ZERO_COUNTS();
             for (size_t i = 0; i < limit; i++) {
-                auto const &    element = reader(i);
-                TYPE_PAIR_FLOAT tmp;
-                tmp = converter(element);
+                TYPE_PAIR_FLOAT const tmp = reader(i);
                 index_rw->ADD_LOCATION(tmp[0], tmp[1]);
             }
             index_rw->EVAL_CUMULATIVE();
@@ -154,9 +151,7 @@ class _MACRO_CLASS_NAME_ {
             CPPFileIO::FileArray<TYPE_INT> store_rw(NAME_STORE());
             store_rw.writeable(true);
             for (size_t i = 0; i < limit; i++) {
-                auto const &    element = reader(i);
-                TYPE_PAIR_FLOAT tmp;
-                tmp                    = converter(element);
+                TYPE_PAIR_FLOAT const tmp = reader(i);
                 TYPE_INT const idx_loc = index_rw->ADD_LOCATION(tmp[0], tmp[1]);
                 store_rw(idx_loc)      = i;
             }
@@ -173,25 +168,22 @@ class _MACRO_CLASS_NAME_ {
     // Reading STORE BEGIN:{ //
     ///////////////////////////
   public:
-    inline void GET_INDICES(TYPE_INTS &indices, TYPE_FLOAT const y,
-                            TYPE_FLOAT const x) {
-        indices.clear();
-        auto const bin = FLATTEN_MAP(y, x);
-        for (TYPE_INT i = INDEX->CUMULATIVE[bin];
-             i < INDEX->CUMULATIVE[bin + 1]; i++) {
-            indices.push_back(STORE(i));
-        }
+#define MAKE_GET_INDICES(TYPE_IN)                                              \
+    inline void GET_INDICES(TYPE_INTS &indices, TYPE_IN const y,               \
+                            TYPE_IN const x) {                                 \
+        indices.clear();                                                       \
+        auto const     bin   = FLATTEN_MAP(y, x);                              \
+        TYPE_INT const start = INDEX->CUMULATIVE[bin];                         \
+        TYPE_INT const end   = INDEX->CUMULATIVE[bin + 1];                     \
+        for (TYPE_INT i = start; i < end; i++) {                               \
+            indices.push_back(STORE(i));                                       \
+        }                                                                      \
     }
 
-    inline void GET_INDICES(TYPE_INTS &indices, TYPE_INT const y,
-                            TYPE_INT const x) {
-        indices.clear();
-        auto const bin = FLATTEN_MAP(y, x);
-        for (TYPE_INT i = INDEX->CUMULATIVE[bin];
-             i < INDEX->CUMULATIVE[bin + 1]; i++) {
-            indices.push_back(STORE(i));
-        }
-    }
+    MAKE_GET_INDICES(TYPE_FLOAT)
+    MAKE_GET_INDICES(TYPE_INT)
+
+#undef MAKE_GET_INDICES
     /////////////////////////
     // Reading STORE END.} //
     /////////////////////////
