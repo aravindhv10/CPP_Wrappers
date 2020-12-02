@@ -469,4 +469,161 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 // Distance Evaluation END.} //
 ///////////////////////////////
 
+#define _MACRO_CLASS_NAME_ VectorHaversineDistance_2Sets
+
+template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
+
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_FLOAT    = TF;
+    using TYPE_INT      = TI;
+    using TYPE_SELF     = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_ELEMENT  = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_ELEMENTS = std::vector<TYPE_ELEMENT>;
+    using TYPE_INPUTS = CPPFileIO::Dynamic1DArray<TYPE_ELEMENT const, TYPE_INT>;
+    using TYPE_ARRAY  = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_OUTPUTS  = CPPFileIO::Dynamic2DArray<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_VALIDITY = CPPFileIO::Dynamic1DArray<bool, TYPE_INT>;
+
+    static inline TYPE_FLOAT CLAMP(TYPE_FLOAT const in) {
+        bool const val1 = (1 < in);
+        bool const val2 = (in < -1);
+        bool const val3 = (!val1) && (!val2);
+        return val1 - val2 + (in * val3);
+    }
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
+
+  private:
+    TYPE_INPUTS  INPUTS1, INPUTS2;
+    TYPE_OUTPUTS OUTPUTS;
+
+  public:
+    inline TYPE_OUTPUTS const &get_distances() const { return OUTPUTS; }
+    inline TYPE_OUTPUTS const &operator()() const { return get_distances(); }
+
+    inline void EVAL_OUTPUTS() {
+        TYPE_FLOAT constexpr r = TYPE_ELEMENT::EarthRadius();
+
+        TYPE_INT const limit1 = INPUTS1();
+        TYPE_INT const limit2 = INPUTS2();
+        TYPE_VALIDITY  validity1(limit1);
+        TYPE_VALIDITY  validity2(limit2);
+        TYPE_ARRAY     x1(limit1);
+        TYPE_ARRAY     x2(limit2);
+        TYPE_ARRAY     y1(limit1);
+        TYPE_ARRAY     y2(limit2);
+        TYPE_ARRAY     z1(limit1);
+        TYPE_ARRAY     z2(limit2);
+
+        /* Evaluate these arrays: */ {
+            for (TYPE_INT th = 0; th < 2; th++) {
+                switch (th) {
+                    case 0:
+                        /* Evaluate the 1st array: */ {
+#pragma omp parallel for
+                            for (TYPE_INT i = 0; i < limit1; i++) {
+                                bool const valid = INPUTS1(i).IS_VALID();
+                                validity1(i)     = valid;
+                                if (valid) {
+                                    TYPE_FLOAT sin_theta =
+                                      INPUTS1(i).SIN_THETA();
+                                    TYPE_FLOAT cos_theta =
+                                      INPUTS1(i).COS_THETA();
+                                    TYPE_FLOAT sin_phi = INPUTS1(i).SIN_PHI();
+                                    TYPE_FLOAT cos_phi = INPUTS1(i).COS_PHI();
+                                    x1(i)              = sin_theta * cos_phi;
+                                    y1(i)              = sin_theta * sin_phi;
+                                    z1(i)              = cos_theta;
+                                }
+                            }
+                        }
+                        break;
+                    case 1:
+                        /* Evaluate the 2nd array: */ {
+#pragma omp parallel for
+                            for (TYPE_INT i = 0; i < limit2; i++) {
+                                bool const valid = INPUTS2(i).IS_VALID();
+                                validity2(i)     = valid;
+                                if (valid) {
+                                    TYPE_FLOAT sin_theta =
+                                      INPUTS2(i).SIN_THETA();
+                                    TYPE_FLOAT cos_theta =
+                                      INPUTS2(i).COS_THETA();
+                                    TYPE_FLOAT sin_phi = INPUTS2(i).SIN_PHI();
+                                    TYPE_FLOAT cos_phi = INPUTS2(i).COS_PHI();
+                                    x2(i)              = sin_theta * cos_phi;
+                                    y2(i)              = sin_theta * sin_phi;
+                                    z2(i)              = cos_theta;
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+
+#define DOT(i) (x1(i) * x2(i)) + (y1(i) * y2(i)) + (z1(i) * z2(i))
+
+#pragma omp parallel for
+        for (TYPE_INT i = 0; i < limit1; i++) {
+            for (TYPE_INT j = 0; j < limit2; j++) {
+                OUTPUTS(i, j) = CLAMP(DOT(i));
+            }
+        }
+
+#undef DOT
+
+#pragma omp parallel for
+        for (TYPE_INT i = 0; i < limit1; i++) {
+            for (TYPE_INT j = 0; j < limit2; j++) {
+                bool const valid = validity1(i) && validity2(j);
+                if (valid) {
+                    OUTPUTS(i, j) = std::acos(OUTPUTS(i, j)) * r;
+                } else {
+                    OUTPUTS(i, j) = -9999;
+                }
+            }
+        }
+    }
+
+    //////////////////////////////////
+    // Main Working Functions END.} //
+    //////////////////////////////////
+
+    ////////////////////////////////////////
+    // Constructors & destructors BEGIN:{ //
+    ////////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs1, TYPE_INT const n1,
+                       TYPE_ELEMENT const *inputs2, TYPE_INT const n2)
+      : INPUTS1(inputs1, n1), INPUTS2(inputs2, n2),
+        OUTPUTS(INPUTS1(), INPUTS2()) {
+        EVAL_OUTPUTS();
+    }
+
+    _MACRO_CLASS_NAME_(std::vector<TYPE_ELEMENT> const &inputs1,
+                       std::vector<TYPE_ELEMENT> const &inputs2)
+      : INPUTS1(&(inputs1[0]), inputs1.size()),
+        INPUTS2(&(inputs2[0]), inputs2.size()), OUTPUTS(INPUTS1(), INPUTS2()) {
+        EVAL_OUTPUTS();
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_INPUTS &inputs1, TYPE_INPUTS &inputs2)
+      : INPUTS1(inputs1.GET_DATA(), inputs1()),
+        INPUTS2(inputs2.GET_DATA(), inputs2()), OUTPUTS(INPUTS1(), INPUTS2()) {
+        EVAL_OUTPUTS();
+    }
+
+    ~_MACRO_CLASS_NAME_() {}
+    //////////////////////////////////////
+    // Constructors & destructors END.} //
+    //////////////////////////////////////
+};
+
+#undef _MACRO_CLASS_NAME_
+
 #endif

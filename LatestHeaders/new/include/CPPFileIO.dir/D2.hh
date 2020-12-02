@@ -11,15 +11,16 @@
 
 #define _MACRO_CLASS_NAME_ Dynamic2DArray
 
-template <typename T> class _MACRO_CLASS_NAME_ {
+template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     ////////////////////////
     // DEFINITIONS BEGIN: //
     ////////////////////////
   public:
-    using TYPE_DATA   = T;
-    using TYPE_SELF   = _MACRO_CLASS_NAME_<TYPE_DATA>;
-    using TYPE_PARENT = Dynamic1DArray<TYPE_DATA>;
+    using TYPE_FLOAT  = TF;
+    using TYPE_INT    = TI;
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_PARENT = Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
     //////////////////////
     // DEFINITIONS END. //
     //////////////////////
@@ -28,11 +29,11 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // DATA BEGIN: //
     /////////////////
   private:
-    size_t const S_2;
-    size_t const S_1;
-    size_t const D_2;
-    size_t const D_1;
-    TYPE_PARENT  STORE;
+    TYPE_PARENT STORE;
+
+  public:
+    inline TYPE_FLOAT *GET_DATA() { return STORE.GET_DATA(); }
+    inline bool        ALLOCATED() const { return STORE.ALLOCATED(); }
     ///////////////
     // DATA END. //
     ///////////////
@@ -40,13 +41,17 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     //////////////////////////
     // RETRIVE SIZES BEGIN: //
     //////////////////////////
+  private:
+    TYPE_INT const S_2;
+    TYPE_INT const S_1;
+    TYPE_INT const D_2;
+    TYPE_INT const D_1;
+
   public:
-    inline TYPE_DATA *GET_DATA() { return STORE.GET_DATA(); }
-    inline size_t     SIZE_1() const { return S_1; }
-    inline size_t     SIZE_2() const { return S_2; }
-    inline size_t     DIST_1() const { return D_1; }
-    inline size_t     DIST_2() const { return D_2; }
-    inline bool       ALLOCATED() const { return STORE.ALLOCATED(); }
+    inline TYPE_INT SIZE_1() const { return S_1; }
+    inline TYPE_INT SIZE_2() const { return S_2; }
+    inline TYPE_INT DIST_1() const { return D_1; }
+    inline TYPE_INT DIST_2() const { return D_2; }
     ////////////////////////
     // RETRIVE SIZES END. //
     ////////////////////////
@@ -55,20 +60,20 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // RETRIEVE ELEMENTS BEGIN: //
     //////////////////////////////
   private:
-    inline size_t GET_INDEX(size_t const _S2, size_t const _S1) const {
+    inline TYPE_INT GET_INDEX(TYPE_INT const _S2, TYPE_INT const _S1) const {
         return (_S2 * DIST_2()) + (_S1 * DIST_1());
     }
 
-    inline TYPE_DATA &GET_ELEMENT(size_t const _S2, size_t const _S1) {
+    inline TYPE_FLOAT &GET_ELEMENT(TYPE_INT const _S2, TYPE_INT const _S1) {
         return STORE(GET_INDEX(_S2, _S1));
     }
 
-    inline TYPE_DATA const &GET_ELEMENT(size_t const _S2,
-                                        size_t const _S1) const {
+    inline TYPE_FLOAT const &GET_ELEMENT(TYPE_INT const _S2,
+                                         TYPE_INT const _S1) const {
         return STORE(GET_INDEX(_S2, _S1));
     }
 
-    inline TYPE_PARENT GET_BAND(size_t const _S2) {
+    inline TYPE_PARENT GET_BAND(TYPE_INT const _S2) {
         return TYPE_PARENT(&(GET_ELEMENT(_S2, 0)), SIZE_1(), DIST_1());
     }
     ////////////////////////////
@@ -79,29 +84,29 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // CONVINENCE BEGIN: //
     ///////////////////////
   public:
-    inline TYPE_DATA &operator()(size_t const _S2, size_t const _S1) {
+    inline TYPE_FLOAT &operator()(TYPE_INT const _S2, TYPE_INT const _S1) {
         return GET_ELEMENT(_S2, _S1);
     }
 
-    inline TYPE_DATA const &operator()(size_t const _S2,
-                                       size_t const _S1) const {
+    inline TYPE_FLOAT const &operator()(TYPE_INT const _S2,
+                                        TYPE_INT const _S1) const {
         return GET_ELEMENT(_S2, _S1);
     }
 
     inline void operator=(TYPE_SELF const &other) { STORE = other.STORE; }
 
-    inline TYPE_PARENT operator()(size_t const _S2) { return GET_BAND(_S2); }
+    inline TYPE_PARENT operator()(TYPE_INT const _S2) { return GET_BAND(_S2); }
 
-    inline TYPE_SELF CloneRange(size_t const B2, size_t const B1,
-                                size_t const E2, size_t const E1) const {
+    inline TYPE_SELF CloneRange(TYPE_INT const B2, TYPE_INT const B1,
+                                TYPE_INT const E2, TYPE_INT const E1) const {
 
-        size_t const X2 = E2 - B2 + 1;
-        size_t const X1 = E1 - B1 + 1;
+        TYPE_INT const X2 = E2 - B2 + 1;
+        TYPE_INT const X1 = E1 - B1 + 1;
 
         TYPE_SELF ret(X2, X1);
 
-        for (size_t s2 = 0; s2 < X2; s2++)
-            for (size_t s1 = 0; s1 < X1; s1++) {
+        for (TYPE_INT s2 = 0; s2 < X2; s2++)
+            for (TYPE_INT s1 = 0; s1 < X1; s1++) {
                 ret(s2, s1) = GET_ELEMENT(s2 + B2, s1 + B1);
             }
 
@@ -115,17 +120,17 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // CONSTRUCTOR AND DESTRUCTOR BEGIN: //
     ///////////////////////////////////////
   public:
-    _MACRO_CLASS_NAME_(size_t const _SIZE_2, size_t const _SIZE_1)
+    _MACRO_CLASS_NAME_(TYPE_INT const _SIZE_2, TYPE_INT const _SIZE_1)
       : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(S_2 * D_2) {}
 
-    _MACRO_CLASS_NAME_(TYPE_DATA *_STORE, size_t const _SIZE_2,
-                       size_t const _SIZE_1)
+    _MACRO_CLASS_NAME_(TYPE_FLOAT *_STORE, TYPE_INT const _SIZE_2,
+                       TYPE_INT const _SIZE_1)
       : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(_STORE, S_2 * D_2) {
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DATA *_STORE, size_t const _SIZE_2,
-                       size_t const _SIZE_1, size_t const _DIST_2,
-                       size_t const _DIST_1 = 1)
+    _MACRO_CLASS_NAME_(TYPE_FLOAT *_STORE, TYPE_INT const _SIZE_2,
+                       TYPE_INT const _SIZE_1, TYPE_INT const _DIST_2,
+                       TYPE_INT const _DIST_1 = 1)
       : S_2(_SIZE_2), S_1(_SIZE_1), D_2(_DIST_2), D_1(_DIST_1),
         STORE(_STORE, S_2 * D_2) {}
 
@@ -135,19 +140,17 @@ template <typename T> class _MACRO_CLASS_NAME_ {
         TYPE_SELF
         ret(in.SIZE_2(), in.SIZE_1());
 
-        for (size_t s2 = 0; s2 < ret.SIZE_2(); s2++) {
-            for (size_t s1 = 0; s1 < ret.SIZE_1(); s1++) {
+        for (TYPE_INT s2 = 0; s2 < ret.SIZE_2(); s2++) {
+            for (TYPE_INT s1 = 0; s1 < ret.SIZE_1(); s1++) {
                 ret(s2, s1) = in(s2, s1);
             }
         }
 
         return ret;
     }
-
     /////////////////////////////////////
     // CONSTRUCTOR AND DESTRUCTOR END. //
     /////////////////////////////////////
-
 };
 
 #undef _MACRO_CLASS_NAME_
