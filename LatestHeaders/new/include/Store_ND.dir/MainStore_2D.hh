@@ -99,7 +99,7 @@ class _MACRO_CLASS_NAME_ {
   public:
     CPPFileIO::FileArray<TYPE_INT> STORE;
 
-    template <typename Reader, typename Converter>
+    template <typename Reader>
     inline void WRITE_STORE(Reader reader) {
 
         //////////////////////////////////////////
@@ -122,10 +122,9 @@ class _MACRO_CLASS_NAME_ {
         /* Setting the range: */ {
             TYPE_PAIR_FLOAT min, max;
             /* check the 1st element: */ {
-                auto const &          element = reader(0);
-                TYPE_PAIR_FLOAT const tmp     = converter(element);
-                min                           = tmp;
-                max                           = tmp;
+                TYPE_PAIR_FLOAT const tmp = reader(0);
+                min                       = tmp;
+                max                       = tmp;
             }
             for (size_t i = 1; i < limit; i++) {
                 TYPE_PAIR_FLOAT const tmp = reader(i);
