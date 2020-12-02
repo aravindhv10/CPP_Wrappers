@@ -566,12 +566,12 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             }
         }
 
-#define DOT(i) (x1(i) * x2(i)) + (y1(i) * y2(i)) + (z1(i) * z2(i))
+#define DOT(i,j) (x1(i) * x2(j)) + (y1(i) * y2(j)) + (z1(i) * z2(j))
 
 #pragma omp parallel for
         for (TYPE_INT i = 0; i < limit1; i++) {
             for (TYPE_INT j = 0; j < limit2; j++) {
-                OUTPUTS(i, j) = CLAMP(DOT(i));
+                OUTPUTS(i, j) = CLAMP(DOT(i,j));
             }
         }
 
@@ -601,7 +601,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs1, TYPE_INT const n1,
                        TYPE_ELEMENT const *inputs2, TYPE_INT const n2)
       : INPUTS1(inputs1, n1), INPUTS2(inputs2, n2),
-        OUTPUTS(INPUTS1(), INPUTS2()) {
+        OUTPUTS(INPUTS1(),INPUTS2()) {
         EVAL_OUTPUTS();
     }
 

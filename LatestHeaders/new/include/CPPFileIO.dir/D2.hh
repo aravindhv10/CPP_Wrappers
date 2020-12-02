@@ -12,35 +12,12 @@
 #define _MACRO_CLASS_NAME_ Dynamic2DArray
 
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
-
-    ////////////////////////
-    // DEFINITIONS BEGIN: //
-    ////////////////////////
   public:
     using TYPE_FLOAT  = TF;
     using TYPE_INT    = TI;
     using TYPE_SELF   = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PARENT = Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
-    //////////////////////
-    // DEFINITIONS END. //
-    //////////////////////
 
-    /////////////////
-    // DATA BEGIN: //
-    /////////////////
-  private:
-    TYPE_PARENT STORE;
-
-  public:
-    inline TYPE_FLOAT *GET_DATA() { return STORE.GET_DATA(); }
-    inline bool        ALLOCATED() const { return STORE.ALLOCATED(); }
-    ///////////////
-    // DATA END. //
-    ///////////////
-
-    //////////////////////////
-    // RETRIVE SIZES BEGIN: //
-    //////////////////////////
   private:
     TYPE_INT const S_2;
     TYPE_INT const S_1;
@@ -50,16 +27,26 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     inline TYPE_INT SIZE_1() const { return S_1; }
     inline TYPE_INT SIZE_2() const { return S_2; }
+    inline TYPE_INT RANGE_1() const { return S_1 - 1; }
+    inline TYPE_INT RANGE_2() const { return S_2 - 1; }
     inline TYPE_INT DIST_1() const { return D_1; }
     inline TYPE_INT DIST_2() const { return D_2; }
-    ////////////////////////
-    // RETRIVE SIZES END. //
-    ////////////////////////
+    inline TYPE_INT NUM_1() const { return (RANGE_1() * DIST_1()) + 1; }
+    inline TYPE_INT NUM_2() const { return (RANGE_2() * DIST_2()) + 1; }
+    inline TYPE_INT NUM() const {
+        return (RANGE_1() * DIST_1()) + (RANGE_2() * DIST_2()) + 1;
+    }
 
+  private:
+    TYPE_PARENT STORE;
+
+  public:
+    inline TYPE_FLOAT *GET_DATA() { return STORE.GET_DATA(); }
+    inline bool        ALLOCATED() const { return STORE.ALLOCATED(); }
     //////////////////////////////
     // RETRIEVE ELEMENTS BEGIN: //
     //////////////////////////////
-  private:
+  public:
     inline TYPE_INT GET_INDEX(TYPE_INT const _S2, TYPE_INT const _S1) const {
         return (_S2 * DIST_2()) + (_S1 * DIST_1());
     }
@@ -121,18 +108,17 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ///////////////////////////////////////
   public:
     _MACRO_CLASS_NAME_(TYPE_INT const _SIZE_2, TYPE_INT const _SIZE_1)
-      : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(S_2 * D_2) {}
+      : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(NUM()) {}
 
     _MACRO_CLASS_NAME_(TYPE_FLOAT *_STORE, TYPE_INT const _SIZE_2,
                        TYPE_INT const _SIZE_1)
-      : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(_STORE, S_2 * D_2) {
-    }
+      : S_2(_SIZE_2), S_1(_SIZE_1), D_2(S_1), D_1(1), STORE(_STORE, NUM()) {}
 
     _MACRO_CLASS_NAME_(TYPE_FLOAT *_STORE, TYPE_INT const _SIZE_2,
                        TYPE_INT const _SIZE_1, TYPE_INT const _DIST_2,
                        TYPE_INT const _DIST_1 = 1)
       : S_2(_SIZE_2), S_1(_SIZE_1), D_2(_DIST_2), D_1(_DIST_1),
-        STORE(_STORE, S_2 * D_2) {}
+        STORE(_STORE, NUM()) {}
 
     ~_MACRO_CLASS_NAME_() {}
 

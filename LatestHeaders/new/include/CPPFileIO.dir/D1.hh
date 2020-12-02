@@ -44,6 +44,8 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline TYPE_DATA const *GET_DATA() const { return STORE; }
     inline TYPE_INT         DIST() const { return DS; }
     inline TYPE_INT         SIZE() const { return SZ; }
+    inline TYPE_INT         RANGE() const { return SIZE()-1; }
+    inline TYPE_INT         NUM() const { return (DIST()*RANGE())+1; }
     inline bool             GET_ALLOCATED() const { return ALLOCATED; }
     /////////////////////////////
     // INTERFACE TO DATA END.} //
@@ -72,44 +74,28 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                                 TYPE_INT const end) const {
 
         if (end < begin) {
-
             return CloneRange(end, begin);
-
         } else if (end < SIZE()) {
-
             TYPE_INT const NEW_SIZE = end - begin + 1;
-
             TYPE_SELF ret(NEW_SIZE);
-
             for (TYPE_INT i = 0; i < NEW_SIZE; i++) {
                 ret(i) = GET_ELEMENT(i + begin);
             }
-
             return ret;
-
         } else {
-
             return CloneRange(begin, SIZE() - 1);
         }
     }
 
     inline TYPE_SELF ViewRange(TYPE_INT const begin, TYPE_INT const end) {
-
         if (end < begin) {
-
             return ViewRange(end, begin);
-
         } else if (end < SIZE()) {
-
             TYPE_INT const NEW_SIZE = end - begin + 1;
-
             TYPE_SELF
             ret(&(STORE[begin]), NEW_SIZE, DIST());
-
             return ret;
-
         } else {
-
             return ViewRange(begin, SIZE() - 1);
         }
     }
@@ -159,7 +145,10 @@ template <typename TD = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     _MACRO_CLASS_NAME_(TYPE_INT const size)
       : SZ(size), DS(1), ALLOCATED((SZ * DS) > 0) {
-        if (ALLOCATED) { STORE = new TYPE_DATA[SIZE() * DIST()]; }
+        if (ALLOCATED) {
+          TYPE_INT const total = NUM();
+          STORE = new TYPE_DATA[total];
+        }
     }
 
     _MACRO_CLASS_NAME_(TYPE_DATA *store, TYPE_INT const size,
