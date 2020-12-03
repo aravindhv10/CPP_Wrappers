@@ -16,6 +16,7 @@ namespace CPPFileIO {
 	// Main Includes BEGIN: //
 	//////////////////////////
 	#include "./CPPFileIO.dir/Basic.hh"
+	#include "./CPPFileIO.dir/BinMapper.hh"
 	#include "./CPPFileIO.dir/Atomic_Counter.hh"
 	#include "./CPPFileIO.dir/ExternalPrograms.hh"
 	#include "./CPPFileIO.dir/D1.hh"
