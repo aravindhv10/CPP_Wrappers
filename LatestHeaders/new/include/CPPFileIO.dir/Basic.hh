@@ -165,4 +165,8 @@ inline void SetCPUAffinity(int const cpunum) {
     }
 }
 
+inline unsigned int constexpr MAX_UINT() { return 0xFFFFFFFF; }
+
+inline unsigned long constexpr MAX_ULONG() { return 0xFFFFFFFFFFFFFFFF; }
+
 #endif

@@ -28,6 +28,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF      = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PAIR      = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
     using TYPE_CARTITION = StaticArray::ND_ARRAY<3, TYPE_FLOAT>;
+    using TYPE_UINT      = unsigned int;
 
     inline static TYPE_FLOAT constexpr PI() { return M_PI; }
     inline static TYPE_FLOAT constexpr PIB2() { return M_PI / 2.0; }
@@ -192,6 +193,21 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                ((-90.0 <= latitude) && (latitude <= 90.0)) &&
                ((-180.0 <= longitude) && (longitude <= 180.0));
     }
+
+    inline TYPE_UINT uint_longitude () const {
+      CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
+      mapper(CPPFileIO::MAX_UINT(), -180.0, 180.0 );
+      TYPE_UINT const ret = mapper(longitude);
+      return ret;
+    }
+
+    inline TYPE_UINT uint_latitude () const {
+      CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
+      mapper(CPPFileIO::MAX_UINT(), -90.0, 90.0 );
+      TYPE_UINT const ret = mapper(latitude);
+      return ret;
+    }
+
     //////////////////////////
     // Main Functions END.} //
     //////////////////////////
@@ -566,12 +582,12 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             }
         }
 
-#define DOT(i,j) (x1(i) * x2(j)) + (y1(i) * y2(j)) + (z1(i) * z2(j))
+#define DOT(i, j) (x1(i) * x2(j)) + (y1(i) * y2(j)) + (z1(i) * z2(j))
 
 #pragma omp parallel for
         for (TYPE_INT i = 0; i < limit1; i++) {
             for (TYPE_INT j = 0; j < limit2; j++) {
-                OUTPUTS(i, j) = CLAMP(DOT(i,j));
+                OUTPUTS(i, j) = CLAMP(DOT(i, j));
             }
         }
 
@@ -601,7 +617,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_(TYPE_ELEMENT const *inputs1, TYPE_INT const n1,
                        TYPE_ELEMENT const *inputs2, TYPE_INT const n2)
       : INPUTS1(inputs1, n1), INPUTS2(inputs2, n2),
-        OUTPUTS(INPUTS1(),INPUTS2()) {
+        OUTPUTS(INPUTS1(), INPUTS2()) {
         EVAL_OUTPUTS();
     }
 

@@ -40,7 +40,7 @@ template <typename TI = long, typename TF = double> class _MACRO_CLASS_NAME_ {
 
     inline void operator()(TYPE_INT const n_bins, TYPE_FLOAT const begin,
                            TYPE_FLOAT const end) {
-        Set_Ranges(n_bins, begin, end);
+        Set_Range(n_bins, begin, end);
     }
 
     inline TYPE_INT operator()(TYPE_FLOAT const in) const {
