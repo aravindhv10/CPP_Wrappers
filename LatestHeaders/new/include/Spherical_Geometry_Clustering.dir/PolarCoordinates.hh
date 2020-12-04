@@ -29,6 +29,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     using TYPE_PAIR      = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
     using TYPE_CARTITION = StaticArray::ND_ARRAY<3, TYPE_FLOAT>;
     using TYPE_UINT      = unsigned int;
+    using TYPE_ULONG     = unsigned long;
 
     inline static TYPE_FLOAT constexpr PI() { return M_PI; }
     inline static TYPE_FLOAT constexpr PIB2() { return M_PI / 2.0; }
@@ -194,20 +195,34 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                ((-180.0 <= longitude) && (longitude <= 180.0));
     }
 
-    inline TYPE_UINT uint_longitude () const {
-      CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
-      mapper(CPPFileIO::MAX_UINT(), -180.0, 180.0 );
-      TYPE_UINT const ret = mapper(longitude);
-      return ret;
+    inline TYPE_UINT uint_longitude() const {
+        CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
+        mapper(CPPFileIO::MAX_UINT(), -180.0, 180.0);
+        TYPE_UINT const ret = mapper(longitude);
+        return ret;
     }
 
-    inline TYPE_UINT uint_latitude () const {
-      CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
-      mapper(CPPFileIO::MAX_UINT(), -90.0, 90.0 );
-      TYPE_UINT const ret = mapper(latitude);
-      return ret;
+    inline TYPE_UINT uint_latitude() const {
+        CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
+        mapper(CPPFileIO::MAX_UINT(), -90.0, 90.0);
+        TYPE_UINT const ret = mapper(latitude);
+        return ret;
     }
 
+    inline TYPE_ULONG z_curve() const {
+        TYPE_UINT const lon = uint_longitude();
+        TYPE_UINT const lat = uint_latitude();
+        TYPE_ULONG      res = 0;
+        for (TYPE_INT i = 0; i < 32; i++) {
+            TYPE_UINT const  val     = (1 << i);
+            TYPE_ULONG const out_lat = static_cast<TYPE_ULONG>(lat & val);
+            TYPE_ULONG const out_lon =
+              (static_cast<TYPE_ULONG>(lon & val) << 1);
+            TYPE_ULONG const sum = ((out_lat + out_lon) << i);
+            res += sum;
+        }
+        return res;
+    }
     //////////////////////////
     // Main Functions END.} //
     //////////////////////////
