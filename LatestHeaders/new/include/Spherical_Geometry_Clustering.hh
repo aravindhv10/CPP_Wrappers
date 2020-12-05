@@ -8,6 +8,7 @@ namespace Spherical_Geometry_Clustering {
 #include "./Spherical_Geometry_Clustering.dir/Simple_KDE.hh"
 #include "./Spherical_Geometry_Clustering.dir/Simple_DBSCAN.hh"
 #include "./Spherical_Geometry_Clustering.dir/PolarCoordinates.hh"
+#include "./Spherical_Geometry_Clustering.dir/FastDistanceCalculator.hh"
 }
 
 #endif
