@@ -261,7 +261,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 // All Distance Evaluation END.} //
 ///////////////////////////////////
 
-
 ////////////////////////////
 // 2 set distance BEGIN:{ //
 ////////////////////////////

@@ -202,9 +202,10 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
                 TYPE_INT const      length = end - start + 1;
                 TYPE_ELEMENT const *buffer = &(STORE(start, length));
                 for (TYPE_INT j = 0; j < length; j++) {
-                    if (in(buffer[i].POINT)) {
-                        indices.push_back(buffer[i].INDEX);
-                        printf("GOD index %ld\n", buffer[i].INDEX);
+                    bool const res = in(buffer[j].POINT);
+                    if (res) {
+                        printf("GOT index %ld\n", buffer[j].INDEX);
+                        indices.push_back(buffer[j].INDEX);
                     }
                 }
             } else {
@@ -234,23 +235,29 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 
     inline void operator()(TYPE_INTS &indices, TYPE_BOX const &in) {
         indices.clear();
+        printf("Find with box: (%lf, %lf) (%lf, %lf)\n", in.MIN.latitude,
+               in.MIN.longitude, in.MAX.latitude, in.MAX.longitude);
         RETRIEVE_ELEMENTS(indices, in, 0);
     }
 
     inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
                            TYPE_FLOAT const lon2) {
+        printf("Started the find...\n");
         TYPE_BOX inbox;
         inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
+        printf("Find with box: (%lf, %lf) (%lf, %lf)\n", inbox.MIN.latitude,
+               inbox.MIN.longitude, inbox.MAX.latitude, inbox.MAX.longitude);
         RETRIEVE_ELEMENTS(indices, inbox, 0);
     }
 
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
       : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()) {}
+
     ~_MACRO_CLASS_NAME_() {}
 };
 
