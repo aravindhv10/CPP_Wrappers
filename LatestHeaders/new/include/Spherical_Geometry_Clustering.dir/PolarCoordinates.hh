@@ -268,6 +268,22 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_POINT MIN, MAX;
 
   public:
+    inline TYPE_POINT P1() const { return MIN; }
+    inline TYPE_POINT P2() const {
+        TYPE_POINT ret;
+        ret.latitude  = MAX.latitude;
+        ret.longitude = MIN.longitude;
+        return ret;
+    }
+    inline TYPE_POINT P3() const {
+        TYPE_POINT ret;
+        ret.latitude  = MIN.latitude;
+        ret.longitude = MAX.longitude;
+        return ret;
+    }
+    inline TYPE_POINT P4() const { return MAX; }
+
+  public:
     inline void operator=(TYPE_POINT const in) {
         MIN = in;
         MAX = in;
@@ -282,6 +298,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         TYPE_SELF ret = this[0];
         ret += in;
         return ret;
+    }
+    inline bool operator()(TYPE_POINT const &in) const {
+        return (MIN.latitude <= in.latitude) && (in.latitude <= MAX.latitude) &&
+               (MIN.longitude <= in.longitude) &&
+               (in.longitude <= MAX.longitude);
     }
 
   public:
@@ -304,6 +325,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         ret.MAX.longitude =
           CPPFileIO::mymax(MAX.longitude, other.MAX.longitude);
         return ret;
+    }
+
+  public:
+    inline bool operator()(TYPE_SELF const &in) const {
+        return in(this->P1()) || in(this->P2()) || in(this->P3()) ||
+               in(this->P4()) || this[0](in.P1()) || this[0](in.P1()) ||
+               this[0](in.P1()) || this[0](in.P1());
     }
 
   public:

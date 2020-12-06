@@ -103,6 +103,7 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
     using TYPE_INT        = TI;
+    using TYPE_INTS       = std::vector<TYPE_INT>;
     using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_POINT      = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
     using TYPE_BOX        = D2GPS_Box<TYPE_FLOAT, TYPE_INT>;
@@ -157,6 +158,11 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
             for (TYPE_INT i = 1; i < length; i++) {
                 parent_node.BBOX += buffer[i].POINT;
             }
+            printf(
+              "FINAL SQUARE: (%lf, %lf) (%lf, %lf) (%ld - %ld) \n",
+              parent_node.BBOX.MIN.latitude, parent_node.BBOX.MIN.longitude,
+              parent_node.BBOX.MAX.latitude, parent_node.BBOX.MAX.longitude,
+              parent_node.RANGE[0], parent_node.RANGE[1]);
         } else {
             TYPE_INT const index_left  = INDEX_LEFT_CHILD(index_node);
             TYPE_INT const index_right = INDEX_RIGHT_CHILD(index_node);
@@ -186,6 +192,28 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
         HEAP.size(MAX_HEAP_SIZE);
     }
 
+    inline void RETRIEVE_ELEMENTS(TYPE_INTS &indices, TYPE_BOX const &in,
+                                  TYPE_INT const i) {
+        bool const ret = HEAP(i).BBOX(in);
+        if (ret) {
+            if (HEAP(i).IS_LEAF()) {
+                TYPE_INT const      start  = HEAP(i).RANGE[0];
+                TYPE_INT const      end    = HEAP(i).RANGE[1];
+                TYPE_INT const      length = end - start + 1;
+                TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                for (TYPE_INT j = 0; j < length; j++) {
+                    if (in(buffer[i].POINT)) {
+                        indices.push_back(buffer[i].INDEX);
+                        printf("GOD index %ld\n", buffer[i].INDEX);
+                    }
+                }
+            } else {
+                RETRIEVE_ELEMENTS(indices, in, INDEX_LEFT_CHILD(i));
+                RETRIEVE_ELEMENTS(indices, in, INDEX_RIGHT_CHILD(i));
+            }
+        }
+    }
+
   public:
     template <typename Reader> inline void MAKE_STORE(Reader &reader) {
         TYPE_INT const limit = reader();
@@ -200,7 +228,24 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
         }
         STORE.writeable(false);
         STORE.size(limit);
+        CPPFileIO::SortFile<TYPE_ELEMENT>(NAME_STORE());
         MAKE_HEAP();
+    }
+
+    inline void operator()(TYPE_INTS &indices, TYPE_BOX const &in) {
+        indices.clear();
+        RETRIEVE_ELEMENTS(indices, in, 0);
+    }
+
+    inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
+                           TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
+                           TYPE_FLOAT const lon2) {
+        TYPE_BOX inbox;
+        inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
+        inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
+        inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
+        inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
+        RETRIEVE_ELEMENTS(indices, inbox, 0);
     }
 
   public:
