@@ -124,20 +124,38 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
     }
 
   public:
+    std::string const                  DIRNAME;
     CPPFileIO::FileArray<TYPE_ELEMENT> STORE;
     CPPFileIO::FileArray<TYPE_NODE>    HEAP;
-    TYPE_INT MAX_HEAP_SIZE;
+    TYPE_INT                           MAX_HEAP_SIZE;
 
-  public:
+  private:
+    inline std::string const NAME_DIR() const {
+        std::string const ret = DIRNAME + "/";
+        mkdir(DIRNAME.c_str(), 0755);
+        return ret;
+    }
+
+    inline std::string const NAME_STORE() const {
+        std::string const ret = NAME_DIR() + "out.store.bin";
+        return ret;
+    }
+
+    inline std::string const NAME_HEAP() const {
+        std::string const ret = NAME_DIR() + "out.heap.bin";
+        return ret;
+    }
+
+  private:
     inline void MAKE_HEAP(TYPE_NODE &parent_node, TYPE_INT const index_node) {
         if (parent_node.IS_LEAF()) {
-            auto const start = parent_node.RANGE[0];
-            auto const end = parent_node.RANGE[1];
-            auto const length = parent_node.LENGTH();
-            TYPE_ELEMENT * buffer = &(STORE(start, length)) ;
-            parent_node.BBOX = buffer[0];
-            for(TYPE_INT i=1;i<length;i++) {
-                parent_node.BBOX += buffer[i];
+            auto const    start  = parent_node.RANGE[0];
+            auto const    end    = parent_node.RANGE[1];
+            auto const    length = parent_node.LENGTH();
+            TYPE_ELEMENT *buffer = &(STORE(start, length));
+            parent_node.BBOX     = buffer[0].POINT;
+            for (TYPE_INT i = 1; i < length; i++) {
+                parent_node.BBOX += buffer[i].POINT;
             }
         } else {
             TYPE_INT const index_left  = INDEX_LEFT_CHILD(index_node);
@@ -154,10 +172,10 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
             parent_node.BBOX = left.BBOX + right.BBOX;
         }
         HEAP(index_node) = parent_node;
-        MAX_HEAP_SIZE = CPPFileIO::mymax(MAX_HEAP_SIZE, index_node);
+        MAX_HEAP_SIZE    = CPPFileIO::mymax(MAX_HEAP_SIZE, index_node);
     }
 
-    inline void MAKE_HEAP(){
+    inline void MAKE_HEAP() {
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
         TYPE_NODE node;
@@ -169,7 +187,25 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    _MACRO_CLASS_NAME_() {}
+    template <typename Reader> inline void MAKE_STORE(Reader &reader) {
+        TYPE_INT const limit = reader();
+        STORE.writeable(true);
+        for (TYPE_INT i = 0; i < limit; i++) {
+            TYPE_POINT const place = reader(i);
+            TYPE_ELEMENT     tmp;
+            tmp.POINT   = place;
+            tmp.Z_CURVE = tmp.POINT.z_curve();
+            tmp.INDEX   = i;
+            STORE(i)    = tmp;
+        }
+        STORE.writeable(false);
+        STORE.size(limit);
+        MAKE_HEAP();
+    }
+
+  public:
+    _MACRO_CLASS_NAME_(std::string const dirname)
+      : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()) {}
     ~_MACRO_CLASS_NAME_() {}
 };
 
