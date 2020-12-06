@@ -54,17 +54,18 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 //////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Node
 
-template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
+template <typename TF, typename TI, TI LEAF_LENGTH = 128>
+class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
     using TYPE_INT        = TI;
-    using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_POINT      = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
     using TYPE_BOX        = D2GPS_Box<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PAIR_INT   = StaticArray::ND_ARRAY<2, TYPE_INT>;
     using TYPE_PAIR_FLOAT = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
 
-    static TYPE_INT constexpr LENGTH_LIMIT() { return 128; }
+    static TYPE_INT constexpr LENGTH_LIMIT() { return LEAF_LENGTH; }
+    using TYPE_SELF = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT, LENGTH_LIMIT()>;
 
   public:
     TYPE_BOX      BBOX;
@@ -99,18 +100,21 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 //////////////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Store
 
-template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
+template <typename TF, typename TI, TI LEAF_LENGTH = 128>
+class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
     using TYPE_INT        = TI;
     using TYPE_INTS       = std::vector<TYPE_INT>;
-    using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_POINT      = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
     using TYPE_BOX        = D2GPS_Box<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PAIR_INT   = StaticArray::ND_ARRAY<2, TYPE_INT>;
     using TYPE_PAIR_FLOAT = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
-    using TYPE_NODE       = D2GPS_Node<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ELEMENT    = D2GPS_Element<TYPE_FLOAT, TYPE_INT>;
+
+    static TYPE_INT constexpr LENGTH_LIMIT() { return LEAF_LENGTH; }
+    using TYPE_SELF = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT, LENGTH_LIMIT()>;
+    using TYPE_NODE = D2GPS_Node<TYPE_FLOAT, TYPE_INT, LENGTH_LIMIT()>;
 
     static inline TYPE_INT INDEX_PARENT(TYPE_INT const i) {
         return (i - 1) / 2;
@@ -158,11 +162,6 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
             for (TYPE_INT i = 1; i < length; i++) {
                 parent_node.BBOX += buffer[i].POINT;
             }
-            printf(
-              "FINAL SQUARE: (%lf, %lf) (%lf, %lf) (%ld - %ld) \n",
-              parent_node.BBOX.MIN.latitude, parent_node.BBOX.MIN.longitude,
-              parent_node.BBOX.MAX.latitude, parent_node.BBOX.MAX.longitude,
-              parent_node.RANGE[0], parent_node.RANGE[1]);
         } else {
             TYPE_INT const index_left  = INDEX_LEFT_CHILD(index_node);
             TYPE_INT const index_right = INDEX_RIGHT_CHILD(index_node);
@@ -194,11 +193,12 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 
     inline void RETRIEVE_ELEMENTS(TYPE_INTS &indices, TYPE_BOX const &in,
                                   TYPE_INT const i) {
-        bool const ret = HEAP(i).BBOX(in);
+        auto const &heap = HEAP(i);
+        bool const  ret  = heap.BBOX(in);
         if (ret) {
             if (HEAP(i).IS_LEAF()) {
-                TYPE_INT const      start  = HEAP(i).RANGE[0];
-                TYPE_INT const      end    = HEAP(i).RANGE[1];
+                TYPE_INT const      start  = heap.RANGE[0];
+                TYPE_INT const      end    = heap.RANGE[1];
                 TYPE_INT const      length = end - start + 1;
                 TYPE_ELEMENT const *buffer = &(STORE(start, length));
                 for (TYPE_INT j = 0; j < length; j++) {
@@ -235,22 +235,18 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 
     inline void operator()(TYPE_INTS &indices, TYPE_BOX const &in) {
         indices.clear();
-        printf("Find with box: (%lf, %lf) (%lf, %lf)\n", in.MIN.latitude,
-               in.MIN.longitude, in.MAX.latitude, in.MAX.longitude);
         RETRIEVE_ELEMENTS(indices, in, 0);
     }
 
     inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
                            TYPE_FLOAT const lon2) {
-        printf("Started the find...\n");
+
         TYPE_BOX inbox;
         inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
-        printf("Find with box: (%lf, %lf) (%lf, %lf)\n", inbox.MIN.latitude,
-               inbox.MIN.longitude, inbox.MAX.latitude, inbox.MAX.longitude);
         RETRIEVE_ELEMENTS(indices, inbox, 0);
     }
 

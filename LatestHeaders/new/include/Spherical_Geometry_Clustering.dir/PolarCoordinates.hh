@@ -300,15 +300,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return ret;
     }
     inline bool operator()(TYPE_POINT const &in) const {
-        //printf("Comparing point %lf %lf\n", in.latitude, in.longitude);
-        //printf("With (%lf, %lf) (%lf, %lf)\n", MIN.latitude, MIN.longitude,
-        //       MAX.latitude, MAX.longitude);
         bool const ret =
           (MIN.latitude <= in.latitude) && (in.latitude <= MAX.latitude) &&
           (MIN.longitude <= in.longitude) && (in.longitude <= MAX.longitude);
-        //if(ret){
-        //  printf("Point intersects...\n");
-        //}
         return ret;
     }
 
@@ -338,8 +332,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     inline bool operator()(TYPE_SELF const &in) const {
         bool const ret = in(this->P1()) || in(this->P2()) || in(this->P3()) ||
                          in(this->P4()) || this[0](in.P1()) ||
-                         this[0](in.P1()) || this[0](in.P1()) ||
-                         this[0](in.P1());
+                         this[0](in.P2()) || this[0](in.P3()) ||
+                         this[0](in.P4());
         return ret;
     }
 
