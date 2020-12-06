@@ -204,7 +204,6 @@ class _MACRO_CLASS_NAME_ {
                 for (TYPE_INT j = 0; j < length; j++) {
                     bool const res = in(buffer[j].POINT);
                     if (res) {
-                        printf("GOT index %ld\n", buffer[j].INDEX);
                         indices.push_back(buffer[j].INDEX);
                     }
                 }
