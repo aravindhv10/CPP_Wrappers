@@ -54,8 +54,7 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 //////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Node
 
-template <typename TF, typename TI, TI LEAF_LENGTH = 128>
-class _MACRO_CLASS_NAME_ {
+template <typename TF, typename TI, TI LEAF_LENGTH> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
     using TYPE_INT        = TI;
@@ -100,7 +99,7 @@ class _MACRO_CLASS_NAME_ {
 //////////////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Store
 
-template <typename TF, typename TI, TI LEAF_LENGTH = 128>
+template <typename TF, typename TI, TI LEAF_LENGTH = 64>
 class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
@@ -203,9 +202,7 @@ class _MACRO_CLASS_NAME_ {
                 TYPE_ELEMENT const *buffer = &(STORE(start, length));
                 for (TYPE_INT j = 0; j < length; j++) {
                     bool const res = in(buffer[j].POINT);
-                    if (res) {
-                        indices.push_back(buffer[j].INDEX);
-                    }
+                    if (res) { indices.push_back(buffer[j].INDEX); }
                 }
             } else {
                 RETRIEVE_ELEMENTS(indices, in, INDEX_LEFT_CHILD(i));
@@ -218,17 +215,18 @@ class _MACRO_CLASS_NAME_ {
     template <typename Reader> inline void MAKE_STORE(Reader &reader) {
         TYPE_INT const limit = reader();
         STORE.writeable(true);
+        TYPE_ELEMENT *buffer = &(STORE(0, limit));
         for (TYPE_INT i = 0; i < limit; i++) {
             TYPE_POINT const place = reader(i);
             TYPE_ELEMENT     tmp;
             tmp.POINT   = place;
             tmp.Z_CURVE = tmp.POINT.z_curve();
             tmp.INDEX   = i;
-            STORE(i)    = tmp;
+            buffer[i]   = tmp;
         }
+        std::sort(&(buffer[0]), &(buffer[limit]));
         STORE.writeable(false);
         STORE.size(limit);
-        CPPFileIO::SortFile<TYPE_ELEMENT>(NAME_STORE());
         MAKE_HEAP();
     }
 
