@@ -398,6 +398,19 @@ class _MACRO_CLASS_NAME_ {
         RETRIEVE_ELEMENTS(indices, inbox);
     }
 
+    inline void read_all_heap() {
+        HEAP(0,HEAP());
+    }
+
+    inline void read_all_store() {
+        STORE(0,STORE());
+    }
+
+    inline void read_all () {
+      read_all_heap();
+      read_all_store();
+    }
+
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
       : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()) {}
