@@ -189,8 +189,8 @@ class _MACRO_CLASS_NAME_ {
             left.RANGE[1]  = mid;
             right.RANGE[0] = mid + 1;
             right.RANGE[1] = parent_node.RANGE[1];
-            MAKE_HEAP(left, index_left);
-            MAKE_HEAP(right, index_right);
+            MAKE_HEAP_OLD(left, index_left);
+            MAKE_HEAP_OLD(right, index_right);
             parent_node.BBOX = left.BBOX + right.BBOX;
         }
         HEAP(index_node) = parent_node;
@@ -204,7 +204,7 @@ class _MACRO_CLASS_NAME_ {
         TYPE_NODE node;
         node.RANGE[0] = 0;
         node.RANGE[1] = STORE() - 1;
-        MAKE_HEAP(node, 0);
+        MAKE_HEAP_OLD(node, 0);
         HEAP.size(MAX_HEAP_SIZE);
         HEAP.writeable(false);
     }
@@ -263,8 +263,8 @@ class _MACRO_CLASS_NAME_ {
             if (!element.IS_LEAF()) {
                 TYPE_NODE const *children = &(HEAP(INDEX_LEFT_CHILD(i), 2));
                 element.BBOX              = children[0].BBOX + children[1].BBOX;
+                HEAP(i) = element;
             }
-            HEAP(i) = element;
         }
 
         HEAP.size(MAX_HEAP_SIZE + 1);
@@ -352,8 +352,8 @@ class _MACRO_CLASS_NAME_ {
                 }
             } else {
                 printf("3\n");
-                RETRIEVE_ELEMENTS(indices, in, INDEX_LEFT_CHILD(i));
-                RETRIEVE_ELEMENTS(indices, in, INDEX_RIGHT_CHILD(i));
+                RETRIEVE_ELEMENTS_OLD(indices, in, INDEX_LEFT_CHILD(i));
+                RETRIEVE_ELEMENTS_OLD(indices, in, INDEX_RIGHT_CHILD(i));
                 printf("4\n");
             }
         }
@@ -383,7 +383,7 @@ class _MACRO_CLASS_NAME_ {
 
     inline void operator()(TYPE_INTS &indices, TYPE_BOX const &in) {
         indices.clear();
-        RETRIEVE_ELEMENTS_NEW(indices, in);
+        RETRIEVE_ELEMENTS(indices, in);
     }
 
     inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
@@ -395,7 +395,7 @@ class _MACRO_CLASS_NAME_ {
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
-        RETRIEVE_ELEMENTS_NEW(indices, inbox);
+        RETRIEVE_ELEMENTS(indices, inbox);
     }
 
   public:
