@@ -106,6 +106,7 @@ class _MACRO_CLASS_NAME_ {
     using TYPE_INT        = TI;
     using TYPE_INTS       = std::vector<TYPE_INT>;
     using TYPE_POINT      = D2GPS_Coordinates<TYPE_FLOAT, TYPE_INT>;
+    using TYPE_POINTS     = std::vector<TYPE_POINT>;
     using TYPE_BOX        = D2GPS_Box<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PAIR_INT   = StaticArray::ND_ARRAY<2, TYPE_INT>;
     using TYPE_PAIR_FLOAT = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
@@ -271,6 +272,33 @@ class _MACRO_CLASS_NAME_ {
         HEAP.writeable(false);
     }
 
+    inline void RETRIEVE_ELEMENTS(TYPE_POINTS &places, TYPE_BOX const &in) {
+        std::stack<TYPE_INT> stack;
+        stack.push(0);
+        while (!stack.empty()) {
+            TYPE_INT const index = stack.top();
+            stack.pop();
+            TYPE_NODE const element    = HEAP(index);
+            bool const      intersects = element.BBOX(in);
+            if (intersects) {
+                if (element.IS_LEAF()) {
+                    TYPE_INT const      start  = element.RANGE[0];
+                    TYPE_INT const      end    = element.RANGE[1];
+                    TYPE_INT const      length = end - start + 1;
+                    TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                    for (TYPE_INT i = 0; i < length; i++) {
+                        bool const toinclude = in(buffer[i].POINT);
+                        if (toinclude) { places.push_back(buffer[i].POINT); }
+                    }
+                } else {
+                    TYPE_INT const leftchild = INDEX_LEFT_CHILD(index);
+                    stack.push(leftchild);
+                    stack.push(leftchild + 1);
+                }
+            }
+        }
+    }
+
     inline void RETRIEVE_ELEMENTS(TYPE_INTS &indices, TYPE_BOX const &in) {
         std::stack<TYPE_INT> stack;
         stack.push(0);
@@ -386,16 +414,36 @@ class _MACRO_CLASS_NAME_ {
         RETRIEVE_ELEMENTS(indices, in);
     }
 
+    inline void operator()(TYPE_POINTS &points, TYPE_BOX const &in) {
+        points.clear();
+        RETRIEVE_ELEMENTS(points, in);
+    }
+
     inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
                            TYPE_FLOAT const lon2) {
 
+        indices.clear();
         TYPE_BOX inbox;
         inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
         RETRIEVE_ELEMENTS(indices, inbox);
+    }
+
+
+    inline void operator()(TYPE_POINTS &points, TYPE_FLOAT const lat1,
+                           TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
+                           TYPE_FLOAT const lon2) {
+
+        points.clear();
+        TYPE_BOX inbox;
+        inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
+        inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
+        inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
+        inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
+        RETRIEVE_ELEMENTS(points, inbox);
     }
 
     inline void read_all_heap() {
