@@ -294,7 +294,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         MAX.latitude  = CPPFileIO::mymax(MAX.latitude, in.latitude);
         MAX.longitude = CPPFileIO::mymax(MAX.longitude, in.longitude);
     }
-    inline TYPE_SELF operator+(TYPE_POINT const &in) {
+    inline TYPE_SELF operator+(TYPE_POINT const &in) const {
         TYPE_SELF ret = this[0];
         ret += in;
         return ret;
