@@ -99,7 +99,7 @@ template <typename TF, typename TI, TI LEAF_LENGTH> class _MACRO_CLASS_NAME_ {
 //////////////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Store
 
-template <typename TF, typename TI, TI LEAF_LENGTH = 4>
+template <typename TF, typename TI, TI LEAF_LENGTH = 16>
 class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
@@ -168,7 +168,8 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline void MAKE_HEAP(TYPE_NODE &parent_node, TYPE_INT const index_node) {
+    inline void MAKE_HEAP_OLD(TYPE_NODE &    parent_node,
+                              TYPE_INT const index_node) {
         if (parent_node.IS_LEAF()) {
             auto const    start  = parent_node.RANGE[0];
             auto const    end    = parent_node.RANGE[1];
@@ -196,7 +197,7 @@ class _MACRO_CLASS_NAME_ {
         MAX_HEAP_SIZE    = CPPFileIO::mymax(MAX_HEAP_SIZE, index_node);
     }
 
-    inline void MAKE_HEAP() {
+    inline void MAKE_HEAP_OLD() {
         HEAP.size(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
@@ -206,10 +207,9 @@ class _MACRO_CLASS_NAME_ {
         MAKE_HEAP(node, 0);
         HEAP.size(MAX_HEAP_SIZE);
         HEAP.writeable(false);
-        // DEBUG();
     }
 
-    inline void MAKE_HEAP_NEW() {
+    inline void MAKE_HEAP() {
         HEAP.size(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
@@ -228,11 +228,11 @@ class _MACRO_CLASS_NAME_ {
             MAX_HEAP_SIZE      = CPPFileIO::mymax(MAX_HEAP_SIZE, the_index);
             TYPE_NODE &element = HEAP(the_index);
             if (element.IS_LEAF()) {
-                TYPE_INT const start  = element.RANGE[0];
-                TYPE_INT const end    = element.RANGE[1];
-                TYPE_INT const length = end - start + 1;
-                TYPE_ELEMENT * buffer = &(STORE(start, length));
-                element.BBOX          = buffer[0].POINT;
+                TYPE_INT const      start  = element.RANGE[0];
+                TYPE_INT const      end    = element.RANGE[1];
+                TYPE_INT const      length = end - start + 1;
+                TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                element.BBOX               = buffer[0].POINT;
                 for (TYPE_INT i = 1; i < length; i++) {
                     element.BBOX += buffer[i].POINT;
                 }
@@ -261,9 +261,8 @@ class _MACRO_CLASS_NAME_ {
         for (TYPE_INT i = MAX_HEAP_SIZE; i >= 0; i--) {
             TYPE_NODE element = HEAP(i);
             if (!element.IS_LEAF()) {
-                TYPE_NODE left_child  = HEAP(INDEX_LEFT_CHILD(i));
-                TYPE_NODE right_child = HEAP(INDEX_RIGHT_CHILD(i));
-                element.BBOX          = left_child.BBOX + right_child.BBOX;
+                TYPE_NODE const *children = &(HEAP(INDEX_LEFT_CHILD(i), 2));
+                element.BBOX              = children[0].BBOX + children[1].BBOX;
             }
             HEAP(i) = element;
         }
@@ -272,20 +271,65 @@ class _MACRO_CLASS_NAME_ {
         HEAP.writeable(false);
     }
 
-    inline void RETRIEVE_ELEMENTS(TYPE_INTS &indices, TYPE_BOX const &in,
-                                  TYPE_INT const i) {
+    inline void RETRIEVE_ELEMENTS(TYPE_INTS &indices, TYPE_BOX const &in) {
+        std::stack<TYPE_INT> stack;
+        stack.push(0);
+        while (!stack.empty()) {
+            TYPE_INT const index = stack.top();
+            stack.pop();
+            TYPE_NODE const element    = HEAP(index);
+            bool const      intersects = element.BBOX(in);
+            if (intersects) {
+                if (element.IS_LEAF()) {
+                    TYPE_INT const      start  = element.RANGE[0];
+                    TYPE_INT const      end    = element.RANGE[1];
+                    TYPE_INT const      length = end - start + 1;
+                    TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                    for (TYPE_INT i = 0; i < length; i++) {
+                        bool const toinclude = in(buffer[i].POINT);
+                        if (toinclude) { indices.push_back(buffer[i].INDEX); }
+                    }
+                } else {
+                    TYPE_INT const leftchild = INDEX_LEFT_CHILD(index);
+                    stack.push(leftchild);
+                    stack.push(leftchild + 1);
+                }
+            }
+        }
+        /* DEBUGGING */ if (false) {
+            TYPE_INT const limit_store = STORE();
+            TYPE_INTS      checking;
+            for (TYPE_INT i = 0; i < limit_store; i++) {
+                bool const intersects = in(STORE(i).POINT);
+                if (intersects) { checking.push_back(STORE(i).INDEX); }
+            }
+            if (indices.size() > 0) {
+                std::sort(indices.begin(), indices.end());
+            }
+            if (checking.size() > 0) {
+                std::sort(checking.begin(), checking.end());
+            }
+            if (checking.size() == indices.size()) {
+                for (size_t i = 0; i < indices.size(); i++) {
+                    printf("CHECK INTERNAL...: %ld %ld\n", indices[i],
+                           checking[i]);
+                }
+            } else {
+                printf("RESULTS ARE WRONG!!!\n");
+            }
+        }
+    }
 
-        // printf("GOT BOX: (%lf, %lf) (%lf, %lf)\n", in.MIN.latitude,
-        // in.MIN.longitude, in.MAX.latitude, in.MAX.longitude);
+    inline void RETRIEVE_ELEMENTS_OLD(TYPE_INTS &indices, TYPE_BOX const &in,
+                                      TYPE_INT const i) {
+
         auto const &heap = HEAP(i);
         bool const  ret  = heap.BBOX(in);
 
         printf("1\n");
         if (ret) {
-            // printf("INTERSECTED...\n");
             if (HEAP(i).IS_LEAF()) {
                 printf("2\n");
-                // printf("IN LEAF NODE...\n");
                 TYPE_INT const start  = heap.RANGE[0];
                 TYPE_INT const end    = heap.RANGE[1];
                 TYPE_INT const length = end - start + 1;
@@ -334,13 +378,12 @@ class _MACRO_CLASS_NAME_ {
         std::sort(&(buffer[0]), &(buffer[limit]));
         STORE.size(limit);
         STORE.writeable(false);
-        // DEBUG();
-        MAKE_HEAP_NEW();
+        MAKE_HEAP();
     }
 
     inline void operator()(TYPE_INTS &indices, TYPE_BOX const &in) {
         indices.clear();
-        RETRIEVE_ELEMENTS(indices, in, 0);
+        RETRIEVE_ELEMENTS_NEW(indices, in);
     }
 
     inline void operator()(TYPE_INTS &indices, TYPE_FLOAT const lat1,
@@ -352,16 +395,14 @@ class _MACRO_CLASS_NAME_ {
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
-        RETRIEVE_ELEMENTS(indices, inbox, 0);
+        RETRIEVE_ELEMENTS_NEW(indices, inbox);
     }
 
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
       : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()) {}
 
-    ~_MACRO_CLASS_NAME_() {
-        // DEBUG();
-    }
+    ~_MACRO_CLASS_NAME_() {}
 };
 
 #undef _MACRO_CLASS_NAME_
