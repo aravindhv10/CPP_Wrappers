@@ -271,7 +271,6 @@ class _MACRO_CLASS_NAME_ {
   public:
     template <typename Type>
     inline void operator()(Type &indices, TYPE_BOX const &in) {
-        indices.clear();
         RETRIEVE_ELEMENTS(indices, in);
     }
 
@@ -279,7 +278,6 @@ class _MACRO_CLASS_NAME_ {
     inline void operator()(Type &indices, TYPE_FLOAT const lat1,
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
                            TYPE_FLOAT const lon2) {
-        indices.clear();
         TYPE_BOX inbox;
         inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
@@ -299,7 +297,7 @@ class _MACRO_CLASS_NAME_ {
         };                                                                     \
         reader tmp;                                                            \
         tmp.ref = &indices;                                                    \
-        RETRIEVE_ELEMENTS(tmp, in);                                            \
+        this[0](tmp, in);                                                      \
     }                                                                          \
     inline void operator()(Type &indices, TYPE_FLOAT const lat1,               \
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,       \
