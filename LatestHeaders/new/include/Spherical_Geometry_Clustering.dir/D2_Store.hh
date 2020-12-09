@@ -5,8 +5,8 @@
 // Headers BEGIN:{ //
 /////////////////////
 #include "../Read_Show_Functions.hh"
-#include "./PolarCoordinates.hh"
 #include "./Box.hh"
+#include "./PolarCoordinates.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -239,39 +239,67 @@ class _MACRO_CLASS_NAME_ {
         HEAP.writeable(false);
     }
 
-#define _MACRO_DEFINE_RETRIEVE_(Type, PushStatement)                           \
-  private:                                                                     \
-    inline void RETRIEVE_ELEMENTS(Type &places, TYPE_BOX const &in) {          \
-        std::stack<TYPE_INT> stack;                                            \
-        stack.push(0);                                                         \
-        while (!stack.empty()) {                                               \
-            TYPE_INT const index = stack.top();                                \
-            stack.pop();                                                       \
-            TYPE_NODE const element    = HEAP(index);                          \
-            bool const      intersects = element.BBOX(in);                     \
-            if (intersects) {                                                  \
-                if (element.IS_LEAF()) {                                       \
-                    TYPE_INT const      start  = element.RANGE[0];             \
-                    TYPE_INT const      end    = element.RANGE[1];             \
-                    TYPE_INT const      length = end - start + 1;              \
-                    TYPE_ELEMENT const *buffer = &(STORE(start, length));      \
-                    for (TYPE_INT i = 0; i < length; i++) {                    \
-                        bool const toinclude = in(buffer[i].POINT);            \
-                        if (toinclude) { PushStatement; }                      \
-                    }                                                          \
-                } else {                                                       \
-                    TYPE_INT const leftchild = INDEX_LEFT_CHILD(index);        \
-                    stack.push(leftchild);                                     \
-                    stack.push(leftchild + 1);                                 \
-                }                                                              \
-            }                                                                  \
-        }                                                                      \
-    }                                                                          \
-                                                                               \
-  public:                                                                      \
+  private:
+    template <typename Type>
+    inline void RETRIEVE_ELEMENTS(Type &places, TYPE_BOX const &in) {
+        std::stack<TYPE_INT> stack;
+        stack.push(0);
+        while (!stack.empty()) {
+            TYPE_INT const index = stack.top();
+            stack.pop();
+            TYPE_NODE const element    = HEAP(index);
+            bool const      intersects = element.BBOX(in);
+            if (intersects) {
+                if (element.IS_LEAF()) {
+                    TYPE_INT const      start  = element.RANGE[0];
+                    TYPE_INT const      end    = element.RANGE[1];
+                    TYPE_INT const      length = end - start + 1;
+                    TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                    for (TYPE_INT i = 0; i < length; i++) {
+                        bool const toinclude = in(buffer[i].POINT);
+                        if (toinclude) { places(buffer[i]); }
+                    }
+                } else {
+                    TYPE_INT const leftchild = INDEX_LEFT_CHILD(index);
+                    stack.push(leftchild);
+                    stack.push(leftchild + 1);
+                }
+            }
+        }
+    }
+
+  public:
+    template <typename Type>
+    inline void operator()(Type &indices, TYPE_BOX const &in) {
+        indices.clear();
+        RETRIEVE_ELEMENTS(indices, in);
+    }
+
+    template <typename Type>
+    inline void operator()(Type &indices, TYPE_FLOAT const lat1,
+                           TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,
+                           TYPE_FLOAT const lon2) {
+        indices.clear();
+        TYPE_BOX inbox;
+        inbox.MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
+        inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);
+        inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
+        inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);
+        this[0](indices, inbox);
+    }
+
+#define _MACRO_INTERFACE_(Type, PushStatement)                                 \
     inline void operator()(Type &indices, TYPE_BOX const &in) {                \
         indices.clear();                                                       \
-        RETRIEVE_ELEMENTS(indices, in);                                        \
+        struct reader {                                                        \
+            Type * ref;                                                        \
+            inline void operator()(TYPE_ELEMENT const &in) {                   \
+                ref->push_back(PushStatement);                                 \
+            }                                                                  \
+        };                                                                     \
+        reader tmp;                                                            \
+        tmp.ref = &indices;                                                    \
+        RETRIEVE_ELEMENTS(tmp, in);                                            \
     }                                                                          \
     inline void operator()(Type &indices, TYPE_FLOAT const lat1,               \
                            TYPE_FLOAT const lon1, TYPE_FLOAT const lat2,       \
@@ -282,14 +310,14 @@ class _MACRO_CLASS_NAME_ {
         inbox.MIN.longitude = CPPFileIO::mymin(lon1, lon2);                    \
         inbox.MAX.latitude  = CPPFileIO::mymax(lat1, lat2);                    \
         inbox.MAX.longitude = CPPFileIO::mymax(lon1, lon2);                    \
-        RETRIEVE_ELEMENTS(indices, inbox);                                     \
+        this[0](indices, inbox);                                               \
     }
 
-    _MACRO_DEFINE_RETRIEVE_(TYPE_POINTS, places.push_back(buffer[i].POINT))
-    _MACRO_DEFINE_RETRIEVE_(TYPE_INTS, places.push_back(buffer[i].INDEX))
-    _MACRO_DEFINE_RETRIEVE_(TYPE_ELEMENTS, places.push_back(buffer[i]))
+    _MACRO_INTERFACE_(TYPE_INTS, in.INDEX)
+    _MACRO_INTERFACE_(TYPE_POINTS, in.POINT)
+    _MACRO_INTERFACE_(TYPE_ELEMENTS, in)
 
-#undef _MACRO_DEFINE_RETRIEVE_
+#undef _MACRO_INTERFACE_
 
   public:
     template <typename Reader> inline void MAKE_STORE(Reader &reader) {
