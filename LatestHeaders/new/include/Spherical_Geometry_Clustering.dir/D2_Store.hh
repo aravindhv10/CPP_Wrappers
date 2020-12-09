@@ -142,6 +142,14 @@ class _MACRO_CLASS_NAME_ {
     CPPFileIO::FileArray<TYPE_NODE>    HEAP;
     TYPE_INT                           MAX_HEAP_SIZE;
 
+    bool READ_STORE;
+    TYPE_INT LIMIT_STORE;
+    TYPE_ELEMENT const * PTR_STORE;
+
+    bool READ_HEAP;
+    TYPE_INT LIMIT_HEAP;
+    TYPE_NODE const * PTR_HEAP;
+
   private:
     inline std::string const NAME_DIR() const {
         std::string const ret = DIRNAME + "/";
@@ -247,14 +255,26 @@ class _MACRO_CLASS_NAME_ {
         while (!stack.empty()) {
             TYPE_INT const index = stack.top();
             stack.pop();
-            TYPE_NODE const element    = HEAP(index);
-            bool const      intersects = element.BBOX(in);
+            TYPE_NODE const * element;
+            /* Read in the element */ {
+              if(READ_HEAP){
+                element = &(PTR_HEAP[index]);
+              } else {
+                element = &(HEAP(index)) ;
+              }
+            }
+            bool const      intersects = element->BBOX(in);
             if (intersects) {
-                if (element.IS_LEAF()) {
-                    TYPE_INT const      start  = element.RANGE[0];
-                    TYPE_INT const      end    = element.RANGE[1];
+                if (element->IS_LEAF()) {
+                    TYPE_INT const      start  = element->RANGE[0];
+                    TYPE_INT const      end    = element->RANGE[1];
                     TYPE_INT const      length = end - start + 1;
-                    TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                    TYPE_ELEMENT const *buffer;
+                    if(READ_STORE){
+                      buffer = &(PTR_STORE[start]);
+                    }else{
+                      buffer = &(STORE(start, length));
+                    }
                     for (TYPE_INT i = 0; i < length; i++) {
                         bool const toinclude = in(buffer[i].POINT);
                         if (toinclude) { places(buffer[i]); }
@@ -339,9 +359,17 @@ class _MACRO_CLASS_NAME_ {
         MAKE_HEAP();
     }
 
-    inline void read_all_heap() { HEAP(0, HEAP()); }
+    inline void read_all_heap() {
+      READ_HEAP = true;
+      LIMIT_HEAP = HEAP();
+      PTR_HEAP = &(HEAP(0, LIMIT_HEAP));
+    }
 
-    inline void read_all_store() { STORE(0, STORE()); }
+    inline void read_all_store() {
+      READ_STORE = true;
+      LIMIT_STORE = STORE();
+      PTR_STORE = &(STORE(0, LIMIT_STORE));
+    }
 
     inline void read_all() {
         read_all_heap();
