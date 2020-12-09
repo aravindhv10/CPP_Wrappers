@@ -184,6 +184,17 @@ class _MACRO_CLASS_NAME_ {
         }
     }
 
+    inline void DEBUG (TYPE_BOX const & in) {
+        size_t const limit_STORE = STORE();
+        for (size_t i = 0; i < limit_STORE; i++) {
+          auto const & element = STORE(i);
+          bool const ret = in(element.POINT);
+          if(ret){
+            printf("DEBUG: (%lf, %lf)\n",element.POINT.latitude, element.POINT.longitude);
+          }
+        }
+    }
+
   private:
     inline void MAKE_HEAP() {
         HEAP.size(0);
@@ -292,6 +303,7 @@ class _MACRO_CLASS_NAME_ {
     template <typename Type>
     inline void operator()(Type &indices, TYPE_BOX const &in) {
         RETRIEVE_ELEMENTS(indices, in);
+        //DEBUG(in);
     }
 
     template <typename Type>
