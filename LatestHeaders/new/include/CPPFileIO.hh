@@ -43,6 +43,7 @@ namespace CPPFileIO {
 	#include "./CPPFileIO.dir/LatexWriter.hh"
 	#include "./CPPFileIO.dir/FasterLineReader.hh"
 	#include "./CPPFileIO.dir/FastTXT2BIN.hh"
+	#include "./CPPFileIO.dir/FastTXT2BIN_NEW.hh"
 	#include "./CPPFileIO.dir/LineReaderSequentialThreaded.hh"
 	#include "./CPPFileIO.dir/BinarySearch.hh"
 	#include "./CPPFileIO.dir/Inner_Join.hh"

@@ -1,5 +1,5 @@
-#ifndef _HEADER_GUARD_CPPFileIO_FastTXT2BIN_
-#define _HEADER_GUARD_CPPFileIO_FastTXT2BIN_
+#ifndef _HEADER_GUARD_CPPFileIO_FastTXT2BIN_NEW_
+#define _HEADER_GUARD_CPPFileIO_FastTXT2BIN_NEW_
 
 ////////////////////
 // Headers BEGIN: //
@@ -9,10 +9,101 @@
 // Headers END. //
 //////////////////
 
+/////////////////////////////////
+// BufferLineReaderNew BEGIN:{ //
+/////////////////////////////////
+
+#define _MACRO_CLASS_NAME_ BufferLineReaderNew
+template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
+
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
+    using TYPE_BUFFER = char;
+    using TYPE_WORDS  = std::vector<TYPE_BUFFER *>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
+
+    ///////////////////////////
+    // Data Elements BEGIN:{ //
+    ///////////////////////////
+  private:
+    size_t       MEM_LOC;
+    size_t const MEM_SIZE;
+    TYPE_BUFFER *BUFFER;
+    TYPE_WORDS   WORDS;
+    /////////////////////////
+    // Data Elements END.} //
+    /////////////////////////
+
+    ////////////////////////////////////
+    // Main Working Functions BEGIN:{ //
+    ////////////////////////////////////
+  private:
+    inline TYPE_WORDS const &GET_WORDS() {
+        WORDS.clear();
+        bool allocate = true;
+        while (MEM_LOC < MEM_SIZE) {
+            if (allocate) {
+                WORDS.push_back(&(BUFFER[MEM_LOC]));
+                allocate = false;
+            }
+            switch (BUFFER[MEM_LOC]) {
+                case seperator:
+                    BUFFER[MEM_LOC] = 0;
+                    MEM_LOC++;
+                    allocate = true;
+                    break;
+                case newline:
+                    BUFFER[MEM_LOC] = 0;
+                    MEM_LOC++;
+                    return WORDS;
+                default: MEM_LOC++; break;
+            }
+        }
+        BUFFER[MEM_SIZE - 1] = 0;
+        return WORDS;
+    }
+    //////////////////////////////////
+    // Main Working Functions END.} //
+    //////////////////////////////////
+
+    /////////////////////////////////
+    // Convinent interface BEGIN{: //
+    /////////////////////////////////
+  public:
+    inline TYPE_WORDS const &operator()() { return GET_WORDS(); }
+    ///////////////////////////////
+    // Convinent interface END}. //
+    ///////////////////////////////
+
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+    _MACRO_CLASS_NAME_(TYPE_BUFFER *buffer, size_t const mem_size)
+      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0) {}
+
+    _MACRO_CLASS_NAME_(Dynamic1DArray<TYPE_BUFFER> &in)
+      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0) {}
+
+    ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
+
+};
+#undef _MACRO_CLASS_NAME_
+///////////////////////////////
+// BufferLineReaderNew END.} //
+///////////////////////////////
+
 ////////////////////////
 // Main Class BEGIN:{ //
 ////////////////////////
-#define _MACRO_CLASS_NAME_ FastTXT2BIN
+#define _MACRO_CLASS_NAME_ FastTXT2BIN_NEW
 template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
