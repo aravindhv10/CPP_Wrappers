@@ -11,8 +11,10 @@
 // Includes END. //
 ///////////////////
 
+///////////////////////////
+// Main Analyzer BEGIN:{ //
+///////////////////////////
 #define _MACRO_CLASS_NAME_ AnalyzeLines
-
 class _MACRO_CLASS_NAME_ {
 
     /////////////////////////////
@@ -193,7 +195,67 @@ class _MACRO_CLASS_NAME_ {
         return ret;
     }
 
+    inline size_t AnalyzeStatus(char const *in) {
+
+        size_t num_dot  = 0;
+        size_t num_dash = 0;
+        size_t ret      = 0;
+        size_t const length = strlen(in);
+
+        if (length == 0) { return ret; }
+
+        for (size_t i = 0; i < length; i++) {
+
+            switch (in[i]) {
+
+                case '.':
+                    ret = ret | CODE_HAS_DECIMAL();
+                    num_dot++;
+                    break;
+
+                case '-':
+                    ret      = ret | CODE_HAS_NEGATIVE();
+                    num_dash = num_dash + 1 + ((i > 0) * 10);
+                    break;
+
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                case '0':
+                case ' ':
+                case '\t': break;
+
+                default: ret = ret | CODE_NOT_NUMBER(); break;
+            }
+        }
+
+        if ((num_dot > 1) || (num_dash > 1)) { ret = ret | CODE_NOT_NUMBER(); }
+
+        if (ret == 0) {
+            size_t tmpbuf;
+            Read_All(tmpbuf, in);
+            if (tmpbuf > 255) { ret = ret | CODE_BIGGER_THAN_CHAR(); }
+        }
+
+        return ret;
+    }
+
     inline void AnalyzeStatus(std::vector<std::string> const &in) {
+        status_codes.reserve(in.size());
+        while (status_codes.size() < in.size()) { status_codes.push_back(0); }
+        for (size_t i = 0; i < in.size(); i++) {
+            size_t const rettype = AnalyzeStatus(in[i]);
+            status_codes[i]      = status_codes[i] | rettype;
+        }
+    }
+
+    inline void AnalyzeStatus(std::vector<char const *> const &in) {
         status_codes.reserve(in.size());
         while (status_codes.size() < in.size()) { status_codes.push_back(0); }
         for (size_t i = 0; i < in.size(); i++) {
@@ -207,6 +269,15 @@ class _MACRO_CLASS_NAME_ {
         while (in.size() > sizes.size()) { sizes.push_back(0); }
         for (size_t i = 0; i < in.size(); i++) {
             sizes[i] = mymax(sizes[i], in[i].size());
+        }
+    }
+
+    inline void ReadLine(std::vector<char const *> const &in) {
+        sizes.reserve(in.size());
+        while (in.size() > sizes.size()) { sizes.push_back(0); }
+        for (size_t i = 0; i < in.size(); i++) {
+            size_t const length = strlen(in[i]);
+            sizes[i] = mymax(sizes[i], length);
         }
     }
     /////////////////////////////////
@@ -380,11 +451,15 @@ class _MACRO_CLASS_NAME_ {
     // Constructor & Destructor END. //
     ///////////////////////////////////
 };
-
 #undef _MACRO_CLASS_NAME_
+/////////////////////////
+// Main Analyzer END.} //
+/////////////////////////
 
+///////////////////////////////////////////////
+// Slave for multi threaded analysis BEGIN:{ //
+///////////////////////////////////////////////
 #define _MACRO_CLASS_NAME_ AnalyzeSlave
-
 class _MACRO_CLASS_NAME_ {
 
     ////////////////////////
@@ -465,7 +540,9 @@ class _MACRO_CLASS_NAME_ {
         fclose(f);
     }
 };
-
 #undef _MACRO_CLASS_NAME_
+/////////////////////////////////////////////
+// Slave for multi threaded analysis END.} //
+/////////////////////////////////////////////
 
 #endif

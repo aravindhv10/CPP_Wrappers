@@ -12,7 +12,6 @@
 /////////////////////////////////
 // BufferLineReaderNew BEGIN:{ //
 /////////////////////////////////
-
 #define _MACRO_CLASS_NAME_ BufferLineReaderNew
 template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
@@ -46,21 +45,25 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     inline TYPE_WORDS const &GET_WORDS() {
         WORDS.clear();
         bool allocate = true;
+
         while (MEM_LOC < MEM_SIZE) {
             if (allocate) {
                 WORDS.push_back(&(BUFFER[MEM_LOC]));
                 allocate = false;
             }
+
             switch (BUFFER[MEM_LOC]) {
                 case seperator:
                     BUFFER[MEM_LOC] = 0;
                     MEM_LOC++;
                     allocate = true;
                     break;
+
                 case newline:
                     BUFFER[MEM_LOC] = 0;
                     MEM_LOC++;
                     return WORDS;
+
                 default: MEM_LOC++; break;
             }
         }
@@ -169,6 +172,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
         } else {
             std::string const ret = DIRNAME() + "out." + std::to_string(i) +
                                     "-" + std::to_string(j) + ".bin";
+
             return ret;
         }
     }
