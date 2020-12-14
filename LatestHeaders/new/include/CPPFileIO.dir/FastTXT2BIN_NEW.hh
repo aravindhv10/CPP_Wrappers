@@ -21,7 +21,7 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_BUFFER = char;
-    using TYPE_WORDS  = std::vector<TYPE_BUFFER *>;
+    using TYPE_WORDS  = std::vector<TYPE_BUFFER const *>;
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -117,9 +117,8 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     using TYPE_DIVIDER    = FileDivider<newline>;
     using TYPE_BOUNDARIES = typename TYPE_DIVIDER::TYPE_BOUNDARIES;
     using TYPE_BUFFER     = typename TYPE_DIVIDER::TYPE_BUFFER;
-    using TYPE_READER     = BufferLineReader<seperator, newline>;
-    using TYPE_BUFFER_LINE_READER = BufferLineReader<'\t', '\n'>;
-    using TYPE_BIN_WRITER         = FileWriter<TYPE_SLAVE>;
+    using TYPE_READER     = BufferLineReaderNew<seperator, newline>;
+    using TYPE_BIN_WRITER = FileWriter<TYPE_SLAVE>;
     //////////////////////
     // Definitions END. //
     //////////////////////
@@ -279,7 +278,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 
         TYPE_BUFFER buffer(0);
         DIVIDER(index, buffer);
-        TYPE_BUFFER_LINE_READER reader(buffer.GET_DATA(), buffer());
+        TYPE_READER reader(buffer.GET_DATA(), buffer());
 
         TYPE_SLAVE tmpbuf(OUT_FILENAME, index);
     MainLoop:

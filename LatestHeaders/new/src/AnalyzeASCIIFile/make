@@ -4,4 +4,6 @@ cd "$('dirname' '--' "${0}")"
 './compile' './AnalyzeLines_TSV.cc'
 './compile' './NewAnalyzeTSV.cc'
 './compile' './NewAnalyzeCSV.cc'
+'./compile' './NewSimpleAnalyzeCSV.cc'
+'./compile' './NewSimpleAnalyzeTSV.cc'
 exit '0'

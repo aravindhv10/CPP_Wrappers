@@ -1,0 +1,5 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'./compile' './NewSimpleAnalyzeCSV.cc'
+'./compile' './NewSimpleAnalyzeTSV.cc'
+exit '0'
