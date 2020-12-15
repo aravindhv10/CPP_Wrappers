@@ -22,6 +22,8 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_BUFFER = char;
     using TYPE_WORDS  = std::vector<TYPE_BUFFER const *>;
+
+    inline size_t constexpr NUM_COMPARE_ELEMENTS () {return 2;}
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -34,6 +36,7 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     size_t const MEM_SIZE;
     TYPE_BUFFER *BUFFER;
     TYPE_WORDS   WORDS;
+    size_t const VECTORIZED_LIMIT;
     /////////////////////////
     // Data Elements END.} //
     /////////////////////////
@@ -70,6 +73,27 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
         BUFFER[MEM_SIZE - 1] = 0;
         return WORDS;
     }
+
+    inline TYPE_WORDS const &GET_WORDS_NEW() {
+        size_t constexpr LOC_SEP[4] = {1, 2, 4, 8};
+        size_t constexpr LOC_NWL[4] = {16, 32, 64, 128};
+
+        WORDS.clear();
+        if (MEM_LOC >= MEM_SIZE) { return WORDS; }
+
+        WORDS.push_back(BUFFER[MEM_LOC]);
+
+        size_t const status = (LOC_SEP[0] * (WORDS[MEM_LOC] == seperator)) +
+                              (LOC_SEP[1] * (WORDS[MEM_LOC + 1] == seperator)) +
+                              (LOC_NWL[0] * (WORDS[MEM_LOC] == newline)) +
+                              (LOC_NWL[1] * (WORDS[MEM_LOC + 1] == newline));
+        switch(status){
+          case LOC_NWL[0]:
+            BUFFER[MEM_LOC] = 0;
+
+        }
+        return WORDS;
+    }
     //////////////////////////////////
     // Main Working Functions END.} //
     //////////////////////////////////
@@ -87,16 +111,15 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Constructor & Destructor BEGIN:{ //
     //////////////////////////////////////
     _MACRO_CLASS_NAME_(TYPE_BUFFER *buffer, size_t const mem_size)
-      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0) {}
+      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0), VECTORIZED_LIMIT(MEM_SIZE-NUM_COMPARE_ELEMENTS()) {}
 
     _MACRO_CLASS_NAME_(Dynamic1DArray<TYPE_BUFFER> &in)
-      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0) {}
+      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0), VECTORIZED_LIMIT(MEM_SIZE-NUM_COMPARE_ELEMENTS()) {}
 
     ~_MACRO_CLASS_NAME_() {}
     ////////////////////////////////////
     // Constructor & Destructor END.} //
     ////////////////////////////////////
-
 };
 #undef _MACRO_CLASS_NAME_
 ///////////////////////////////
