@@ -12,9 +12,7 @@
 /////////////////////////////
 // GPS Coordinates BEGIN:{ //
 /////////////////////////////
-
 #define _MACRO_CLASS_NAME_ D2GPS_Coordinates
-
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
@@ -249,9 +247,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
 };
-
 #undef _MACRO_CLASS_NAME_
-
 ///////////////////////////
 // GPS Coordinates END.} //
 ///////////////////////////

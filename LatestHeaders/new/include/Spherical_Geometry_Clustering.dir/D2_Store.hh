@@ -142,13 +142,13 @@ class _MACRO_CLASS_NAME_ {
     CPPFileIO::FileArray<TYPE_NODE>    HEAP;
     TYPE_INT                           MAX_HEAP_SIZE;
 
-    bool READ_STORE;
-    TYPE_INT LIMIT_STORE;
-    TYPE_ELEMENT const * PTR_STORE;
+    bool                READ_STORE;
+    TYPE_INT            LIMIT_STORE;
+    TYPE_ELEMENT const *PTR_STORE;
 
-    bool READ_HEAP;
-    TYPE_INT LIMIT_HEAP;
-    TYPE_NODE const * PTR_HEAP;
+    bool             READ_HEAP;
+    TYPE_INT         LIMIT_HEAP;
+    TYPE_NODE const *PTR_HEAP;
 
   private:
     inline std::string const NAME_DIR() const {
@@ -184,14 +184,15 @@ class _MACRO_CLASS_NAME_ {
         }
     }
 
-    inline void DEBUG (TYPE_BOX const & in) {
+    inline void DEBUG(TYPE_BOX const &in) {
         size_t const limit_STORE = STORE();
         for (size_t i = 0; i < limit_STORE; i++) {
-          auto const & element = STORE(i);
-          bool const ret = in(element.POINT);
-          if(ret){
-            printf("DEBUG: (%lf, %lf)\n",element.POINT.latitude, element.POINT.longitude);
-          }
+            auto const &element = STORE(i);
+            bool const  ret     = in(element.POINT);
+            if (ret) {
+                printf("DEBUG: (%lf, %lf)\n", element.POINT.latitude,
+                       element.POINT.longitude);
+            }
         }
     }
 
@@ -266,25 +267,25 @@ class _MACRO_CLASS_NAME_ {
         while (!stack.empty()) {
             TYPE_INT const index = stack.top();
             stack.pop();
-            TYPE_NODE const * element;
+            TYPE_NODE const *element;
             /* Read in the element */ {
-              if(READ_HEAP){
-                element = &(PTR_HEAP[index]);
-              } else {
-                element = &(HEAP(index)) ;
-              }
+                if (READ_HEAP) {
+                    element = &(PTR_HEAP[index]);
+                } else {
+                    element = &(HEAP(index));
+                }
             }
-            bool const      intersects = element->BBOX(in);
+            bool const intersects = element->BBOX(in);
             if (intersects) {
                 if (element->IS_LEAF()) {
                     TYPE_INT const      start  = element->RANGE[0];
                     TYPE_INT const      end    = element->RANGE[1];
                     TYPE_INT const      length = end - start + 1;
                     TYPE_ELEMENT const *buffer;
-                    if(READ_STORE){
-                      buffer = &(PTR_STORE[start]);
-                    }else{
-                      buffer = &(STORE(start, length));
+                    if (READ_STORE) {
+                        buffer = &(PTR_STORE[start]);
+                    } else {
+                        buffer = &(STORE(start, length));
                     }
                     for (TYPE_INT i = 0; i < length; i++) {
                         bool const toinclude = in(buffer[i].POINT);
@@ -303,7 +304,7 @@ class _MACRO_CLASS_NAME_ {
     template <typename Type>
     inline void operator()(Type &indices, TYPE_BOX const &in) {
         RETRIEVE_ELEMENTS(indices, in);
-        //DEBUG(in);
+        // DEBUG(in);
     }
 
     template <typename Type>
@@ -322,7 +323,7 @@ class _MACRO_CLASS_NAME_ {
     inline void operator()(Type &indices, TYPE_BOX const &in) {                \
         indices.clear();                                                       \
         struct reader {                                                        \
-            Type * ref;                                                        \
+            Type *      ref;                                                   \
             inline void operator()(TYPE_ELEMENT const &in) {                   \
                 ref->push_back(PushStatement);                                 \
             }                                                                  \
@@ -372,15 +373,15 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void read_all_heap() {
-      READ_HEAP = true;
-      LIMIT_HEAP = HEAP();
-      PTR_HEAP = &(HEAP(0, LIMIT_HEAP));
+        READ_HEAP  = true;
+        LIMIT_HEAP = HEAP();
+        PTR_HEAP   = &(HEAP(0, LIMIT_HEAP));
     }
 
     inline void read_all_store() {
-      READ_STORE = true;
-      LIMIT_STORE = STORE();
-      PTR_STORE = &(STORE(0, LIMIT_STORE));
+        READ_STORE  = true;
+        LIMIT_STORE = STORE();
+        PTR_STORE   = &(STORE(0, LIMIT_STORE));
     }
 
     inline void read_all() {
