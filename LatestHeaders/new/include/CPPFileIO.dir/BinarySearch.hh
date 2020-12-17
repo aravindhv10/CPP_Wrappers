@@ -9,14 +9,15 @@
 // Headers END. //
 //////////////////
 
+//////////////////////////////////
+// Main searching class BEGIN:{ //
+//////////////////////////////////
 #define _MACRO_CLASS_NAME_ BinarySearch
-
 template <typename rd = char> class _MACRO_CLASS_NAME_ {
 
     ////////////////////////
     // DEFINITIONS BEGIN: //
     ////////////////////////
-
   public:
     using TYPE_READER = rd;
     using TYPE_SELF   = _MACRO_CLASS_NAME_<rd>;
@@ -26,19 +27,16 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
         size_t end;
         char   status;
     }; //
-
-    //////////////////////
-    // DEFINITIONS END. //
-    //////////////////////
+       //////////////////////
+       // DEFINITIONS END. //
+       //////////////////////
 
     /////////////////
     // DATA BEGIN: //
     /////////////////
-
   private:
     TYPE_READER &reader;
     size_t const limit;
-
     ///////////////
     // DATA END. //
     ///////////////
@@ -46,7 +44,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     //////////////////////////
     // RETURN STATUS BEGIN: //
     //////////////////////////
-
   private:
     inline TYPE_RETURN FAILED() const {
         TYPE_RETURN ret;
@@ -73,7 +70,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
         ret.status = 1;
         return ret;
     }
-
     ////////////////////////
     // RETURN STATUS END. //
     ////////////////////////
@@ -81,7 +77,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     //////////////////
     // RANGE BEGIN: //
     //////////////////
-
   public:
     template <typename F> inline size_t find_start(size_t end, F &in) {
 
@@ -94,9 +89,9 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     MainLoop:
         /* The Main Loop Body: */ {
 
-            size_t const mid = (start + end) / 2; //
+            size_t const mid = (start + end) / 2;
 
-            int const stat = (10 * (start >= mid)) + in(reader(mid), val); //
+            char const stat = (10 * (start >= mid)) + in(reader(mid), val);
 
             switch (stat) {
                 case 10: return start;
@@ -124,10 +119,10 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     MainLoop:
         /* The Main Loop Body */ {
 
-            size_t const mid = (start + end) / 2; //
+            size_t const mid = (start + end) / 2;
 
-            int const stat =
-              (10 * (start >= mid)) + (1 * (reader(mid) >= val)); //
+            char const stat =
+              (10 * (start >= mid)) + (1 * (reader(mid) >= val));
 
             switch (stat) {
 
@@ -154,9 +149,9 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     MainLoop:
         /* The main loop body: */ {
 
-            size_t const mid = (start + end) / 2; //
+            size_t const mid = (start + end) / 2;
 
-            int const stat = (10 * (start >= mid)) + in(reader(mid), val); //
+            char const stat = (10 * (start >= mid)) + in(reader(mid), val);
 
             switch (stat) {
 
@@ -184,10 +179,9 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     MainLoop:
         /* The main loop body */ {
 
-            size_t const mid = (start + end) / 2; //
+            size_t const mid = (start + end) / 2;
 
-            int const stat =
-              (10 * (start >= mid)) + (1 * (reader(mid) <= val)); //
+            char const stat = (10 * (start >= mid)) + (1 * (reader(mid) <= val));
 
             switch (stat) {
 
@@ -211,7 +205,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     inline TYPE_RETURN find_range(size_t const index, T &in) {
         return FOUND(find_start(index, in), find_end(index, in));
     }
-
     ////////////////
     // RANGE END. //
     ////////////////
@@ -219,7 +212,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     ///////////////////////////////
     // FIND WITH COMPARER BEGIN: //
     ///////////////////////////////
-
   private:
     template <typename T, typename F>
     inline TYPE_RETURN find_new(T const &in, F &compare) {
@@ -227,16 +219,20 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
         size_t begin = 0;
         size_t end   = limit - 1;
         size_t mid;
-        int    status;
+        char   status;
 
-        status = (1 * (end < begin)) + (2 * (end == begin)); //
+        /* evaluate status: */ {
+            // status = (1 * (end < begin)) + (2 * (end == begin)); //
+            bool const res[2] = {(end < begin), (end == begin)};
+            status            = res[0] + (2 * res[1]);
+        }
 
         switch (status) {
 
             case 1: return FOUND();
 
             case 2: {
-                int const res = compare(in, reader(begin));
+                char const res = compare(in, reader(begin));
                 if (res == 0) {
                     return FOUND(begin);
                 } else {
@@ -269,7 +265,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
             }
         }
     }
-
     /////////////////////////////
     // FIND WITH COMPARER END. //
     /////////////////////////////
@@ -277,15 +272,18 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
     ///////////////////////
     // Plain find BEGIN: //
     ///////////////////////
-
   private:
     template <typename T> inline TYPE_RETURN find_new(T const &in) {
         size_t begin = 0;
         size_t end   = limit - 1;
         size_t mid;
-        int    status;
+        char   status;
 
-        status = (1 * (end < begin)) + (2 * (end == begin)); //
+        /* assign the status: */ {
+            // status = (1 * (end < begin)) + (2 * (end == begin)); //
+            bool const res[2] = {(end < begin), (end == begin)};
+            status            = res[0] + (res[1] * 2);
+        }
 
         switch (status) {
 
@@ -304,11 +302,15 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
 
     MainLoopBegin:
         /* The main loop body: */ {
-
             mid = (begin + end) / 2;
 
-            status = (-1 * (in < reader(mid))) + (1 * (in > reader(mid))) +
-                     (10 * (begin == mid)); //
+            // status = (-1 * (in < reader(mid))) + (1 * (in > reader(mid))) +
+            //         (10 * (begin == mid));
+
+            bool const res[3] = {(in < reader(mid)), (in > reader(mid)),
+                                 (begin == mid)};
+
+            status = (res[0] * -1) + (res[1]) + (res[2] * 10);
 
             switch (status) {
                 case -1: end = mid; goto MainLoopBegin;
@@ -324,7 +326,6 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
             }
         }
     }
-
     /////////////////////
     // Plain find END. //
     /////////////////////
@@ -349,7 +350,9 @@ template <typename rd = char> class _MACRO_CLASS_NAME_ {
         return ret;
     }
 };
-
 #undef _MACRO_CLASS_NAME_
+////////////////////////////////
+// Main searching class END.} //
+////////////////////////////////
 
 #endif

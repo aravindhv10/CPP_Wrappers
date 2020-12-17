@@ -74,26 +74,6 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
         return WORDS;
     }
 
-    inline TYPE_WORDS const &GET_WORDS_NEW() {
-        size_t constexpr LOC_SEP[4] = {1, 2, 4, 8};
-        size_t constexpr LOC_NWL[4] = {16, 32, 64, 128};
-
-        WORDS.clear();
-        if (MEM_LOC >= MEM_SIZE) { return WORDS; }
-
-        WORDS.push_back(BUFFER[MEM_LOC]);
-
-        size_t const status = (LOC_SEP[0] * (WORDS[MEM_LOC] == seperator)) +
-                              (LOC_SEP[1] * (WORDS[MEM_LOC + 1] == seperator)) +
-                              (LOC_NWL[0] * (WORDS[MEM_LOC] == newline)) +
-                              (LOC_NWL[1] * (WORDS[MEM_LOC + 1] == newline));
-        switch(status){
-          case LOC_NWL[0]:
-            BUFFER[MEM_LOC] = 0;
-
-        }
-        return WORDS;
-    }
     //////////////////////////////////
     // Main Working Functions END.} //
     //////////////////////////////////
