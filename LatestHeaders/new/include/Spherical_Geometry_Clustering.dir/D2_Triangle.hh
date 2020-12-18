@@ -1,11 +1,12 @@
-#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_D2_Vector_
-#define _HEADER_GUARD_Spherical_Geometry_Clustering_D2_Vector_
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_D2_Triangle_
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_D2_Triangle_
 
 /////////////////////
 // Headers BEGIN:{ //
 /////////////////////
 #include "../StaticArray.hh"
 #include "./PolarCoordinates.hh"
+#include "./D2_Vector.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -13,7 +14,7 @@
 /////////////////////////////
 // GPS Coordinates BEGIN:{ //
 /////////////////////////////
-#define _MACRO_CLASS_NAME_ D2GPS_Vector
+#define _MACRO_CLASS_NAME_ D2GPS_Triangle
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
