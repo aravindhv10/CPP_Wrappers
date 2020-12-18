@@ -57,6 +57,32 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         ret += in;
         return ret;
     }
+
+    inline void
+    operator=(CPPFileIO::Dynamic1DArray<TYPE_POINT, TYPE_INT> const &in) {
+        if (in() > 0) { this[0] = in(0); }
+        for (TYPE_INT i = 1; i < in(); i++) { this[0] += in(i); }
+    }
+    inline void
+    operator+=(CPPFileIO::Dynamic1DArray<TYPE_POINT, TYPE_INT> const &in) {
+        for (TYPE_INT i = 0; i < in(); i++) { this[0] += in(i); }
+    }
+
+    inline void operator=(std::vector<TYPE_POINT> const &in) {
+        if (in.size() > 0) {
+            CPPFileIO::Dynamic1DArray<TYPE_POINT, TYPE_INT> ins(&(in[0]),
+                                                                in.size());
+            this[0] = ins;
+        }
+    }
+    inline void operator+=(std::vector<TYPE_POINT> const &in) {
+        if (in.size() > 0) {
+            CPPFileIO::Dynamic1DArray<TYPE_POINT, TYPE_INT> ins(&(in[0]),
+                                                                in.size());
+            this[0] += ins;
+        }
+    }
+
     inline bool operator()(TYPE_POINT const &in) const {
         bool const ret =
           (MIN.latitude <= in.latitude) && (in.latitude <= MAX.latitude) &&
@@ -66,24 +92,27 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
   public:
     inline void operator=(TYPE_SELF const &other) {
-        MIN = other.MIN;
-        MAX = other.MAX;
+        this[0] = other.MIN;
+        this[0] += other.MAX;
     }
     inline void operator+=(TYPE_SELF const &other) {
-        MIN.latitude  = CPPFileIO::mymin(MIN.latitude, other.MIN.latitude);
-        MIN.longitude = CPPFileIO::mymin(MIN.longitude, other.MIN.longitude);
-        MAX.latitude  = CPPFileIO::mymax(MAX.latitude, other.MAX.latitude);
-        MAX.longitude = CPPFileIO::mymax(MAX.longitude, other.MAX.longitude);
+        this[0] += other.MIN;
+        this[0] += other.MAX;
     }
     inline TYPE_SELF operator+(TYPE_SELF const &other) const {
-        TYPE_SELF ret;
-        ret.MIN.latitude = CPPFileIO::mymin(MIN.latitude, other.MIN.latitude);
-        ret.MIN.longitude =
-          CPPFileIO::mymin(MIN.longitude, other.MIN.longitude);
-        ret.MAX.latitude = CPPFileIO::mymax(MAX.latitude, other.MAX.latitude);
-        ret.MAX.longitude =
-          CPPFileIO::mymax(MAX.longitude, other.MAX.longitude);
+        TYPE_SELF ret(this[0]);
+        ret += other;
         return ret;
+    }
+
+    inline void
+    operator+=(CPPFileIO::Dynamic1DArray<TYPE_SELF, TYPE_INT> const &other) {
+        for (TYPE_INT i = 0; i < other(); i++) { this[0] += other(i); }
+    }
+    inline void operator+=(std::vector<TYPE_SELF> const &other) {
+        CPPFileIO::Dynamic1DArray<TYPE_SELF, TYPE_INT> ins(&(other[0]),
+                                                           other.size());
+        this[0] += ins;
     }
 
   public:
@@ -99,11 +128,18 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_(TYPE_FLOAT const lat1, TYPE_FLOAT const lon1,
                        TYPE_FLOAT const lat2, TYPE_FLOAT const lon2) {
 
-        MIN.latitude  = CPPFileIO::mymin(lat1, lat2);
-        MAX.latitude  = CPPFileIO::mymax(lat1, lat2);
-        MIN.longitude = CPPFileIO::mymin(lon1, lon2);
-        MAX.longitude = CPPFileIO::mymax(lon1, lon2);
+        TYPE_POINT a(lat1, lon1);
+        TYPE_POINT b(lat2, lon2);
+        this[0] = a;
+        this[0] += b;
     }
+
+    _MACRO_CLASS_NAME_(TYPE_POINT const &a, TYPE_POINT const &b) {
+        this[0] = a;
+        this[0] += b;
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_SELF const &in) { this[0] = in; }
 
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}

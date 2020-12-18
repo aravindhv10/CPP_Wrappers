@@ -15,7 +15,6 @@
 // Storage Element BEGIN:{ //
 /////////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Element
-
 template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT = TF;
@@ -50,7 +49,6 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
 };
-
 #undef _MACRO_CLASS_NAME_
 ///////////////////////////
 // Storage Element END.} //
@@ -60,7 +58,6 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
 // Storage node BEGIN:{ //
 //////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Node
-
 template <typename TF, typename TI, TI LEAF_LENGTH> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_FLOAT      = TF;
@@ -95,7 +92,6 @@ template <typename TF, typename TI, TI LEAF_LENGTH> class _MACRO_CLASS_NAME_ {
     _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
 };
-
 #undef _MACRO_CLASS_NAME_
 ////////////////////////
 // Storage node END.} //
@@ -105,7 +101,6 @@ template <typename TF, typename TI, TI LEAF_LENGTH> class _MACRO_CLASS_NAME_ {
 // The main store class BEGIN:{ //
 //////////////////////////////////
 #define _MACRO_CLASS_NAME_ D2GPS_Store
-
 template <typename TF, typename TI, TI LEAF_LENGTH = 16>
 class _MACRO_CLASS_NAME_ {
   public:
@@ -391,11 +386,10 @@ class _MACRO_CLASS_NAME_ {
 
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
-      : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()) {}
+      : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()), READ_STORE(false), READ_HEAP(false) {}
 
     ~_MACRO_CLASS_NAME_() {}
 };
-
 #undef _MACRO_CLASS_NAME_
 ////////////////////////////////
 // The main store class END.} //
