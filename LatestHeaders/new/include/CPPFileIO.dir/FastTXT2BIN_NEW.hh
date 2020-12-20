@@ -5,9 +5,113 @@
 // Headers BEGIN: //
 ////////////////////
 #include "./FasterLineReader.hh"
+#include "./MyStr.hh"
 //////////////////
 // Headers END. //
 //////////////////
+
+////////////////////////////////////////
+// BufferLineReaderVectorized BEGIN:{ //
+////////////////////////////////////////
+#define _MACRO_CLASS_NAME_ BufferLineReaderVectorized
+template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
+
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
+  public:
+    using TYPE_INT    = long;
+    using TYPE_BUFFER = char;
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
+    using TYPE_WORDS  = std::vector<TYPE_BUFFER const *>;
+    using TYPE_STRING = MyStr<TYPE_INT>;
+    using TYPE_LINES  = TYPE_STRING::TYPE_SELVES;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
+
+    ///////////////////////////
+    // Data Elements BEGIN:{ //
+    ///////////////////////////
+  private:
+    TYPE_STRING MEM_STR;
+    TYPE_LINES  LINES;
+    TYPE_WORDS  WORDS;
+    TYPE_INT    LINE_LOC;
+    /////////////////////////
+    // Data Elements END.} //
+    /////////////////////////
+
+    ////////////////////////////////////
+    // Main Working Functions BEGIN:{ //
+    ////////////////////////////////////
+  private:
+    inline TYPE_WORDS &GET_WORDS() {
+        if (LINE_LOC < LINES.size()) {
+            TYPE_STRING line(LINES[LINE_LOC].start(), LINES[LINE_LOC].end());
+            auto        words = line(seperator);
+            WORDS.resize(words.size());
+            for (TYPE_INT i = 0; i < words.size(); i++) {
+                WORDS[i] = words[i].start();
+            }
+            LINE_LOC++;
+        } else {
+            WORDS.clear();
+        }
+        return WORDS;
+    }
+
+    //////////////////////////////////
+    // Main Working Functions END.} //
+    //////////////////////////////////
+
+    /////////////////////////////////
+    // Convinent interface BEGIN{: //
+    /////////////////////////////////
+  public:
+    inline TYPE_WORDS const &operator()() { return GET_WORDS(); }
+
+    inline void operator()(TYPE_BUFFER *start, long const length) {
+        MEM_STR(start, length);
+        MEM_STR(LINES, newline);
+        LINE_LOC = 0;
+    }
+
+    inline void operator()(TYPE_BUFFER *start, TYPE_BUFFER *end) {
+        MEM_STR(start, end);
+        MEM_STR(LINES, newline);
+        LINE_LOC = 0;
+    }
+
+    inline void operator()(Dynamic1DArray<TYPE_BUFFER> &in) {
+        this[0](in.GET_DATA(), in());
+    }
+    ///////////////////////////////
+    // Convinent interface END}. //
+    ///////////////////////////////
+
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+    _MACRO_CLASS_NAME_(TYPE_BUFFER *buffer, long const mem_size) {
+        this[0](buffer, mem_size);
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_BUFFER *start, TYPE_BUFFER *end) {
+        this[0](start, end);
+    }
+
+    _MACRO_CLASS_NAME_(Dynamic1DArray<TYPE_BUFFER> &in) { this[0](in); }
+
+    ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
+};
+#undef _MACRO_CLASS_NAME_
+//////////////////////////////////////
+// BufferLineReaderVectorized END.} //
+//////////////////////////////////////
 
 /////////////////////////////////
 // BufferLineReaderNew BEGIN:{ //
@@ -22,8 +126,6 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF   = _MACRO_CLASS_NAME_<seperator, newline>;
     using TYPE_BUFFER = char;
     using TYPE_WORDS  = std::vector<TYPE_BUFFER const *>;
-
-    inline size_t constexpr NUM_COMPARE_ELEMENTS () {return 2;}
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -36,7 +138,6 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     size_t const MEM_SIZE;
     TYPE_BUFFER *BUFFER;
     TYPE_WORDS   WORDS;
-    size_t const VECTORIZED_LIMIT;
     /////////////////////////
     // Data Elements END.} //
     /////////////////////////
@@ -91,10 +192,10 @@ template <char seperator, char newline> class _MACRO_CLASS_NAME_ {
     // Constructor & Destructor BEGIN:{ //
     //////////////////////////////////////
     _MACRO_CLASS_NAME_(TYPE_BUFFER *buffer, size_t const mem_size)
-      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0), VECTORIZED_LIMIT(MEM_SIZE-NUM_COMPARE_ELEMENTS()) {}
+      : BUFFER(buffer), MEM_SIZE(mem_size), MEM_LOC(0) {}
 
     _MACRO_CLASS_NAME_(Dynamic1DArray<TYPE_BUFFER> &in)
-      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0), VECTORIZED_LIMIT(MEM_SIZE-NUM_COMPARE_ELEMENTS()) {}
+      : BUFFER(in.GET_DATA()), MEM_SIZE(in()), MEM_LOC(0) {}
 
     ~_MACRO_CLASS_NAME_() {}
     ////////////////////////////////////
