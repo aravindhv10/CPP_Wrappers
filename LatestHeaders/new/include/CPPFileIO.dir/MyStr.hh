@@ -21,10 +21,13 @@ template <typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_INT LENGTH; // length of the string,
                      // excluding the null terminating byte.
                      // = END - START.
+
   public:
+    inline char *      start() { return START; }
+    inline char *      end() { return END; }
+    inline TYPE_INT    length() const { return LENGTH; }
     inline char const *start() const { return START; }
     inline char const *end() const { return END; }
-    inline TYPE_INT    length() const { return LENGTH; }
 
   private:
     inline void CUT(TYPE_SELVES &ret, char const in) {

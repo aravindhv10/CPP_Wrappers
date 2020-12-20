@@ -221,7 +221,7 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
     using TYPE_DIVIDER    = FileDivider<newline>;
     using TYPE_BOUNDARIES = typename TYPE_DIVIDER::TYPE_BOUNDARIES;
     using TYPE_BUFFER     = typename TYPE_DIVIDER::TYPE_BUFFER;
-    using TYPE_READER     = BufferLineReaderNew<seperator, newline>;
+    using TYPE_READER     = BufferLineReaderVectorized<seperator, newline>;
     using TYPE_BIN_WRITER = FileWriter<TYPE_SLAVE>;
     //////////////////////
     // Definitions END. //
