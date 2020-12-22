@@ -172,7 +172,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return get_element_cluster();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_INT const epsilon,
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOAT const epsilon,
                        TYPE_INT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
         MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()) {

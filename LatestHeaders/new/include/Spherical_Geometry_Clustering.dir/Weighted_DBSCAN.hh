@@ -1,5 +1,5 @@
-#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_ 
-#define _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_ 
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_
 
 /////////////////////
 // Headers BEGIN:{ //
@@ -18,11 +18,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_BYTE       = unsigned char;
     using TYPE_FLOAT      = TF;
+    using TYPE_FLOATS     = std::vector <TYPE_FLOAT>;
     using TYPE_INT        = TI;
+    using TYPE_INTS       = std::vector<TYPE_INT>;
     using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_DISTANCES  = CPPFileIO::SymmetricMatrix<TYPE_FLOAT, TYPE_INT>;
     using TYPE_ADJ_POINTS = CPPFileIO::SymmetricMatrix<bool, TYPE_INT>;
     using TYPE_COUNTS     = CPPFileIO::Dynamic1DArray<TYPE_INT, TYPE_INT>;
+    using TYPE_WEIGHTS    = CPPFileIO::Dynamic1DArray<TYPE_FLOAT, TYPE_INT>;
 
     static inline TYPE_INT constexpr NOISE() { return -1; }
     static inline TYPE_INT constexpr NOT_CLASSIFIED() { return -2; }
@@ -35,12 +38,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     ///////////////////////////
   private:
     TYPE_DISTANCES const &DISTANCES;
-    TYPE_COUNTS           NUM_NEIGHBOURS;
+    TYPE_WEIGHTS          NUM_NEIGHBOURS;
     TYPE_FLOAT const      EPSILON;
-    TYPE_INT const        MIN_PTS;
+    TYPE_FLOAT const      MIN_PTS;
     TYPE_ADJ_POINTS       ADJ_POINTS;
     TYPE_COUNTS           ELEMENT_CLUSTER;
     TYPE_INT              NUM_CLUSTERS;
+    TYPE_WEIGHTS          WEIGHTS;
     /////////////////////////
     // Data Elements END.} //
     /////////////////////////
@@ -88,11 +92,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             bool const *adj_points = &(ADJ_POINTS(y, 0));
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(y) += adj_points[x];
+                NUM_NEIGHBOURS(y) += adj_points[x]*WEIGHTS[x];
             }
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(x) += adj_points[x];
+                NUM_NEIGHBOURS(x) += adj_points[x]*WEIGHTS[x];
             }
         }
     }
@@ -171,10 +175,36 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return get_element_cluster();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_INT const epsilon,
-                       TYPE_INT const min_pts)
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOAT const epsilon,
+                       TYPE_FLOAT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
-        MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()) {
+        MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
+        WEIGHTS(SIZE()) {
+        WEIGHTS = 1.0;
+        CONSTRUCT();
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOAT *weights,
+                       TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
+      : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
+        MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
+        WEIGHTS(weights, SIZE()) {
+        CONSTRUCT();
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOATS & weights,
+                       TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
+      : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
+        MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
+        WEIGHTS(&(weights[0]),SIZE()) {
+        CONSTRUCT();
+    }
+
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_WEIGHTS & weights,
+                       TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
+      : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
+        MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
+        WEIGHTS(weights.GET_DATA(),SIZE()) {
         CONSTRUCT();
     }
 
