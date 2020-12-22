@@ -78,9 +78,26 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         adj_points[x] = (0 <= distances[x]) && (distances[x] < EPSILON);       \
     }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        /* Perform the main work parallely */ {
+            for (TYPE_INT y = 0; y < loop_limit; y++) { DO_WORK }
+            if (loop_limit < limit) {
+                CPPFileIO::Atomic_Counter<TYPE_INT> c;
+                c = loop_limit;
 #pragma omp parallel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+                for (TYPE_INT th = 0; th < 64; th++) {
+                MainLoop:
+                    TYPE_INT y = c();
+                    if (y < limit) {
+                        DO_WORK
+                        goto MainLoop;
+                    }
+                }
+            }
+        }
+
+        //        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        //#pragma omp parallel for
+        //        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
 #undef DO_WORK
 
@@ -172,8 +189,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return get_element_cluster();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOAT const epsilon,
-                       TYPE_INT const min_pts)
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances,
+                       TYPE_FLOAT const epsilon, TYPE_INT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
         MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()) {
         CONSTRUCT();

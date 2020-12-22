@@ -136,14 +136,18 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         // for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
         /* Perform the main work parallely */ {
-            CPPFileIO::Atomic_Counter<TYPE_INT> c;
+            for (TYPE_INT y = 0; y < loop_limit; y++) { DO_WORK }
+            if (loop_limit < limit) {
+                CPPFileIO::Atomic_Counter<TYPE_INT> c;
+                c = loop_limit;
 #pragma omp parallel for
-            for (TYPE_INT th = 0; th < 64; th++) {
-            MainLoop:
-                TYPE_INT y = c();
-                if (y < limit) {
-                    DO_WORK
-                    goto MainLoop;
+                for (TYPE_INT th = 0; th < 64; th++) {
+                MainLoop:
+                    TYPE_INT y = c();
+                    if (y < limit) {
+                        DO_WORK
+                        goto MainLoop;
+                    }
                 }
             }
         }
@@ -189,14 +193,18 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         //        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
         /* Perform the main work parallely */ {
-            CPPFileIO::Atomic_Counter<TYPE_INT> c;
+            for (TYPE_INT y = 0; y < loop_limit; y++) { DO_WORK }
+            if (loop_limit < limit) {
+                CPPFileIO::Atomic_Counter<TYPE_INT> c;
+                c = loop_limit;
 #pragma omp parallel for
-            for (TYPE_INT th = 0; th < 64; th++) {
-            MainLoop2:
-                TYPE_INT y = c();
-                if (y < limit) {
-                    DO_WORK
-                    goto MainLoop2;
+                for (TYPE_INT th = 0; th < 64; th++) {
+                MainLoop2:
+                    TYPE_INT y = c();
+                    if (y < limit) {
+                        DO_WORK
+                        goto MainLoop2;
+                    }
                 }
             }
         }

@@ -18,7 +18,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     using TYPE_BYTE       = unsigned char;
     using TYPE_FLOAT      = TF;
-    using TYPE_FLOATS     = std::vector <TYPE_FLOAT>;
+    using TYPE_FLOATS     = std::vector<TYPE_FLOAT>;
     using TYPE_INT        = TI;
     using TYPE_INTS       = std::vector<TYPE_INT>;
     using TYPE_SELF       = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
@@ -81,9 +81,25 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         adj_points[x] = (0 <= distances[x]) && (distances[x] < EPSILON);       \
     }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        /* Perform the main work parallely */ {
+            for (TYPE_INT y = 0; y < loop_limit; y++) { DO_WORK }
+            if (loop_limit < limit) {
+                CPPFileIO::Atomic_Counter<TYPE_INT> c;
+                c = loop_limit;
 #pragma omp parallel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+                for (TYPE_INT th = 0; th < 64; th++) {
+                MainLoop:
+                    TYPE_INT y = c();
+                    if (y < limit) {
+                        DO_WORK
+                        goto MainLoop;
+                    }
+                }
+            }
+        }
+        //        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        //#pragma omp parallel for
+        //        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
 #undef DO_WORK
 
@@ -92,11 +108,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             bool const *adj_points = &(ADJ_POINTS(y, 0));
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(y) += adj_points[x]*WEIGHTS(x);
+                NUM_NEIGHBOURS(y) += adj_points[x] * WEIGHTS(x);
             }
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(x) += adj_points[x]*WEIGHTS(x);
+                NUM_NEIGHBOURS(x) += adj_points[x] * WEIGHTS(x);
             }
         }
     }
@@ -175,8 +191,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return get_element_cluster();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOAT const epsilon,
-                       TYPE_FLOAT const min_pts)
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances,
+                       TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
         MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
         WEIGHTS(SIZE()) {
@@ -192,19 +208,19 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         CONSTRUCT();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOATS & weights,
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_FLOATS &weights,
                        TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
         MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
-        WEIGHTS(&(weights[0]),SIZE()) {
+        WEIGHTS(&(weights[0]), SIZE()) {
         CONSTRUCT();
     }
 
-    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_WEIGHTS & weights,
+    _MACRO_CLASS_NAME_(TYPE_DISTANCES const &distances, TYPE_WEIGHTS &weights,
                        TYPE_FLOAT const epsilon, TYPE_FLOAT const min_pts)
       : DISTANCES(distances), NUM_NEIGHBOURS(SIZE()), EPSILON(epsilon),
         MIN_PTS(min_pts), ADJ_POINTS(SIZE()), ELEMENT_CLUSTER(SIZE()),
-        WEIGHTS(weights.GET_DATA(),SIZE()) {
+        WEIGHTS(weights.GET_DATA(), SIZE()) {
         CONSTRUCT();
     }
 
