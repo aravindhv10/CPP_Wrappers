@@ -78,7 +78,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         adj_points[x] = (0 <= distances[x]) && (distances[x] < EPSILON);       \
     }
 
-        /* Perform the main work parallely */ {
+        if (true) {
             for (TYPE_INT y = 0; y < loop_limit; y++) { DO_WORK }
             if (loop_limit < limit) {
                 CPPFileIO::Atomic_Counter<TYPE_INT> c;
@@ -93,26 +93,50 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                     }
                 }
             }
+        } else {
+            for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+#pragma omp parallel for
+            for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
         }
-
-        //        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
-        //#pragma omp parallel for
-        //        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
 
 #undef DO_WORK
 
-        /// !!! WARNING !!! THIS PART SHOULD NOT BE THREADED ///
-        for (TYPE_INT y = 1; y < limit; y++) {
-            bool const *adj_points = &(ADJ_POINTS(y, 0));
-
-            for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(y) += adj_points[x];
+        if (true) {
+            CPPFileIO::Atomic_Counter<TYPE_INT> c;
+#pragma omp parallel for
+            for (TYPE_INT th = 0; th < 64; th++) {
+                TYPE_INT y;
+            MainLoop2:
+                y = c();
+                if (y < limit) {
+                    /* for x<y: */ {
+                        bool const *adj_points = &(ADJ_POINTS(y, 0));
+                        for (TYPE_INT x = 0; x < y; x++) {
+                            NUM_NEIGHBOURS(y) += adj_points[x] * WEIGHTS(x);
+                        }
+                    }
+                    /* for x>y: */ {
+                        for (TYPE_INT x = y + 1; x < limit; x++) {
+                            NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x) * WEIGHTS(x);
+                        }
+                    }
+                    goto MainLoop2;
+                }
             }
+        } else {
+            for (TYPE_INT y = 1; y < limit; y++) {
+                bool const *adj_points = &(ADJ_POINTS(y, 0));
 
-            for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(x) += adj_points[x];
+                for (TYPE_INT x = 0; x < y; x++) {
+                    NUM_NEIGHBOURS(y) += adj_points[x];
+                }
+
+                for (TYPE_INT x = 0; x < y; x++) {
+                    NUM_NEIGHBOURS(x) += adj_points[x];
+                }
             }
         }
+
     }
 
     inline bool IS_CORE_OBJECT(TYPE_INT idx) {
