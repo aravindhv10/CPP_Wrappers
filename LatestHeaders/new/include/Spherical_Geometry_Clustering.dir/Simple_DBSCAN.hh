@@ -112,12 +112,12 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                     /* for x<y: */ {
                         bool const *adj_points = &(ADJ_POINTS(y, 0));
                         for (TYPE_INT x = 0; x < y; x++) {
-                            NUM_NEIGHBOURS(y) += adj_points[x] * WEIGHTS(x);
+                            NUM_NEIGHBOURS(y) += adj_points[x];
                         }
                     }
                     /* for x>y: */ {
                         for (TYPE_INT x = y + 1; x < limit; x++) {
-                            NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x) * WEIGHTS(x);
+                            NUM_NEIGHBOURS(y) += ADJ_POINTS(y, x);
                         }
                     }
                     goto MainLoop2;
