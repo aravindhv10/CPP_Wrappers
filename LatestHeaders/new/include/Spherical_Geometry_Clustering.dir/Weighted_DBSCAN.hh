@@ -1,5 +1,5 @@
-#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_DBSCAN_
-#define _HEADER_GUARD_Spherical_Geometry_Clustering_Simple_DBSCAN_
+#ifndef _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_ 
+#define _HEADER_GUARD_Spherical_Geometry_Clustering_Weighted_DBSCAN_ 
 
 /////////////////////
 // Headers BEGIN:{ //
@@ -10,8 +10,7 @@
 // Headers END.} //
 ///////////////////
 
-#define _MACRO_CLASS_NAME_ Simple_DBSCAN
-
+#define _MACRO_CLASS_NAME_ Weighted_DBSCAN
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     /////////////////////////
     // Definitions BEGIN:{ //
@@ -184,7 +183,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Main Interfaces END.} //
     ///////////////////////////
 };
-
 #undef _MACRO_CLASS_NAME_
 
 #endif

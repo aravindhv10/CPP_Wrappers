@@ -6,6 +6,7 @@
 /////////////////////
 #include "./PolarCoordinates.hh"
 #include "./Simple_DBSCAN.hh"
+#include "./Weighted_DBSCAN.hh"
 #include "./Simple_KDE.hh"
 #include "./Threading_Treshhold.hh"
 ///////////////////
@@ -62,10 +63,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     static inline TYPE_FLOAT CLAMP(TYPE_FLOAT const in) {
-        bool const val1 = (1 < in);
-        bool const val2 = (in < -1);
-        bool const val3 = (!val1) && (!val2);
-        return val1 - val2 + (in * val3);
+        return CPPFileIO::mymax(
+          static_cast<TYPE_FLOAT>(-1.0),
+          CPPFileIO::mymin(in, static_cast<TYPE_FLOAT>(1.0)));
     }
     /////////////////////////////////
     // Convinence / Wrappers END.} //
