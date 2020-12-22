@@ -92,11 +92,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             bool const *adj_points = &(ADJ_POINTS(y, 0));
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(y) += adj_points[x]*WEIGHTS[x];
+                NUM_NEIGHBOURS(y) += adj_points[x]*WEIGHTS(x);
             }
 
             for (TYPE_INT x = 0; x < y; x++) {
-                NUM_NEIGHBOURS(x) += adj_points[x]*WEIGHTS[x];
+                NUM_NEIGHBOURS(x) += adj_points[x]*WEIGHTS(x);
             }
         }
     }

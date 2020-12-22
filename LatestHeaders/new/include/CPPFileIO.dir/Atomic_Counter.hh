@@ -59,6 +59,11 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     /////////////////
   public:
     inline TYPE_DATA operator()() { return Increase(); }
+    inline void      operator=(TYPE_DATA const in) {
+        Lock();
+        current = in;
+        UnLock();
+    }
 
   public:
     _MACRO_CLASS_NAME_() : current(0) {}

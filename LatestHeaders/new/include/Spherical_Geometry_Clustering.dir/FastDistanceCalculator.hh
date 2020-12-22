@@ -6,9 +6,9 @@
 /////////////////////
 #include "./PolarCoordinates.hh"
 #include "./Simple_DBSCAN.hh"
-#include "./Weighted_DBSCAN.hh"
 #include "./Simple_KDE.hh"
 #include "./Threading_Treshhold.hh"
+#include "./Weighted_DBSCAN.hh"
 ///////////////////
 // Headers END.} //
 ///////////////////
@@ -83,28 +83,40 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         TYPE_INT const loop_limit_2 = Threading_Treshhold_2(limit);
 
         TYPE_VALIDITY VALIDITY(INPUTS());
-        for (TYPE_INT i = 0; i < limit; i++) {
-            VALIDITY(i) = INPUTS(i).IS_VALID();
-        }
+        TYPE_ARRAY    sin_theta(INPUTS());
+        TYPE_ARRAY    cos_theta(INPUTS());
+        TYPE_ARRAY    sin_phi(INPUTS());
+        TYPE_ARRAY    cos_phi(INPUTS());
 
-        TYPE_ARRAY sin_theta(INPUTS());
-        for (TYPE_INT i = 0; i < limit; i++) {
-            sin_theta(i) = INPUTS(i).SIN_THETA();
-        }
-
-        TYPE_ARRAY cos_theta(INPUTS());
-        for (TYPE_INT i = 0; i < limit; i++) {
-            cos_theta(i) = INPUTS(i).COS_THETA();
-        }
-
-        TYPE_ARRAY sin_phi(INPUTS());
-        for (TYPE_INT i = 0; i < limit; i++) {
-            sin_phi(i) = INPUTS(i).SIN_PHI();
-        }
-
-        TYPE_ARRAY cos_phi(INPUTS());
-        for (TYPE_INT i = 0; i < limit; i++) {
-            cos_phi(i) = INPUTS(i).COS_PHI();
+#pragma omp parallel for
+        for (TYPE_INT th = 0; th < 5; th++) {
+            switch (th) {
+                case 0:
+                    for (TYPE_INT i = 0; i < limit; i++) {
+                        VALIDITY(i) = INPUTS(i).IS_VALID();
+                    }
+                    break;
+                case 1:
+                    for (TYPE_INT i = 0; i < limit; i++) {
+                        sin_theta(i) = INPUTS(i).SIN_THETA();
+                    }
+                    break;
+                case 2:
+                    for (TYPE_INT i = 0; i < limit; i++) {
+                        cos_theta(i) = INPUTS(i).COS_THETA();
+                    }
+                    break;
+                case 3:
+                    for (TYPE_INT i = 0; i < limit; i++) {
+                        sin_phi(i) = INPUTS(i).SIN_PHI();
+                    }
+                    break;
+                case 4:
+                    for (TYPE_INT i = 0; i < limit; i++) {
+                        cos_phi(i) = INPUTS(i).COS_PHI();
+                    }
+                    break;
+            }
         }
 
 #define _MACRO_X_(i) (sin_theta(i) * cos_phi(i))
@@ -119,9 +131,22 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     TYPE_FLOAT *outputs = &(OUTPUTS(y, 0));                                    \
     for (TYPE_INT x = 0; x < y; x++) { outputs[x] = CLAMP(_MACRO_DOT_(y, x)); }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        // for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        // #pragma omp parallel for
+        // for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+
+        /* Perform the main work parallely */ {
+            CPPFileIO::Atomic_Counter<TYPE_INT> c;
 #pragma omp parallel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+            for (TYPE_INT th = 0; th < 64; th++) {
+            MainLoop:
+                TYPE_INT y = c();
+                if (y < limit) {
+                    DO_WORK
+                    goto MainLoop;
+                }
+            }
+        }
 
 #undef DO_WORK
 
@@ -159,9 +184,22 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         for (TYPE_INT x = 0; x < y; x++) { outputs[x] = -9999; }               \
     }
 
-        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
-#pragma omp paralllel for
-        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+        //        for (TYPE_INT y = 1; y < loop_limit; y++) { DO_WORK }
+        //#pragma omp paralllel for
+        //        for (TYPE_INT y = loop_limit; y < limit; y++) { DO_WORK }
+
+        /* Perform the main work parallely */ {
+            CPPFileIO::Atomic_Counter<TYPE_INT> c;
+#pragma omp parallel for
+            for (TYPE_INT th = 0; th < 64; th++) {
+            MainLoop2:
+                TYPE_INT y = c();
+                if (y < limit) {
+                    DO_WORK
+                    goto MainLoop2;
+                }
+            }
+        }
 
 #undef DO_WORK
 
