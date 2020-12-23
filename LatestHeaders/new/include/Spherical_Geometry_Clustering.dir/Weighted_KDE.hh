@@ -212,7 +212,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
       : DISTANCES(distances), CONTRIBUTIONS(SIZE_X()), BANDWIDTH(bandwidth),
         ACCUMULATOR(SIZE_X()), WEIGHTS(weights.GET_DATA(), SIZE()) {
 
-        WEIGHTS = 1.0;
         EVAL_CONTRIBUTIONS();
         EVAL_ACCUMULATOR();
         EVAL_MAX_INDEX();
@@ -224,7 +223,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
       : DISTANCES(distances), CONTRIBUTIONS(SIZE_X()), BANDWIDTH(bandwidth),
         ACCUMULATOR(SIZE_X()), WEIGHTS(&(weights[0]), SIZE()) {
 
-        WEIGHTS = 1.0;
         EVAL_CONTRIBUTIONS();
         EVAL_ACCUMULATOR();
         EVAL_MAX_INDEX();
@@ -236,7 +234,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
       : DISTANCES(distances), CONTRIBUTIONS(SIZE_X()), BANDWIDTH(bandwidth),
         ACCUMULATOR(SIZE_X()), WEIGHTS(weights, SIZE()) {
 
-        WEIGHTS = 1.0;
         EVAL_CONTRIBUTIONS();
         EVAL_ACCUMULATOR();
         EVAL_MAX_INDEX();
