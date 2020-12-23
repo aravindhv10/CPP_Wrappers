@@ -11,7 +11,6 @@
 ///////////////////
 
 #define _MACRO_CLASS_NAME_ Weighted_KDE
-
 template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     /////////////////////////
     // Definitions BEGIN:{ //
@@ -82,11 +81,30 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                            std::exp(-distances[x] / BANDWIDTH);                \
     }
 
-        for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
+        if (true) {
+            for (TYPE_INT y = 0; y < looplimit; y++) { DO_WORK }
+            if (looplimit < limit) {
+                CPPFileIO::Atomic_Counter<TYPE_INT> c;
+                c = looplimit;
 #pragma omp parallel for
-        for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
+                for (TYPE_INT th = 0; th < 64; th++) {
+                    TYPE_INT y;
+                MainLoop:
+                    y = c();
+                    if (y < limit) {
+                        DO_WORK
+                        goto MainLoop;
+                    }
+                }
+            }
+        } else {
+            for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
+#pragma omp parallel for
+            for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
+        }
 
 #undef DO_WORK
+
     }
 
     inline void EVAL_ACCUMULATOR() {
@@ -97,16 +115,44 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             ACCUMULATOR(y) += CONTRIBUTIONS(y, y);
         }
 
+        if (true) {
+
+            CPPFileIO::Atomic_Counter<TYPE_INT> c;
+#pragma omp parallel for
+            for (TYPE_INT th = 0; th < 64; th++) {
+                TYPE_INT y;
+            MainLoop2:
+                y = c();
+                if (y < limit) {
+                    /* for x<y: */ {
+                        bool const *contributions = &(CONTRIBUTIONS(y, 0));
+                        for (TYPE_INT x = 0; x < y; x++) {
+                            ACCUMULATOR(y) += contributions[x] * WEIGHTS(x);
+                        }
+                    }
+                    /* for x>y: */ {
+                        for (TYPE_INT x = y + 1; x < limit; x++) {
+                            ACCUMULATOR(y) += CONTRIBUTIONS(y, x) * WEIGHTS(x);
+                        }
+                    }
+                    goto MainLoop2;
+                }
+            }
+
+        } else {
+
 #define DO_WORK                                                                \
     TYPE_FLOAT const *val = &(CONTRIBUTIONS(y, 0));                            \
     for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(y) += val[x]; }             \
     for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(x) += val[x]; }
 
         for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
-#pragma omp parallel for
         for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
 
 #undef DO_WORK
+
+        }
+
     }
 
     inline void EVAL_MAX_INDEX() {
@@ -205,7 +251,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     // Interfaces END.} //
     //////////////////////
 };
-
 #undef _MACRO_CLASS_NAME_
 
 #endif
