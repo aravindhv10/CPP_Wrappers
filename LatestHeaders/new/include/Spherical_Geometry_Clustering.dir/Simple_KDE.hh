@@ -113,7 +113,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
                 y = c();
                 if (y < limit) {
                     /* for x<y: */ {
-                        bool const *contributions = &(CONTRIBUTIONS(y, 0));
+                        TYPE_FLOAT const *contributions = &(CONTRIBUTIONS(y, 0));
                         for (TYPE_INT x = 0; x < y; x++) {
                             ACCUMULATOR(y) += contributions[x];
                         }
