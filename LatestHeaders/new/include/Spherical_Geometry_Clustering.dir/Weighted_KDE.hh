@@ -30,12 +30,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         TYPE_INT    idx;
         TYPE_FLOAT  val;
         inline bool operator>(TYPE_RET const &other) const {
-            return val > other.val;
-        }
-        inline bool operator<(TYPE_RET const &other) const {
             return val < other.val;
         }
+        inline bool operator<(TYPE_RET const &other) const {
+            return val > other.val;
+        }
     };
+    using TYPE_RANKS = std::vector<TYPE_RET>;
     ///////////////////////
     // Definitions END.} //
     ///////////////////////
@@ -104,7 +105,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         }
 
 #undef DO_WORK
-
     }
 
     inline void EVAL_ACCUMULATOR() {
@@ -146,13 +146,11 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(y) += val[x]; }             \
     for (TYPE_INT x = 0; x < y; x++) { ACCUMULATOR(x) += val[x]; }
 
-        for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
-        for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
+            for (TYPE_INT y = 1; y < looplimit; y++) { DO_WORK }
+            for (TYPE_INT y = looplimit; y < limit; y++) { DO_WORK }
 
 #undef DO_WORK
-
         }
-
     }
 
     inline void EVAL_MAX_INDEX() {
@@ -174,6 +172,20 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
   public:
     inline TYPE_INT const   get_max_index() const { return MAX_INDEX; }
     inline TYPE_FLOAT const get_max_value() const { return MAX_VALUE; }
+
+    inline TYPE_ACCUMULATOR const &get_scores() { return ACCUMULATOR; }
+
+    inline TYPE_RANKS get_ranks() {
+        TYPE_RANKS ret;
+        for (TYPE_INT i = 0; i < ACCUMULATOR(); i++) {
+            TYPE_RET tmp;
+            tmp.idx = i;
+            tmp.val = ACCUMULATOR(i);
+            ret.push_back(tmp);
+        }
+        if (ret.size() > 0) { std::sort(ret.begin(), ret.end()); }
+        return ret;
+    }
 
     inline void debug() const {
         for (TYPE_INT i = 0; i < ACCUMULATOR(); i++) {
