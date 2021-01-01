@@ -23,8 +23,9 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     using TYPE_SELF      = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT>;
     using TYPE_PAIR      = StaticArray::ND_ARRAY<2, TYPE_FLOAT>;
     using TYPE_CARTITION = StaticArray::ND_ARRAY<3, TYPE_FLOAT>;
-    using TYPE_UINT      = unsigned int;
-    using TYPE_ULONG     = unsigned long;
+    using TYPE_UINT      = CPPFileIO::TYPE_U32;
+    using TYPE_ULONG     = CPPFileIO::TYPE_U64;
+    using TYPE_BYTE      = CPPFileIO::TYPE_BYTE;
 
     inline static TYPE_FLOAT constexpr PI() { return M_PI; }
     inline static TYPE_FLOAT constexpr PIB2() { return M_PI / 2.0; }
@@ -192,14 +193,14 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
 
     inline TYPE_UINT uint_longitude() const {
         CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
-        mapper(CPPFileIO::MAX_UINT(), -180.0, 180.0);
+        mapper(CPPFileIO::MAX_U32(), -180.0, 180.0);
         TYPE_UINT const ret = mapper(longitude);
         return ret;
     }
 
     inline TYPE_UINT uint_latitude() const {
         CPPFileIO::BinMapper<TYPE_INT, TYPE_FLOAT> mapper;
-        mapper(CPPFileIO::MAX_UINT(), -90.0, 90.0);
+        mapper(CPPFileIO::MAX_U32(), -90.0, 90.0);
         TYPE_UINT const ret = mapper(latitude);
         return ret;
     }
@@ -216,6 +217,13 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
             TYPE_ULONG const sum = ((out_lat + out_lon) << i);
             res += sum;
         }
+        return res;
+    }
+
+    inline TYPE_ULONG z_curve_new() const {
+        TYPE_ULONG const lon = uint_longitude();
+        TYPE_ULONG const lat = uint_latitude();
+        TYPE_ULONG       res = 0;
         return res;
     }
     //////////////////////////

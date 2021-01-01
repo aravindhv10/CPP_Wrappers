@@ -10,6 +10,7 @@
 #endif
 
 #include <sched.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@
 #include <mutex>
 #include <memory>
 #include <stack>
+#include <bitset>
 
 #ifdef USECBLAS
 	#include "cblas.h"

@@ -9,7 +9,50 @@
 // Headers END. //
 //////////////////
 
-char       junk_address = 0;
+using TYPE_U8 = uint8_t;
+using TYPE_U16 = uint16_t;
+using TYPE_U32 = uint32_t;
+using TYPE_U64 = uint64_t;
+using TYPE_I8 = int8_t;
+using TYPE_I16 = int16_t;
+using TYPE_I32 = int32_t;
+using TYPE_I64 = int64_t;
+
+using TYPE_BYTE = TYPE_U8;
+
+inline TYPE_U8 constexpr MAX_U8 () {
+  return 0xFF ;
+}
+
+inline TYPE_U16 constexpr MAX_U16 () {
+  return 0xFFFF ;
+}
+
+inline TYPE_U32 constexpr MAX_U32 () {
+  return 0xFFFFFFFF ;
+}
+
+inline TYPE_U64 constexpr MAX_U64 () {
+  return 0xFFFFFFFFFFFFFFFF ;
+}
+
+template <typename TypeInt>
+inline TypeInt constexpr get_bit(TYPE_BYTE const i) {
+    TypeInt ret = (1 << i) ;
+    return ret;
+}
+
+template <typename TypeInt>
+inline TypeInt constexpr get_bit(TypeInt const num, TYPE_BYTE const i) {
+    return (num & get_bit<TypeInt>(i));
+}
+
+template <typename TypeInt>
+inline void set_bit(TypeInt & out, TYPE_BYTE const i, TypeInt const in, TYPE_BYTE const j) {
+    out |= ((get_bit(in, j) >> j) << i) ;
+}
+
+TYPE_BYTE  junk_address = 0;
 const bool DEBUG        = false;
 
 template <typename T> inline T *get_junk() {
@@ -164,9 +207,5 @@ inline void SetCPUAffinity(int const cpunum) {
         printf(" Error setting affinity...\n ");
     }
 }
-
-inline unsigned int constexpr MAX_UINT() { return 0xFFFFFFFF; }
-
-inline unsigned long constexpr MAX_ULONG() { return 0xFFFFFFFFFFFFFFFF; }
 
 #endif
