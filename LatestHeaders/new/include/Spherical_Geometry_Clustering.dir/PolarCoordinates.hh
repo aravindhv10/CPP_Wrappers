@@ -205,7 +205,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return ret;
     }
 
-    inline TYPE_ULONG z_curve() const {
+    inline TYPE_ULONG z_curve_old() const {
         TYPE_UINT const lon = uint_longitude();
         TYPE_UINT const lat = uint_latitude();
         TYPE_ULONG      res = 0;
@@ -220,11 +220,8 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return res;
     }
 
-    inline TYPE_ULONG z_curve_new() const {
-        TYPE_ULONG const lon = uint_longitude();
-        TYPE_ULONG const lat = uint_latitude();
-        TYPE_ULONG       res = 0;
-        return res;
+    inline TYPE_ULONG z_curve() const {
+        return CPPFileIO::get_z_curve(uint_latitude(), uint_longitude());
     }
     //////////////////////////
     // Main Functions END.} //
