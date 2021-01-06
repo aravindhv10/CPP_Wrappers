@@ -116,12 +116,24 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    inline bool operator()(TYPE_SELF const &in) const {
+    inline bool intersect_old(TYPE_SELF const &in) const {
         bool const ret = in(this->P1()) || in(this->P2()) || in(this->P3()) ||
                          in(this->P4()) || this[0](in.P1()) ||
                          this[0](in.P2()) || this[0](in.P3()) ||
                          this[0](in.P4());
         return ret;
+    }
+
+    inline bool operator()(TYPE_SELF const &in) const {
+        if ((this->MIN.latitude > in.MAX.latitude) ||
+            (this->MAX.latitude < in.MIN.latitude)) {
+            return false;
+        } else if ((this->MIN.longitude > in.MAX.longitude) ||
+                   (this->MAX.longitude < in.MIN.longitude)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
   public:
