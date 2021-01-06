@@ -2,16 +2,11 @@
 #define _HEADER_GUARD_StaticArray_Z_Curves_
 
 #include "./D1.hh"
+#include "./type_u128.hh"
 
 #define _MACRO_CLASS_NAME_ Z_Curve_2
 class _MACRO_CLASS_NAME_ {
   public:
-    using TYPE_BYTE = CPPFileIO::TYPE_BYTE;
-    using TYPE_U8   = CPPFileIO::TYPE_U8;
-    using TYPE_U16  = CPPFileIO::TYPE_U16;
-    using TYPE_U32  = CPPFileIO::TYPE_U32;
-    using TYPE_U64  = CPPFileIO::TYPE_U64;
-
     static inline TYPE_BYTE constexpr get_digits_2(TYPE_BYTE const i,
                                                    TYPE_BYTE const j) {
         TYPE_BYTE constexpr digits[2][256] = {
@@ -95,6 +90,14 @@ class _MACRO_CLASS_NAME_ {
         return c;
     }
 
+    static inline TYPE_U128 get_digits_2(TYPE_U64 const i) {
+        TYPE_U128 ret;
+        ret[0] = get_digits_2(static_cast<TYPE_U32>(i & 0xFFFFFFFF));
+        ret[1] =
+          get_digits_2(static_cast<TYPE_U32>((i & 0xFFFFFFFF00000000) >> 32));
+        return ret;
+    }
+
     static inline TYPE_U16 constexpr get_z_curve(TYPE_U8 const a1,
                                                  TYPE_U8 const a2) {
         TYPE_U16 b1 = get_digits_2(a1);
@@ -114,6 +117,15 @@ class _MACRO_CLASS_NAME_ {
         TYPE_U64 const b1 = get_digits_2(a1);
         TYPE_U64 const b2 = get_digits_2(a2);
         return b1 | (b2 << 1);
+    }
+
+    static inline TYPE_U128 get_z_curve(TYPE_U64 const a1, TYPE_U64 const a2) {
+        TYPE_U128 const b1 = get_digits_2(a1);
+        TYPE_U128 const b2 = get_digits_2(a2);
+        TYPE_U128       ret;
+        ret[0] = b1[0] | (b2[0] << 1);
+        ret[1] = b1[1] | (b2[1] << 1);
+        return ret;
     }
 
   public:
