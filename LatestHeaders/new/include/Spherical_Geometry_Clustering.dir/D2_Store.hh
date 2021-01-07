@@ -348,22 +348,44 @@ class _MACRO_CLASS_NAME_ {
   public:
     template <typename Reader> inline void MAKE_STORE(Reader &reader) {
         TYPE_INT const limit = reader();
+        if (true) /* store and sort the elements: */ {
+            std::string const tmpfilename = NAME_STORE() + ".tmp";
+            std::string const outfilename = NAME_STORE();
 
-        STORE.size(0);
-        STORE.writeable(true);
-        TYPE_ELEMENT *buffer = &(STORE(0, limit));
+            /* prepare the data: */ {
+                CPPFileIO::FileWriter<TYPE_ELEMENT> writer(tmpfilename);
+                for (TYPE_INT i = 0; i < limit; i++) {
+                    TYPE_POINT const place = reader(i);
+                    TYPE_ELEMENT     tmp;
+                    tmp.POINT   = place;
+                    tmp.Z_CURVE = tmp.POINT.z_curve();
+                    tmp.INDEX   = i;
+                    writer(tmp);
+                }
+            }
 
-        for (TYPE_INT i = 0; i < limit; i++) {
-            TYPE_POINT const place = reader(i);
-            TYPE_ELEMENT     tmp;
-            tmp.POINT   = place;
-            tmp.Z_CURVE = tmp.POINT.z_curve();
-            tmp.INDEX   = i;
-            buffer[i]   = tmp;
+            CPPFileIO::ExternalMergeSorter<TYPE_ELEMENT, true>::DoAllSteps(
+              tmpfilename, outfilename, 64, 64);
+
+            STORE(NAME_STORE());
+        } else {
+            STORE.size(0);
+            STORE.writeable(true);
+            TYPE_ELEMENT *buffer = &(STORE(0, limit));
+
+            for (TYPE_INT i = 0; i < limit; i++) {
+                TYPE_POINT const place = reader(i);
+                TYPE_ELEMENT     tmp;
+                tmp.POINT   = place;
+                tmp.Z_CURVE = tmp.POINT.z_curve();
+                tmp.INDEX   = i;
+                buffer[i]   = tmp;
+            }
+            std::sort(&(buffer[0]), &(buffer[limit]));
+            STORE.size(limit);
+            STORE.writeable(false);
         }
-        std::sort(&(buffer[0]), &(buffer[limit]));
-        STORE.size(limit);
-        STORE.writeable(false);
+
         MAKE_HEAP();
     }
 
@@ -386,7 +408,8 @@ class _MACRO_CLASS_NAME_ {
 
   public:
     _MACRO_CLASS_NAME_(std::string const dirname)
-      : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()), READ_STORE(false), READ_HEAP(false) {}
+      : DIRNAME(dirname), STORE(NAME_STORE()), HEAP(NAME_HEAP()),
+        READ_STORE(false), READ_HEAP(false) {}
 
     ~_MACRO_CLASS_NAME_() {}
 };
