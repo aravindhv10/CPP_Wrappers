@@ -29,6 +29,10 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
     TYPE_INT   INDEX;
 
   public:
+    inline void Eval_Z_Curve () {
+        Z_CURVE = POINT.z_curve();
+    }
+
     inline char Compare(TYPE_SELF const &other) const {
         return Read_Show_Functions::Compare(Z_CURVE, other.Z_CURVE);
     }
@@ -119,15 +123,15 @@ class _MACRO_CLASS_NAME_ {
     using TYPE_SELF = _MACRO_CLASS_NAME_<TYPE_FLOAT, TYPE_INT, LENGTH_LIMIT()>;
     using TYPE_NODE = D2GPS_Node<TYPE_FLOAT, TYPE_INT, LENGTH_LIMIT()>;
 
-    static inline TYPE_INT INDEX_PARENT(TYPE_INT const i) {
+    static inline TYPE_INT constexpr INDEX_PARENT(TYPE_INT const i) {
         return (i - 1) / 2;
     }
 
-    static inline TYPE_INT INDEX_LEFT_CHILD(TYPE_INT const i) {
+    static inline TYPE_INT constexpr INDEX_LEFT_CHILD(TYPE_INT const i) {
         return (2 * i) + 1;
     }
 
-    static inline TYPE_INT INDEX_RIGHT_CHILD(TYPE_INT const i) {
+    static inline TYPE_INT constexpr INDEX_RIGHT_CHILD(TYPE_INT const i) {
         return (2 * i) + 2;
     }
 
@@ -192,7 +196,7 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline void MAKE_HEAP() {
+    inline void MAKE_HEAP_OLD(TYPE_INT index) {
         HEAP.size(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
@@ -252,6 +256,189 @@ class _MACRO_CLASS_NAME_ {
 
         HEAP.size(MAX_HEAP_SIZE + 1);
         HEAP.writeable(false);
+    }
+
+    inline TYPE_INT MAKE_HEAP_STACK(TYPE_INT const index) {
+
+        CPPFileIO::FileArray<TYPE_ELEMENT> store(NAME_STORE());
+
+        CPPFileIO::FileArray<TYPE_NODE> heap(NAME_HEAP());
+        if (index == 0) { heap.size(0); }
+        heap.writeable(true);
+
+        TYPE_INT max_heap_size = index;
+
+        std::stack<TYPE_INT> stack;
+        stack.push(index);
+
+        TYPE_INTS toprocess;
+
+        while (!stack.empty()) {
+
+            TYPE_INT const the_index = stack.top();
+            stack.pop();
+            max_heap_size = CPPFileIO::mymax(max_heap_size, the_index);
+
+            TYPE_NODE element ;
+            if (the_index == 0) {
+                element.RANGE[0] = 0;
+                element.RANGE[1] = store() - 1;
+                heap(0) = element;
+            } else {
+                element = heap(the_index);
+            }
+
+            if (element.IS_LEAF()) {
+
+                TYPE_INT const      start  = element.RANGE[0];
+                TYPE_INT const      end    = element.RANGE[1];
+                TYPE_INT const      length = end - start + 1;
+                TYPE_ELEMENT const *buffer = &(store(start, length));
+
+                element.BBOX               = buffer[0].POINT;
+                for (TYPE_INT i = 1; i < length; i++) {
+                    element.BBOX += buffer[i].POINT;
+                }
+
+                heap(the_index) = element;
+
+            } else {
+
+                toprocess.push_back(the_index);
+
+                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(the_index);
+                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(the_index);
+                stack.push(index_left_child);
+                stack.push(index_right_child);
+
+                TYPE_INT const mid = (element.RANGE[0] + element.RANGE[1]) / 2;
+
+                TYPE_NODE left_child, right_child;
+                /* Assign the 2 children nodes: */ {
+                    left_child.RANGE[0] = element.RANGE[0];
+                    left_child.RANGE[1] = mid;
+
+                    right_child.RANGE[0] = mid + 1;
+                    right_child.RANGE[1] = element.RANGE[1];
+                }
+
+                heap(index_left_child)  = left_child;
+                heap(index_right_child) = right_child;
+            }
+        }
+
+        // if(toprocess.size()>1){
+        //     std::sort(toprocess.begin(), toprocess.end());
+        // }
+
+        for(TYPE_INT i=toprocess.size()-1; i>=0; i--) {
+            TYPE_INT const the_index = toprocess[i];
+            TYPE_INT const index_left_child = INDEX_LEFT_CHILD(the_index);
+            TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(the_index);
+            TYPE_NODE const left_child  = heap(index_left_child);
+            TYPE_NODE const right_child = heap(index_right_child);
+            heap(the_index).BBOX = left_child.BBOX + right_child.BBOX;
+        }
+
+        if(index==0){
+            heap.size(max_heap_size+1);
+            heap.writeable(false);
+        }
+
+        return max_heap_size;
+    }
+
+    inline TYPE_INT MAKE_HEAP_RECURSIVE (TYPE_INT const index, TYPE_INT const nthreads) {
+
+        CPPFileIO::FileArray<TYPE_NODE> heap(NAME_HEAP());
+        if (index == 0) { heap.size(0); }
+
+        TYPE_NODE element ;
+        if (index == 0) {
+            element.RANGE[0] = 0;
+            element.RANGE[1] = STORE() - 1;
+        } else {
+            element = heap(index);
+        }
+
+        heap.writeable(true);
+
+        if (element.IS_LEAF()) {
+
+            CPPFileIO::FileArray<TYPE_ELEMENT> store(NAME_STORE());
+
+            TYPE_INT const      start  = element.RANGE[0];
+            TYPE_INT const      end    = element.RANGE[1];
+            TYPE_INT const      length = end - start + 1;
+            TYPE_ELEMENT const *buffer = &(store(start, length));
+
+            element.BBOX = buffer[0].POINT;
+            for (TYPE_INT i = 1; i < length; i++) {
+                element.BBOX += buffer[i].POINT;
+            }
+
+            heap(index) = element;
+            if(index==0){heap.size(1);}
+            heap.writeable(false);
+
+            return index;
+
+        } 
+
+        TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
+        TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
+
+        /* Assign the 2 children nodes: */ {
+            TYPE_INT const mid = (element.RANGE[0] + element.RANGE[1]) / 2;
+            TYPE_NODE      left_child, right_child;
+
+            left_child.RANGE[0]     = element.RANGE[0];
+            left_child.RANGE[1]     = mid;
+            right_child.RANGE[0]    = mid + 1;
+            right_child.RANGE[1]    = element.RANGE[1];
+            heap(index_left_child)  = left_child;
+            heap(index_right_child) = right_child;
+        }
+
+        TYPE_INT sizes[2];
+        if (nthreads > 1) {
+            TYPE_INT const newthreads = nthreads >> 1;
+#pragma omp parallel for
+            for (size_t i = 0; i < 2; i++) {
+                if (i == 0) {
+                    sizes[0] = MAKE_HEAP_RECURSIVE(index_left_child, newthreads);
+                } else {
+                    sizes[1] = MAKE_HEAP_RECURSIVE(index_right_child, newthreads);
+                }
+            }
+        } else {
+            for (size_t i = 0; i < 2; i++) {
+                if (i == 0) {
+                    sizes[0] = MAKE_HEAP_RECURSIVE(index_left_child, 1);
+                } else {
+                    sizes[1] = MAKE_HEAP_RECURSIVE(index_right_child, 1);
+                }
+            }
+        }
+        auto const max_heap_size = CPPFileIO::mymax(sizes[0], sizes[1]);
+
+        /* Assign the 2 children nodes: */ {
+            TYPE_NODE const left_child  = heap(index_left_child);
+            TYPE_NODE const right_child = heap(index_right_child);
+            heap(index).BBOX            = left_child.BBOX + right_child.BBOX;
+        }
+
+        if(index==0){
+            heap.size(max_heap_size + 1);
+        }
+        heap.writeable(false);
+
+        return max_heap_size;
+    }
+
+    inline void MAKE_HEAP(TYPE_INT nthreads=16) {
+        // MAKE_HEAP_RECURSIVE(0, nthreads);
+        MAKE_HEAP_STACK(0);
     }
 
   private:
@@ -346,7 +533,8 @@ class _MACRO_CLASS_NAME_ {
 #undef _MACRO_INTERFACE_
 
   public:
-    template <typename Reader> inline void MAKE_STORE(Reader &reader) {
+    template <typename Reader>
+    inline void MAKE_STORE(Reader &reader, TYPE_INT nthreads = 16) {
         TYPE_INT const limit = reader();
         if (true) /* store and sort the elements: */ {
             std::string const tmpfilename = NAME_STORE() + ".tmp";
@@ -357,15 +545,30 @@ class _MACRO_CLASS_NAME_ {
                 for (TYPE_INT i = 0; i < limit; i++) {
                     TYPE_POINT const place = reader(i);
                     TYPE_ELEMENT     tmp;
-                    tmp.POINT   = place;
-                    tmp.Z_CURVE = tmp.POINT.z_curve();
-                    tmp.INDEX   = i;
+                    tmp.POINT = place;
+                    // tmp.Z_CURVE = tmp.POINT.z_curve();
+                    tmp.INDEX = i;
                     writer(tmp);
                 }
             }
+            /* Evaluate the z curves: */ {
+                CPPFileIO::FileArray<TYPE_ELEMENT> array(tmpfilename);
+                size_t const                       limit = array();
+                array.writeable(true);
+                TYPE_ELEMENT *buffer  = &(array(0, limit));
+                size_t constexpr step = 10000;
+#pragma omp parallel for
+                for (size_t start = 0; start < limit; start += step) {
+                    size_t const end = CPPFileIO::mymin(start + step, limit);
+                    for (size_t j = start; j < end; j++) {
+                        buffer[j].Eval_Z_Curve();
+                    }
+                }
+                array.size(limit);
+            }
 
             CPPFileIO::ExternalMergeSorter<TYPE_ELEMENT, true>::DoAllSteps(
-              tmpfilename, outfilename, 64, 64);
+              tmpfilename, outfilename, nthreads, nthreads);
 
             STORE(NAME_STORE());
         } else {
@@ -386,7 +589,7 @@ class _MACRO_CLASS_NAME_ {
             STORE.writeable(false);
         }
 
-        MAKE_HEAP();
+        MAKE_HEAP(nthreads);
     }
 
     inline void read_all_heap() {
