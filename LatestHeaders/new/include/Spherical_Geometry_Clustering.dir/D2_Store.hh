@@ -414,9 +414,9 @@ class _MACRO_CLASS_NAME_ {
         } else {
             for (size_t i = 0; i < 2; i++) {
                 if (i == 0) {
-                    sizes[0] = MAKE_HEAP_RECURSIVE(index_left_child, 1);
+                    sizes[0] = MAKE_HEAP_STACK(index_left_child);
                 } else {
-                    sizes[1] = MAKE_HEAP_RECURSIVE(index_right_child, 1);
+                    sizes[1] = MAKE_HEAP_STACK(index_right_child);
                 }
             }
         }
@@ -436,9 +436,9 @@ class _MACRO_CLASS_NAME_ {
         return max_heap_size;
     }
 
-    inline void MAKE_HEAP(TYPE_INT nthreads=16) {
-        // MAKE_HEAP_RECURSIVE(0, nthreads);
-        MAKE_HEAP_STACK(0);
+    inline void MAKE_HEAP(TYPE_INT nthreads=4) {
+        MAKE_HEAP_RECURSIVE(0, nthreads);
+        // MAKE_HEAP_STACK(0);
     }
 
   private:
