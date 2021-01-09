@@ -231,7 +231,7 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline void MAKE_HEAP_STRUCTURE () {
+    inline void MAKE_HEAP_STRUCTURE_DFS () {
         HEAP.size(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
@@ -300,6 +300,81 @@ class _MACRO_CLASS_NAME_ {
         HEAP.size(MAX_HEAP_SIZE+1);
         HEAP.writeable(false);
         READ_HEAP = false;
+    }
+
+    inline void MAKE_HEAP_STRUCTURE_BFS () {
+        HEAP.size(0);
+        MAX_HEAP_SIZE = 0;
+        HEAP.writeable(true);
+
+        std::queue<TYPE_INT> stack;
+
+        /* for 0: */ {
+            TYPE_NODE node;
+            node.RANGE[0] = 0;
+            node.RANGE[1] = STORE() - 1;
+            HEAP(0) = node;
+
+            if(!node.IS_LEAF()){
+                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(0);
+                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(0);
+
+                stack.push(index_left_child);
+                stack.push(index_right_child);
+
+                TYPE_INT const mid = (node.RANGE[0] + node.RANGE[1]) / 2;
+
+                TYPE_NODE left_child, right_child;
+                /* Assign the 2 children nodes: */ {
+                    left_child.RANGE[0] = node.RANGE[0];
+                    left_child.RANGE[1] = mid;
+
+                    right_child.RANGE[0] = mid + 1;
+                    right_child.RANGE[1] = node.RANGE[1];
+                }
+
+                HEAP(index_left_child)  = left_child;
+                HEAP(index_right_child) = right_child;
+            }
+        }
+
+        while (!stack.empty()) {
+            TYPE_INT const index = stack.front();
+            stack.pop();
+            MAX_HEAP_SIZE = CPPFileIO::mymax(MAX_HEAP_SIZE, index);
+
+            TYPE_NODE const node = HEAP(index);
+
+            if(!node.IS_LEAF()){
+                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
+                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
+
+                stack.push(index_left_child);
+                stack.push(index_right_child);
+
+                TYPE_INT const mid = (node.RANGE[0] + node.RANGE[1]) / 2;
+
+                TYPE_NODE left_child, right_child;
+                /* Assign the 2 children nodes: */ {
+                    left_child.RANGE[0] = node.RANGE[0];
+                    left_child.RANGE[1] = mid;
+
+                    right_child.RANGE[0] = mid + 1;
+                    right_child.RANGE[1] = node.RANGE[1];
+                }
+
+                HEAP(index_left_child)  = left_child;
+                HEAP(index_right_child) = right_child;
+            }
+        }
+
+        HEAP.size(MAX_HEAP_SIZE+1);
+        HEAP.writeable(false);
+        READ_HEAP = false;
+    }
+
+    inline void MAKE_HEAP_STRUCTURE(){
+        MAKE_HEAP_STRUCTURE_DFS();
     }
 
     inline void EVAL_BBOX () {

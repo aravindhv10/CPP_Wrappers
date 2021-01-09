@@ -37,6 +37,7 @@
 #include <mutex>
 #include <memory>
 #include <stack>
+#include <queue>
 #include <bitset>
 
 #ifdef USECBLAS
