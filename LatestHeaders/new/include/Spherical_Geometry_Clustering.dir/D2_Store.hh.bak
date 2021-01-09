@@ -182,22 +182,20 @@ class _MACRO_CLASS_NAME_ {
 
   private:
     inline TYPE_BOX GET_B_BOX (TYPE_INT const start, TYPE_INT const end) {
-        TYPE_BOX ret;
         if(READ_STORE){
-            ret = PTR_STORE[start].POINT;
+            TYPE_BOX ret = PTR_STORE[start];
             for(TYPE_INT i=start+1; i<=end; i++) {
-                ret += PTR_STORE[i].POINT ;
+                ret += PTR_STORE[i] ;
             }
             return ret;
         } else {
             TYPE_INT const length = end - start + 1;
             CPPFileIO::Dynamic1DArray<TYPE_ELEMENT, TYPE_INT> store(length);
             STORE(start, store);
-            ret = store(0).POINT;
+            TYPE_BOX ret = store(0);
             for(TYPE_INT i=1;i<length;i++){
-                ret += store(i).POINT;
+                ret += store(i);
             }
-            return ret;
         }
     }
 
@@ -231,65 +229,48 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline void MAKE_HEAP_STRUCTURE () {
+    inline void MAKE_HEAP_OLD(TYPE_INT index) {
         HEAP.size(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
 
         std::stack<TYPE_INT> stack;
-
-        /* for 0: */ {
-            TYPE_NODE node;
-            node.RANGE[0] = 0;
-            node.RANGE[1] = STORE() - 1;
-            HEAP(0) = node;
-
-            if(!node.IS_LEAF()){
-                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(0);
-                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(0);
-
-                stack.push(index_left_child);
-                stack.push(index_right_child);
-
-                TYPE_INT const mid = (node.RANGE[0] + node.RANGE[1]) / 2;
-
-                TYPE_NODE left_child, right_child;
-                /* Assign the 2 children nodes: */ {
-                    left_child.RANGE[0] = node.RANGE[0];
-                    left_child.RANGE[1] = mid;
-
-                    right_child.RANGE[0] = mid + 1;
-                    right_child.RANGE[1] = node.RANGE[1];
-                }
-
-                HEAP(index_left_child)  = left_child;
-                HEAP(index_right_child) = right_child;
-            }
+        /* Prepare the 1st element of the HEAP: */ {
+            TYPE_NODE &element = HEAP(0);
+            element.RANGE[0]   = 0;
+            element.RANGE[1]   = STORE() - 1;
+            stack.push(0);
         }
 
         while (!stack.empty()) {
-            TYPE_INT const index = stack.top();
+            TYPE_INT const the_index = stack.top();
             stack.pop();
-            MAX_HEAP_SIZE = CPPFileIO::mymax(MAX_HEAP_SIZE, index);
-
-            TYPE_NODE const node = HEAP(index);
-
-            if(!node.IS_LEAF()){
-                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
-                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
-
+            MAX_HEAP_SIZE      = CPPFileIO::mymax(MAX_HEAP_SIZE, the_index);
+            TYPE_NODE &element = HEAP(the_index);
+            if (element.IS_LEAF()) {
+                TYPE_INT const      start  = element.RANGE[0];
+                TYPE_INT const      end    = element.RANGE[1];
+                TYPE_INT const      length = end - start + 1;
+                TYPE_ELEMENT const *buffer = &(STORE(start, length));
+                element.BBOX               = buffer[0].POINT;
+                for (TYPE_INT i = 1; i < length; i++) {
+                    element.BBOX += buffer[i].POINT;
+                }
+            } else {
+                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(the_index);
+                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(the_index);
                 stack.push(index_left_child);
                 stack.push(index_right_child);
 
-                TYPE_INT const mid = (node.RANGE[0] + node.RANGE[1]) / 2;
+                TYPE_INT const mid = (element.RANGE[0] + element.RANGE[1]) / 2;
 
                 TYPE_NODE left_child, right_child;
                 /* Assign the 2 children nodes: */ {
-                    left_child.RANGE[0] = node.RANGE[0];
+                    left_child.RANGE[0] = element.RANGE[0];
                     left_child.RANGE[1] = mid;
 
                     right_child.RANGE[0] = mid + 1;
-                    right_child.RANGE[1] = node.RANGE[1];
+                    right_child.RANGE[1] = element.RANGE[1];
                 }
 
                 HEAP(index_left_child)  = left_child;
@@ -297,36 +278,17 @@ class _MACRO_CLASS_NAME_ {
             }
         }
 
-        HEAP.size(MAX_HEAP_SIZE+1);
-        HEAP.writeable(false);
-        READ_HEAP = false;
-    }
-
-    inline void EVAL_BBOX () {
-        TYPE_INT const limit = HEAP();
-        HEAP.writeable(true);
-        TYPE_NODE * buffer = &( HEAP(0, limit) ) ;
-
-        read_all_store();
-
-#pragma omp parallel for
-        for(TYPE_INT i=0;i<limit;i++){
-            if(buffer[i].IS_LEAF()){
-                buffer[i].BBOX = GET_B_BOX(buffer[i].RANGE[0], buffer[i].RANGE[1]);
+        for (TYPE_INT i = MAX_HEAP_SIZE; i >= 0; i--) {
+            TYPE_NODE element = HEAP(i);
+            if (!element.IS_LEAF()) {
+                TYPE_NODE const *children = &(HEAP(INDEX_LEFT_CHILD(i), 2));
+                element.BBOX              = children[0].BBOX + children[1].BBOX;
+                HEAP(i)                   = element;
             }
         }
 
-        for(TYPE_INT i=limit-1; i>=0; i--) {
-            if(!buffer[i].IS_LEAF()){
-                TYPE_INT const index_left_child = INDEX_LEFT_CHILD(i);
-                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(i);
-                buffer[i].BBOX = buffer[index_left_child].BBOX + buffer[index_right_child].BBOX;
-            }
-        }
-
+        HEAP.size(MAX_HEAP_SIZE + 1);
         HEAP.writeable(false);
-        HEAP.size(limit);
-        READ_HEAP = false;
     }
 
     inline TYPE_INT MAKE_HEAP_STACK(TYPE_INT const index) {
@@ -508,9 +470,7 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void MAKE_HEAP(TYPE_INT nthreads=4) {
-        MAKE_HEAP_STRUCTURE();
-        EVAL_BBOX();
-        // MAKE_HEAP_RECURSIVE(0, nthreads);
+        MAKE_HEAP_RECURSIVE(0, nthreads);
         // MAKE_HEAP_STACK(0);
     }
 
