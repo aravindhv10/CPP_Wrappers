@@ -221,7 +221,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline TYPE_ULONG z_curve() const {
-        return StaticArray::Z_Curve_2::get_z_curve(uint_latitude(), uint_longitude());
+        return CPPFileIO::get_z_curve(uint_latitude(), uint_longitude());
     }
     //////////////////////////
     // Main Functions END.} //
