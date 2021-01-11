@@ -29,9 +29,7 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
     TYPE_INT   INDEX;
 
   public:
-    inline void Eval_Z_Curve () {
-        Z_CURVE = POINT.z_curve();
-    }
+    inline void Eval_Z_Curve() { Z_CURVE = POINT.z_curve(); }
 
     inline char Compare(TYPE_SELF const &other) const {
         return Read_Show_Functions::Compare(Z_CURVE, other.Z_CURVE);
@@ -142,9 +140,10 @@ class _MACRO_CLASS_NAME_ {
     TYPE_INT                           MAX_HEAP_SIZE;
 
   private:
-    bool                READ_STORE;
-    TYPE_INT            LIMIT_STORE;
-    TYPE_ELEMENT const *PTR_STORE;
+    bool          READ_STORE;
+    TYPE_INT      LIMIT_STORE;
+    TYPE_ELEMENT *PTR_STORE;
+
   public:
     inline void read_all_store() {
         READ_STORE  = true;
@@ -153,14 +152,26 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    bool             READ_HEAP;
-    TYPE_INT         LIMIT_HEAP;
-    TYPE_NODE const *PTR_HEAP;
+    bool       READ_HEAP;
+    TYPE_INT   LIMIT_HEAP;
+    TYPE_NODE *PTR_HEAP;
+
   public:
     inline void read_all_heap() {
         READ_HEAP  = true;
         LIMIT_HEAP = HEAP();
         PTR_HEAP   = &(HEAP(0, LIMIT_HEAP));
+    }
+
+    inline void read_small_heap(TYPE_INT const in) {
+        READ_HEAP = false;
+        if (in > 0) {
+            LIMIT_HEAP = in;
+            PTR_HEAP   = &(HEAP(0, in));
+        } else {
+            LIMIT_HEAP = 0;
+            HEAP.size(0);
+        }
     }
 
   private:
@@ -181,12 +192,12 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline TYPE_BOX GET_B_BOX (TYPE_INT const start, TYPE_INT const end) {
+    inline TYPE_BOX GET_B_BOX(TYPE_INT const start, TYPE_INT const end) {
         TYPE_BOX ret;
-        if(READ_STORE){
+        if (READ_STORE) {
             ret = PTR_STORE[start].POINT;
-            for(TYPE_INT i=start+1; i<=end; i++) {
-                ret += PTR_STORE[i].POINT ;
+            for (TYPE_INT i = start + 1; i <= end; i++) {
+                ret += PTR_STORE[i].POINT;
             }
             return ret;
         } else {
@@ -194,11 +205,16 @@ class _MACRO_CLASS_NAME_ {
             CPPFileIO::Dynamic1DArray<TYPE_ELEMENT, TYPE_INT> store(length);
             STORE(start, store);
             ret = store(0).POINT;
-            for(TYPE_INT i=1;i<length;i++){
-                ret += store(i).POINT;
-            }
+            for (TYPE_INT i = 1; i < length; i++) { ret += store(i).POINT; }
             return ret;
         }
+    }
+
+    inline TYPE_INT PREFERRED_HEAP_SIZE() {
+        TYPE_INT calc =
+          static_cast<TYPE_INT>(log2(STORE() / (LEAF_LENGTH / 2)));
+        calc = 2 << (calc);
+        return calc;
     }
 
   public:
@@ -231,22 +247,26 @@ class _MACRO_CLASS_NAME_ {
     }
 
   private:
-    inline void MAKE_HEAP_STRUCTURE_DFS () {
-        HEAP.size(0);
+    inline void MAKE_HEAP_STRUCTURE_DFS() {
+        HEAP.writeable(true);
+        read_small_heap(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
 
         std::stack<TYPE_INT> stack;
 
+        read_small_heap(
+          CPPFileIO::mymax(PREFERRED_HEAP_SIZE(), static_cast<TYPE_INT>(1024)));
+
         /* for 0: */ {
             TYPE_NODE node;
             node.RANGE[0] = 0;
             node.RANGE[1] = STORE() - 1;
-            HEAP(0) = node;
+            PTR_HEAP[0]   = node;
 
-            if(!node.IS_LEAF()){
-                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(0);
-                TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(0);
+            if (!node.IS_LEAF()) {
+                TYPE_INT constexpr index_left_child  = INDEX_LEFT_CHILD(0);
+                TYPE_INT constexpr index_right_child = INDEX_RIGHT_CHILD(0);
 
                 stack.push(index_left_child);
                 stack.push(index_right_child);
@@ -262,8 +282,8 @@ class _MACRO_CLASS_NAME_ {
                     right_child.RANGE[1] = node.RANGE[1];
                 }
 
-                HEAP(index_left_child)  = left_child;
-                HEAP(index_right_child) = right_child;
+                PTR_HEAP[index_left_child]  = left_child;
+                PTR_HEAP[index_right_child] = right_child;
             }
         }
 
@@ -272,9 +292,9 @@ class _MACRO_CLASS_NAME_ {
             stack.pop();
             MAX_HEAP_SIZE = CPPFileIO::mymax(MAX_HEAP_SIZE, index);
 
-            TYPE_NODE const node = HEAP(index);
+            TYPE_NODE const node = PTR_HEAP[index];
 
-            if(!node.IS_LEAF()){
+            if (!node.IS_LEAF()) {
                 TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
                 TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
 
@@ -292,30 +312,42 @@ class _MACRO_CLASS_NAME_ {
                     right_child.RANGE[1] = node.RANGE[1];
                 }
 
-                HEAP(index_left_child)  = left_child;
-                HEAP(index_right_child) = right_child;
+                auto const tmpmax =
+                  CPPFileIO::mymax(index_left_child, index_right_child);
+
+                while (LIMIT_HEAP <= tmpmax) {
+                    read_small_heap(2 * LIMIT_HEAP);
+                }
+
+                PTR_HEAP[index_left_child]  = left_child;
+                PTR_HEAP[index_right_child] = right_child;
             }
         }
 
-        HEAP.size(MAX_HEAP_SIZE+1);
+        HEAP.size(MAX_HEAP_SIZE + 1);
         HEAP.writeable(false);
-        READ_HEAP = false;
+        READ_HEAP  = false;
+        LIMIT_HEAP = 0;
     }
 
-    inline void MAKE_HEAP_STRUCTURE_BFS () {
-        HEAP.size(0);
+    inline void MAKE_HEAP_STRUCTURE_BFS() {
+        HEAP.writeable(true);
+        read_small_heap(0);
         MAX_HEAP_SIZE = 0;
         HEAP.writeable(true);
 
         std::queue<TYPE_INT> stack;
 
+        read_small_heap(
+          CPPFileIO::mymax(PREFERRED_HEAP_SIZE(), static_cast<TYPE_INT>(1024)));
+
         /* for 0: */ {
             TYPE_NODE node;
             node.RANGE[0] = 0;
             node.RANGE[1] = STORE() - 1;
-            HEAP(0) = node;
+            PTR_HEAP[0]   = node;
 
-            if(!node.IS_LEAF()){
+            if (!node.IS_LEAF()) {
                 TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(0);
                 TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(0);
 
@@ -333,8 +365,8 @@ class _MACRO_CLASS_NAME_ {
                     right_child.RANGE[1] = node.RANGE[1];
                 }
 
-                HEAP(index_left_child)  = left_child;
-                HEAP(index_right_child) = right_child;
+                PTR_HEAP[index_left_child]  = left_child;
+                PTR_HEAP[index_right_child] = right_child;
             }
         }
 
@@ -343,9 +375,9 @@ class _MACRO_CLASS_NAME_ {
             stack.pop();
             MAX_HEAP_SIZE = CPPFileIO::mymax(MAX_HEAP_SIZE, index);
 
-            TYPE_NODE const node = HEAP(index);
+            TYPE_NODE const node = PTR_HEAP[index];
 
-            if(!node.IS_LEAF()){
+            if (!node.IS_LEAF()) {
                 TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
                 TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
 
@@ -363,39 +395,51 @@ class _MACRO_CLASS_NAME_ {
                     right_child.RANGE[1] = node.RANGE[1];
                 }
 
-                HEAP(index_left_child)  = left_child;
-                HEAP(index_right_child) = right_child;
+                auto const tmpmax =
+                  CPPFileIO::mymax(index_left_child, index_right_child);
+
+                while (LIMIT_HEAP <= tmpmax) {
+                    read_small_heap(2 * LIMIT_HEAP);
+                }
+
+                PTR_HEAP[index_left_child]  = left_child;
+                PTR_HEAP[index_right_child] = right_child;
             }
         }
 
-        HEAP.size(MAX_HEAP_SIZE+1);
+        HEAP.size(MAX_HEAP_SIZE + 1);
         HEAP.writeable(false);
-        READ_HEAP = false;
+        READ_HEAP  = false;
+        LIMIT_HEAP = 0;
     }
 
-    inline void MAKE_HEAP_STRUCTURE(){
+    inline void MAKE_HEAP_STRUCTURE() {
         MAKE_HEAP_STRUCTURE_DFS();
+        printf("HEAP SIZES: %ld %ld %ld\n", STORE(), HEAP(),
+               PREFERRED_HEAP_SIZE());
     }
 
-    inline void EVAL_BBOX () {
+    inline void EVAL_BBOX() {
         TYPE_INT const limit = HEAP();
         HEAP.writeable(true);
-        TYPE_NODE * buffer = &( HEAP(0, limit) ) ;
+        TYPE_NODE *buffer = &(HEAP(0, limit));
 
         read_all_store();
 
 #pragma omp parallel for
-        for(TYPE_INT i=0;i<limit;i++){
-            if(buffer[i].IS_LEAF()){
-                buffer[i].BBOX = GET_B_BOX(buffer[i].RANGE[0], buffer[i].RANGE[1]);
+        for (TYPE_INT i = 0; i < limit; i++) {
+            if (buffer[i].IS_LEAF()) {
+                buffer[i].BBOX =
+                  GET_B_BOX(buffer[i].RANGE[0], buffer[i].RANGE[1]);
             }
         }
 
-        for(TYPE_INT i=limit-1; i>=0; i--) {
-            if(!buffer[i].IS_LEAF()){
-                TYPE_INT const index_left_child = INDEX_LEFT_CHILD(i);
+        for (TYPE_INT i = limit - 1; i >= 0; i--) {
+            if (!buffer[i].IS_LEAF()) {
+                TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(i);
                 TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(i);
-                buffer[i].BBOX = buffer[index_left_child].BBOX + buffer[index_right_child].BBOX;
+                buffer[i].BBOX = buffer[index_left_child].BBOX +
+                                 buffer[index_right_child].BBOX;
             }
         }
 
@@ -425,11 +469,11 @@ class _MACRO_CLASS_NAME_ {
             stack.pop();
             max_heap_size = CPPFileIO::mymax(max_heap_size, the_index);
 
-            TYPE_NODE element ;
+            TYPE_NODE element;
             if (the_index == 0) {
                 element.RANGE[0] = 0;
                 element.RANGE[1] = store() - 1;
-                heap(0) = element;
+                heap(0)          = element;
             } else {
                 element = heap(the_index);
             }
@@ -441,7 +485,7 @@ class _MACRO_CLASS_NAME_ {
                 TYPE_INT const      length = end - start + 1;
                 TYPE_ELEMENT const *buffer = &(store(start, length));
 
-                element.BBOX               = buffer[0].POINT;
+                element.BBOX = buffer[0].POINT;
                 for (TYPE_INT i = 1; i < length; i++) {
                     element.BBOX += buffer[i].POINT;
                 }
@@ -477,29 +521,30 @@ class _MACRO_CLASS_NAME_ {
         //     std::sort(toprocess.begin(), toprocess.end());
         // }
 
-        for(TYPE_INT i=toprocess.size()-1; i>=0; i--) {
-            TYPE_INT const the_index = toprocess[i];
-            TYPE_INT const index_left_child = INDEX_LEFT_CHILD(the_index);
-            TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(the_index);
-            TYPE_NODE const left_child  = heap(index_left_child);
-            TYPE_NODE const right_child = heap(index_right_child);
+        for (TYPE_INT i = toprocess.size() - 1; i >= 0; i--) {
+            TYPE_INT const  the_index         = toprocess[i];
+            TYPE_INT const  index_left_child  = INDEX_LEFT_CHILD(the_index);
+            TYPE_INT const  index_right_child = INDEX_RIGHT_CHILD(the_index);
+            TYPE_NODE const left_child        = heap(index_left_child);
+            TYPE_NODE const right_child       = heap(index_right_child);
             heap(the_index).BBOX = left_child.BBOX + right_child.BBOX;
         }
 
-        if(index==0){
-            heap.size(max_heap_size+1);
+        if (index == 0) {
+            heap.size(max_heap_size + 1);
             heap.writeable(false);
         }
 
         return max_heap_size;
     }
 
-    inline TYPE_INT MAKE_HEAP_RECURSIVE (TYPE_INT const index, TYPE_INT const nthreads) {
+    inline TYPE_INT MAKE_HEAP_RECURSIVE(TYPE_INT const index,
+                                        TYPE_INT const nthreads) {
 
         CPPFileIO::FileArray<TYPE_NODE> heap(NAME_HEAP());
         if (index == 0) { heap.size(0); }
 
-        TYPE_NODE element ;
+        TYPE_NODE element;
         if (index == 0) {
             element.RANGE[0] = 0;
             element.RANGE[1] = STORE() - 1;
@@ -524,12 +569,11 @@ class _MACRO_CLASS_NAME_ {
             }
 
             heap(index) = element;
-            if(index==0){heap.size(1);}
+            if (index == 0) { heap.size(1); }
             heap.writeable(false);
 
             return index;
-
-        } 
+        }
 
         TYPE_INT const index_left_child  = INDEX_LEFT_CHILD(index);
         TYPE_INT const index_right_child = INDEX_RIGHT_CHILD(index);
@@ -552,9 +596,11 @@ class _MACRO_CLASS_NAME_ {
 #pragma omp parallel for
             for (size_t i = 0; i < 2; i++) {
                 if (i == 0) {
-                    sizes[0] = MAKE_HEAP_RECURSIVE(index_left_child, newthreads);
+                    sizes[0] =
+                      MAKE_HEAP_RECURSIVE(index_left_child, newthreads);
                 } else {
-                    sizes[1] = MAKE_HEAP_RECURSIVE(index_right_child, newthreads);
+                    sizes[1] =
+                      MAKE_HEAP_RECURSIVE(index_right_child, newthreads);
                 }
             }
         } else {
@@ -574,15 +620,13 @@ class _MACRO_CLASS_NAME_ {
             heap(index).BBOX            = left_child.BBOX + right_child.BBOX;
         }
 
-        if(index==0){
-            heap.size(max_heap_size + 1);
-        }
+        if (index == 0) { heap.size(max_heap_size + 1); }
         heap.writeable(false);
 
         return max_heap_size;
     }
 
-    inline void MAKE_HEAP(TYPE_INT nthreads=4) {
+    inline void MAKE_HEAP(TYPE_INT nthreads = 4) {
         MAKE_HEAP_STRUCTURE();
         EVAL_BBOX();
         // MAKE_HEAP_RECURSIVE(0, nthreads);
@@ -704,7 +748,7 @@ class _MACRO_CLASS_NAME_ {
                 size_t const                       limit = array();
                 array.writeable(true);
                 TYPE_ELEMENT *buffer  = &(array(0, limit));
-                size_t constexpr step = (1 << 13) ;
+                size_t constexpr step = (1 << 13);
 #pragma omp parallel for
                 for (size_t start = 0; start < limit; start += step) {
                     size_t const end = CPPFileIO::mymin(start + step, limit);
