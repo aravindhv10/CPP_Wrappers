@@ -50,6 +50,12 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
         UnLock();
         return ret;
     }
+
+    inline void Assign(TYPE_DATA const value = 0) {
+        Lock();
+        current = value;
+        UnLock();
+    }
     /////////////////////////////////
     // Main Working Functions END. //
     /////////////////////////////////
@@ -58,12 +64,10 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     // Misc BEGIN: //
     /////////////////
   public:
-    inline TYPE_DATA operator()() { return Increase(); }
-    inline void      operator=(TYPE_DATA const in) {
-        Lock();
-        current = in;
-        UnLock();
+    inline TYPE_DATA operator()(TYPE_DATA const val = 1) {
+        return Increase(val);
     }
+    inline void operator=(TYPE_DATA const in) { Assign(in); }
 
   public:
     _MACRO_CLASS_NAME_() : current(0) {}
@@ -72,7 +76,6 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     // Misc END. //
     ///////////////
 };
-
 #undef _MACRO_CLASS_NAME_
 
 #endif
