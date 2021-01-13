@@ -157,6 +157,7 @@ template <typename T = float> class _MACRO_CLASS_NAME_ {
   private:
     TYPE_DATA const Begin, End;
     TYPE_HIST       DATA;
+    bool NORMALIZE;
     /////////////////////////////
     // Main Data Elements END. //
     /////////////////////////////
@@ -190,11 +191,22 @@ template <typename T = float> class _MACRO_CLASS_NAME_ {
         DATA(index) += W;
     }
 
+    inline TYPE_DATA SUM () const {
+        TYPE_DATA ret = 0;
+        for(size_t i=0;i<DATA();i++){
+            ret += DATA(i);
+        }
+        return ret;
+    }
+
     inline void Show(FILE *f = stdout) const {
+        TYPE_DATA sum = SUM();
         for (size_t i = N1(); i < N2(); i++) {
             TYPE_DATA const x1 = N_to_X(i);
             TYPE_DATA const x2 = N_to_X(i + 1);
-            fprintf(f, "%e %e\n%e %e\n", x1, DATA(i), x2, DATA(i));
+            TYPE_DATA val = DATA(i);
+            if(NORMALIZE){val /= sum;}
+            fprintf(f, "%e %e\n%e %e\n", x1, val, x2, val);
         }
     }
 
@@ -211,6 +223,10 @@ template <typename T = float> class _MACRO_CLASS_NAME_ {
     // Main Interface BEGIN: //
     ///////////////////////////
   public:
+    inline void do_normalize (bool const in = true) {
+        NORMALIZE = in;
+    }
+
     inline void operator()(TYPE_DATA const X, TYPE_DATA const W = 1.0) {
         Fill(X, W);
     }
@@ -223,6 +239,7 @@ template <typename T = float> class _MACRO_CLASS_NAME_ {
                        size_t const _N)
       : Begin(_Begin), End(_End), DATA(_N) {
         for (size_t i = 0; i < DATA(); i++) { DATA(i) = 0; }
+        NORMALIZE = false;
     }
 
     ~_MACRO_CLASS_NAME_() {}
@@ -267,20 +284,22 @@ template <typename T> class _MACRO_CLASS_NAME_ {
 
   public:
     inline void MakeHist(TYPE_DATA const begin, TYPE_DATA const end,
-                         size_t const n_bins) {
+                         size_t const n_bins, bool const normalized = false) {
         copy();
         sort();
         DynamicHist<TYPE_DATA>               hist(begin, end, n_bins);
+        hist.do_normalize(normalized);
         CPPFileIO::FullFileReader<TYPE_DATA> reader(dataname());
         for (size_t i = 0; i < reader(); i++) { hist(reader(i)); }
         hist >> histname();
     }
 
-    inline void MakeHist(size_t const n_bins) {
+    inline void MakeHist(size_t const n_bins, bool const normalized = false) {
         copy();
         sort();
         CPPFileIO::FullFileReader<TYPE_DATA> reader(dataname());
         DynamicHist<TYPE_DATA> hist(reader(0), reader(reader() - 1), n_bins);
+        hist.do_normalize(normalized);
         for (size_t i = 0; i < reader(); i++) { hist(reader(i)); }
         hist >> histname();
     }
