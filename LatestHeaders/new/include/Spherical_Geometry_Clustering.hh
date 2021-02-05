@@ -2,6 +2,7 @@
 #define _HEADER_GUARD_Spherical_Geometry_Clustering_
 
 #include "./StaticArray.hh"
+#include "./Spherical_Geometry_Clustering.hh"
 
 namespace Spherical_Geometry_Clustering {
 #include "./Spherical_Geometry_Clustering.dir/Threading_Treshhold.hh"
