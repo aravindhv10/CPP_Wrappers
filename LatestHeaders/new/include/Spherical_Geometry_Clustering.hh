@@ -11,6 +11,7 @@ namespace Spherical_Geometry_Clustering {
 #include "./Spherical_Geometry_Clustering.dir/Simple_DBSCAN.hh"
 #include "./Spherical_Geometry_Clustering.dir/Weighted_DBSCAN.hh"
 #include "./Spherical_Geometry_Clustering.dir/PolarCoordinates.hh"
+#include "./Spherical_Geometry_Clustering.dir/D2_Line.hh"
 #include "./Spherical_Geometry_Clustering.dir/D2_Vector.hh"
 #include "./Spherical_Geometry_Clustering.dir/D2_Triangle.hh"
 #include "./Spherical_Geometry_Clustering.dir/FastDistanceCalculator.hh"
