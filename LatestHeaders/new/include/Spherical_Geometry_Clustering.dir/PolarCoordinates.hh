@@ -250,7 +250,7 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
     inline TYPE_SELF rotate(TYPE_FLOAT const angle_degrees) const {
-        TYPE_FLOAT const  angle_radians = angle_degrees * M_PI / 180.0;
+        TYPE_FLOAT const angle_radians = angle_degrees * M_PI / 180.0;
         TYPE_FLOAT const cos_theta     = std::cos(angle_radians);
         TYPE_FLOAT const sin_theta     = std::sin(angle_radians);
         TYPE_SELF const ret = {(latitude * cos_theta) - (longitude * sin_theta),
@@ -261,6 +261,36 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
     //////////////////////
     // Convinence END.} //
     //////////////////////
+
+    //////////////////////////////
+    // Vector operators BEGIN:{ //
+    //////////////////////////////
+  public:
+    inline TYPE_SELF operator+(TYPE_SELF const &in) const {
+        TYPE_SELF const ret = {latitude + in.latitude,
+                               longitude + in.longitude};
+        return ret;
+    }
+
+    inline TYPE_SELF operator-(TYPE_SELF const &in) const {
+        TYPE_SELF const ret = {latitude - in.latitude,
+                               longitude - in.longitude};
+        return ret;
+    }
+
+    inline TYPE_SELF operator*(TYPE_FLOAT const in) const {
+        TYPE_SELF const ret = {latitude * in, longitude * in};
+        return ret;
+    }
+
+    inline TYPE_FLOAT operator*(TYPE_SELF const in) const {
+        TYPE_FLOAT const ret =
+          (latitude * in.latitude) + (longitude * in.longitude);
+        return ret;
+    }
+    ////////////////////////////
+    // Vector operators END.} //
+    ////////////////////////////
 
   public:
     _MACRO_CLASS_NAME_(TYPE_FLOAT const inlat, TYPE_FLOAT const inlon)

@@ -32,7 +32,7 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
         return perp;
     }
 
-    inline TYPE_POINT get_perpendicular_distance(TYPE_POINT const in) const {
+    inline TYPE_FLOAT get_perpendicular_distance(TYPE_POINT const in) const {
         auto const       perp = get_perpendicular(in);
         TYPE_FLOAT const mag_perp_2 =
           std::pow(perp.latitude, 2) + std::pow(perp.longitude, 2);
