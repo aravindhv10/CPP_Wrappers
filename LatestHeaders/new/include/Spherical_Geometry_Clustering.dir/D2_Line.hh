@@ -27,8 +27,8 @@ template <typename TF, typename TI> class _MACRO_CLASS_NAME_ {
                                (unit_p1_p2.longitude * in_p1.longitude);
         TYPE_POINT const along = {unit_p1_p2.latitude * dot,
                                   unit_p1_p2.longitude * dot};
-        TYPE_POINT const perp  = {in.latitude + along.latitude,
-                                 in.longitude + along.longitude};
+        TYPE_POINT const perp  = {in_p1.latitude - along.latitude,
+                                 in_p1.longitude - along.longitude};
         return perp;
     }
 
