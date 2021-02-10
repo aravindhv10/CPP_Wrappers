@@ -235,8 +235,28 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return this->HaverSineDistance(in);
     }
 
-    inline TYPE_ULONG operator () () const {
-      return z_curve();
+    inline TYPE_ULONG operator()() const { return z_curve(); }
+
+    inline TYPE_FLOAT magnitude_2() const {
+        return std::pow(latitude, 2) + std::pow(longitude, 2);
+    }
+
+    inline TYPE_FLOAT magnitude() const { return std::sqrt(magnitude_2()); }
+
+    inline TYPE_SELF unit_vector() const {
+        TYPE_FLOAT const mag = magnitude();
+        TYPE_SELF const  ret = {latitude / mag, longitude / mag};
+        return ret;
+    }
+
+    inline TYPE_SELF rotate(TYPE_FLOAT const angle_degrees) const {
+        TYPE_FLOAT const  angle_radians = angle_degrees * M_PI / 180.0;
+        TYPE_FLOAT const cos_theta     = std::cos(angle_radians);
+        TYPE_FLOAT const sin_theta     = std::sin(angle_radians);
+        TYPE_SELF const ret = {(latitude * cos_theta) - (longitude * sin_theta),
+                               (latitude * sin_theta) +
+                                 (longitude * cos_theta)};
+        return ret;
     }
     //////////////////////
     // Convinence END.} //
