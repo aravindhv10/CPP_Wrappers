@@ -39,6 +39,7 @@
 #include <stack>
 #include <queue>
 #include <bitset>
+#include <functional>
 
 #ifdef USECBLAS
 	#include "cblas.h"
