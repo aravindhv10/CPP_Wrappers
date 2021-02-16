@@ -1,9 +1,9 @@
 [0] Config.pm:304> INFO - This is Biber 2.12
 [0] Config.pm:307> INFO - Logfile is 'main_new.blg'
-[41] biber:315> INFO - === Wed Jun 17, 2020, 16:52:51
-[70] Biber.pm:371> INFO - Reading 'main_new.bcf'
-[158] Biber.pm:889> INFO - Found 0 citekeys in bib section 0
-[170] Utils.pm:193> WARN - The file 'main_new.bcf' does not contain any citations!
-[179] bbl.pm:636> INFO - Writing 'main_new.bbl' with encoding 'UTF-8'
-[180] bbl.pm:739> INFO - Output to main_new.bbl
-[180] Biber.pm:110> INFO - WARNINGS: 1
+[54] biber:315> INFO - === Tue Feb 16, 2021, 13:15:28
+[188] Biber.pm:371> INFO - Reading 'main_new.bcf'
+[295] Biber.pm:889> INFO - Found 0 citekeys in bib section 0
+[311] Utils.pm:193> WARN - The file 'main_new.bcf' does not contain any citations!
+[321] bbl.pm:636> INFO - Writing 'main_new.bbl' with encoding 'UTF-8'
+[321] bbl.pm:739> INFO - Output to main_new.bbl
+[321] Biber.pm:110> INFO - WARNINGS: 1
