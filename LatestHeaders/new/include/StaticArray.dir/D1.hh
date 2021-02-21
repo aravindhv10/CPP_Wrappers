@@ -191,7 +191,7 @@ template <size_t X = 1, typename T = float> class _MACRO_CLASS_NAME_ {
 
     inline void GET_SQUARED(const TYPE_SELF &other) {
         _MACRO_ND_LOOP_(x) {
-            DATA[x] = other[x] * other[x]; //
+            DATA[x] = other[x] * other[x];
         }
     }
 
@@ -202,8 +202,6 @@ template <size_t X = 1, typename T = float> class _MACRO_CLASS_NAME_ {
     inline TYPE_DATA operator*(const TYPE_SELF &other) const {
         return Dot(other);
     }
-
-    _MACRO_CLASS_NAME_() {}
 
     inline TYPE_DATA &operator[](size_t x) { return DATA[x]; }
 
@@ -217,17 +215,13 @@ template <size_t X = 1, typename T = float> class _MACRO_CLASS_NAME_ {
 
     inline TYPE_DATA L1_NORM() const {
         TYPE_DATA Ret = 0;
-        /* Prepare the output: */ {
-            _MACRO_ND_LOOP_(i) { Ret += CPPFileIO::mymod(DATA[i]); }
-        }
+        _MACRO_ND_LOOP_(i) { Ret += CPPFileIO::mymod(DATA[i]); }
         return Ret;
     }
 
     inline TYPE_DATA L2_NORM() const {
         TYPE_DATA Ret = 0;
-        _MACRO_ND_LOOP_(i) {
-            Ret += DATA[i] * DATA[i];
-        }
+        _MACRO_ND_LOOP_(i) { Ret += DATA[i] * DATA[i]; }
         return Ret;
     }
 
@@ -242,7 +236,6 @@ template <size_t X = 1, typename T = float> class _MACRO_CLASS_NAME_ {
         _MACRO_ND_LOOP_(i) { ret[i] = DATA[i] - other[i]; }
         return ret;
     }
-
 };
 
 ////////////////////
