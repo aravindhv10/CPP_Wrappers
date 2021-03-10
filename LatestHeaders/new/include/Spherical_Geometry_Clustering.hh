@@ -17,6 +17,7 @@ namespace Spherical_Geometry_Clustering {
 #include "./Spherical_Geometry_Clustering.dir/FastDistanceCalculator.hh"
 #include "./Spherical_Geometry_Clustering.dir/Box.hh"
 #include "./Spherical_Geometry_Clustering.dir/D2_Store.hh"
+#include "./Spherical_Geometry_Clustering.dir/FakeKeys.hh"
 }
 
 #endif
