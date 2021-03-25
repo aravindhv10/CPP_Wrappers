@@ -135,7 +135,7 @@ template <typename T, bool cleanup = false> class _MACRO_CLASS_NAME_ {
         for (size_t i = 0; i < N_SPLITS; i++) {
             names.push_back(GetFileName(i));
         }
-        SplitFile<TYPE_ELEMENT>(infilename, names);
+        SplitFile<TYPE_ELEMENT>(infilename, names, NTH);
         if (cleanup) { RM(infilename); }
     }
     /////////////////////////////////
