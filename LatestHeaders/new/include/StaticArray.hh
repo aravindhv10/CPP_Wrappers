@@ -21,6 +21,7 @@ namespace StaticArray {
 	#include "./StaticArray.dir/ImportantHeads.hh"
 	#include "./StaticArray.dir/Operator.hh"
 	#include "./StaticArray.dir/D1.hh"
+	#include "./StaticArray.dir/RadixSort.hh"
 	#include "./StaticArray.dir/D2.hh"
 	#include "./StaticArray.dir/D3.hh"
 	#include "./StaticArray.dir/D4.hh"
