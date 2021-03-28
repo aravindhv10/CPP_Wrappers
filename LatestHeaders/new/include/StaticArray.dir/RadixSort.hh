@@ -204,6 +204,9 @@ class _MACRO_CLASS_NAME_ {
 #define _MACRO_CLASS_NAME_ FileRadixSort
 template <typename T_BE, typename T_E, typename TI = CPPFileIO::TYPE_I64>
 class _MACRO_CLASS_NAME_ {
+    /////////////////////////
+    // Definitions BEGIN:{ //
+    /////////////////////////
   public:
     using TYPE_BYTE_EXTRACT = T_BE;
     using TYPE_ELEMENT      = T_E;
@@ -214,17 +217,82 @@ class _MACRO_CLASS_NAME_ {
 
     using TYPE_BUFFER = CPPFileIO::FileArray<TYPE_ELEMENT>;
     using TYPE_SORTER = RadixSorter<TYPE_BUFFER, TYPE_BYTE_EXTRACT, TYPE_INT>;
+    ///////////////////////
+    // Definitions END.} //
+    ///////////////////////
 
+    ///////////////////////////
+    // Data elements BEGIN:{ //
+    ///////////////////////////
+  private:
+    std::string const IN;
+    std::string const OUT;
+    std::string const INT1;
+    std::string const INT2;
+
+    std::string const *TMP_IN, TMP_OUT;
+
+    TYPE_BYTE_EXTRACT EXTRACT;
+    /////////////////////////
+    // Data elements END.} //
+    /////////////////////////
+
+  private:
+    inline void DO_PASS() {
+        TYPE_BUFFER  in(TMP_IN[0]);
+        size_t const limit = in();
+        TYPE_BUFFER  out(TMP_OUT[0]);
+        TYPE_SORTER  sorter(in, out, 0, limit - 1);
+        sorter(EXTRACT);
+        out.size(limit);
+    }
+    inline void DO_PASS(TYPE_INT const index) {
+        EXTRACT(index);
+        DO_PASS();
+    }
+    inline void DO_PASS(TYPE_INT const index, std::string const &s1,
+                        std::string const &s2) {
+        TMP_IN  = &s1;
+        TMP_OUT = &s2;
+        DO_PASS(index);
+    }
+
+    inline void DO_LSB_SORT(TYPE_INT last) {
+    FunStart:
+        if (last < 0) { return; }
+        switch (last) {
+            case 0:
+                DO_PASS(0, IN, OUT);
+                break;
+
+            case 1:
+                DO_PASS(1, IN, INT1);
+                DO_PASS(0, INT1, OUT);
+                break;
+
+            case 2:
+                DO_PASS(2, IN, INT1);
+                DO_PASS(1, INT1, INT2);
+                DO_PASS(0, INT2, OUT);
+                break;
+
+            default:
+                break;
+
+        }
+    }
+
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
   public:
+    _MACRO_CLASS_NAME_(std::string const in, std::string const out)
+      : IN(in), OUT(out), INT1(OUT + ".int1"), INT2(OUT + ".INT2") {}
 
-    std::string const in;
-    std::string const tmp1;
-    std::string const tmp2;
-    std::string const out;
-
-  public:
-    _MACRO_CLASS_NAME_() {}
     ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
 };
 #undef _MACRO_CLASS_NAME_
 
