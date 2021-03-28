@@ -27,7 +27,6 @@ namespace StaticArray {
 	#include "./StaticArray.dir/D4.hh"
 	#include "./StaticArray.dir/D5.hh"
 	#include "./StaticArray.dir/type_u128.hh"
-	#include "./StaticArray.dir/Z_Curves.hh"
 	///////////////////////////
 	// Main Headers - 1 END. //
 	///////////////////////////

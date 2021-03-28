@@ -201,4 +201,31 @@ class _MACRO_CLASS_NAME_ {
 // Main Radix Sort END.} //
 ///////////////////////////
 
+#define _MACRO_CLASS_NAME_ FileRadixSort
+template <typename T_BE, typename T_E, typename TI = CPPFileIO::TYPE_I64>
+class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_BYTE_EXTRACT = T_BE;
+    using TYPE_ELEMENT      = T_E;
+    using TYPE_INT          = TI;
+
+    using TYPE_SELF =
+      _MACRO_CLASS_NAME_<TYPE_BYTE_EXTRACT, TYPE_ELEMENT, TYPE_INT>;
+
+    using TYPE_BUFFER = CPPFileIO::FileArray<TYPE_ELEMENT>;
+    using TYPE_SORTER = RadixSorter<TYPE_BUFFER, TYPE_BYTE_EXTRACT, TYPE_INT>;
+
+  public:
+
+    std::string const in;
+    std::string const tmp1;
+    std::string const tmp2;
+    std::string const out;
+
+  public:
+    _MACRO_CLASS_NAME_() {}
+    ~_MACRO_CLASS_NAME_() {}
+};
+#undef _MACRO_CLASS_NAME_
+
 #endif

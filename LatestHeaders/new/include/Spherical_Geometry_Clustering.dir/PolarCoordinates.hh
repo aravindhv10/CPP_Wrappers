@@ -205,21 +205,6 @@ template <typename TF = double, typename TI = long> class _MACRO_CLASS_NAME_ {
         return ret;
     }
 
-    inline TYPE_ULONG z_curve_old() const {
-        TYPE_UINT const lon = uint_longitude();
-        TYPE_UINT const lat = uint_latitude();
-        TYPE_ULONG      res = 0;
-        for (TYPE_INT i = 0; i < 32; i++) {
-            TYPE_UINT const  val     = (1 << i);
-            TYPE_ULONG const out_lat = static_cast<TYPE_ULONG>(lat & val);
-            TYPE_ULONG const out_lon =
-              (static_cast<TYPE_ULONG>(lon & val) << 1);
-            TYPE_ULONG const sum = ((out_lat + out_lon) << i);
-            res += sum;
-        }
-        return res;
-    }
-
     inline TYPE_ULONG z_curve() const {
         return CPPFileIO::get_z_curve(uint_latitude(), uint_longitude());
     }
