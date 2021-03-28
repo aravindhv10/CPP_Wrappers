@@ -14,7 +14,7 @@
 // Byte extractor BEGIN:{ //
 ////////////////////////////
 #define _MACRO_CLASS_NAME_ ByteExtract
-template <typename T, typename TI = CPPFileIO::TYPE_U32>
+template <typename T, typename TI = CPPFileIO::TYPE_I64>
 class _MACRO_CLASS_NAME_ {
     /////////////////////////
     // Definitions BEGIN:{ //
@@ -62,6 +62,15 @@ class _MACRO_CLASS_NAME_ {
             return false;
         }
     }
+
+    inline bool set_index (TYPE_INT const i) {
+        if (i < AS_CHILD()()) {
+            INDEX = i;
+            return true;
+        } else {
+            return false;
+        }
+    }
     /////////////////////////////////
     // Function to set index END.} //
     /////////////////////////////////
@@ -88,6 +97,46 @@ class _MACRO_CLASS_NAME_ {
 //////////////////////////
 // Byte extractor END.} //
 //////////////////////////
+
+///////////////////////////////////
+// Sample Byte Extractor BEGIN:{ //
+///////////////////////////////////
+#define _MACRO_CLASS_NAME_ Sample_sizet_extract
+#define _MACRO_PARENT_NAME_ ByteExtract<_MACRO_CLASS_NAME_, CPPFileIO::TYPE_I64>
+class _MACRO_CLASS_NAME_ : public _MACRO_PARENT_NAME_ {
+  public:
+    using TYPE_INT = typename _MACRO_PARENT_NAME_::TYPE_INT;
+
+    inline TYPE_INT operator () () const {return sizeof(size_t);}
+
+    inline TYPE_BYTE operator [] (size_t const & in) const {
+        switch(this->INDEX) {
+          case 0:
+            return (in>>56)&0xFF;
+          case 1:
+            return (in>>48)&0xFF;
+          case 2:
+            return (in>>40)&0xFF;
+          case 3:
+            return (in>>32)&0xFF;
+          case 4:
+            return (in>>24)&0xFF;
+          case 5:
+            return (in>>16)&0xFF;
+          case 6:
+            return (in>>8)&0xFF;
+          case 7:
+            return in&0xFF;
+          default:
+            return 0;
+        }
+    }
+} ;
+#undef _MACRO_PARENT_NAME_
+#undef _MACRO_CLASS_NAME_
+/////////////////////////////////
+// Sample Byte Extractor END.} //
+/////////////////////////////////
 
 /////////////////////////////
 // Main Radix Sort BEGIN:{ //
@@ -230,24 +279,34 @@ class _MACRO_CLASS_NAME_ {
     std::string const INT1;
     std::string const INT2;
 
-    std::string const *TMP_IN, TMP_OUT;
+    std::string const *TMP_IN, *TMP_OUT;
 
     TYPE_BYTE_EXTRACT EXTRACT;
     /////////////////////////
     // Data elements END.} //
     /////////////////////////
 
+    ////////////////////////////////////
+    // Main working functions BEGIN:{ //
+    ////////////////////////////////////
   private:
     inline void DO_PASS() {
         TYPE_BUFFER  in(TMP_IN[0]);
         size_t const limit = in();
         TYPE_BUFFER  out(TMP_OUT[0]);
-        TYPE_SORTER  sorter(in, out, 0, limit - 1);
-        sorter(EXTRACT);
+        out.writeable(true);
+        /* Perform the sort: */ {
+          TYPE_SORTER  sorter(in, out, 0, limit - 1);
+          sorter(EXTRACT);
+        }
         out.size(limit);
+        out.writeable(false);
+        printf("SIZES: %zu %zu\n",in.size() , out.size() );
     }
     inline void DO_PASS(TYPE_INT const index) {
-        EXTRACT(index);
+        EXTRACT.set_index(index);
+        // EXTRACT.INDEX = index;
+        // EXTRACT(static_cast<TYPE_INT const>(index));
         DO_PASS();
     }
     inline void DO_PASS(TYPE_INT const index, std::string const &s1,
@@ -258,29 +317,50 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void DO_LSB_SORT(TYPE_INT last) {
-    FunStart:
-        if (last < 0) { return; }
-        switch (last) {
-            case 0:
-                DO_PASS(0, IN, OUT);
-                break;
+        if (last < 0) {
+            return;
+        } else if (last == 0) {
+            DO_PASS(0, IN, OUT);
+            return;
+        } else {
+            DO_PASS(last, IN, INT1);
+            last--;
+        MainLoop:
+            switch (last) {
+                case 0: DO_PASS(0, INT1, OUT); return;
 
-            case 1:
-                DO_PASS(1, IN, INT1);
-                DO_PASS(0, INT1, OUT);
-                break;
+                case 1:
+                    DO_PASS(1, INT1, INT2);
+                    DO_PASS(0, INT2, OUT);
+                    return;
 
-            case 2:
-                DO_PASS(2, IN, INT1);
-                DO_PASS(1, INT1, INT2);
-                DO_PASS(0, INT2, OUT);
-                break;
-
-            default:
-                break;
-
+                default:
+                    DO_PASS(last, INT1, INT2);
+                    last--;
+                    DO_PASS(last, INT2, INT1);
+                    last--;
+                    goto MainLoop;
+            }
         }
     }
+
+    inline void DO_LSB_SORT(){
+        DO_LSB_SORT(EXTRACT());
+    }
+    //////////////////////////////////
+    // Main working functions END.} //
+    //////////////////////////////////
+
+    ////////////////////////
+    // Convinence BEGIN:{ //
+    ////////////////////////
+  public:
+    inline void operator () () {
+        DO_LSB_SORT();
+    }
+    //////////////////////
+    // Convinence END.} //
+    //////////////////////
 
     //////////////////////////////////////
     // Constructor & Destructor BEGIN:{ //
@@ -295,5 +375,6 @@ class _MACRO_CLASS_NAME_ {
     ////////////////////////////////////
 };
 #undef _MACRO_CLASS_NAME_
+
 
 #endif
