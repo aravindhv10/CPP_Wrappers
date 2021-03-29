@@ -73,7 +73,7 @@ class _MACRO_CLASS_NAME_ {
     ///////////////////////////////////
   public:
     inline bool set_index (TYPE_INT const i) {
-        if (i < AS_CHILD()()) {
+        if (i < max_index()) {
             INDEX = i;
             return true;
         } else {
