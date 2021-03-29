@@ -54,7 +54,7 @@ class _MACRO_CLASS_NAME_ {
     // Functions forwarded to child BEGIN:{ //
     //////////////////////////////////////////
   public:
-    inline size_t max_index () {
+    inline size_t max_index() {
         // Forward to child:
         // Return the number of indices in the element.
         return AS_CHILD().max_index();
@@ -72,7 +72,7 @@ class _MACRO_CLASS_NAME_ {
     // Function to set index BEGIN:{ //
     ///////////////////////////////////
   public:
-    inline bool set_index (TYPE_INT const i) {
+    inline bool set_index(TYPE_INT const i) {
         if (i < max_index()) {
             INDEX = i;
             return true;
@@ -87,12 +87,8 @@ class _MACRO_CLASS_NAME_ {
     /////////////////////////////////
     // Convinence operator BEGIN:{ //
     /////////////////////////////////
-    inline size_t operator()() {
-        return max_index();
-    }
-    inline bool operator()(TYPE_INT const i) {
-      return this->set_index(i);
-    }
+    inline size_t operator()() { return max_index(); }
+    inline bool   operator()(TYPE_INT const i) { return this->set_index(i); }
     template <typename TYPE_ELEMENT>
     inline TYPE_BYTE operator[](TYPE_ELEMENT const &in) {
         return get_index(in);
@@ -100,7 +96,6 @@ class _MACRO_CLASS_NAME_ {
     ///////////////////////////////
     // Convinence operator END.} //
     ///////////////////////////////
-
 };
 #undef _MACRO_CLASS_NAME_
 //////////////////////////
@@ -116,12 +111,12 @@ class _MACRO_CLASS_NAME_ : public _MACRO_PARENT_NAME_ {
   public:
     using TYPE_INT = typename _MACRO_PARENT_NAME_::TYPE_INT;
 
-    inline TYPE_INT max_index () const {return sizeof(size_t);}
+    inline TYPE_INT max_index() const { return sizeof(size_t); }
 
-    inline TYPE_BYTE get_index (size_t const & in) const {
-        return (in>>(( max_index()-1-this->INDEX)*8))&0xFF ;
+    inline TYPE_BYTE get_index(size_t const &in) const {
+        return (in >> ((max_index() - 1 - this->INDEX) * 8)) & 0xFF;
     }
-} ;
+};
 #undef _MACRO_PARENT_NAME_
 #undef _MACRO_CLASS_NAME_
 /////////////////////////////////
@@ -240,7 +235,6 @@ class _MACRO_CLASS_NAME_ {
 // Main Radix Sort END.} //
 ///////////////////////////
 
-
 /////////////////////////////////////////////////////////
 // Class for least significant byte radix sort BEGIN:{ //
 /////////////////////////////////////////////////////////
@@ -290,12 +284,12 @@ class _MACRO_CLASS_NAME_ {
         TYPE_BUFFER  out(TMP_OUT[0]);
         out.writeable(true);
         /* Perform the sort: */ {
-          TYPE_SORTER  sorter(in, out, 0, limit - 1);
-          sorter(EXTRACT);
+            TYPE_SORTER sorter(in, out, 0, limit - 1);
+            sorter(EXTRACT);
         }
         out.size(limit);
         out.writeable(false);
-        printf("SIZES: %zu %zu\n",in.size() , out.size() );
+        printf("SIZES: %zu %zu\n", in.size(), out.size());
     }
     inline void DO_PASS(TYPE_INT const index) {
         EXTRACT(index);
@@ -336,9 +330,7 @@ class _MACRO_CLASS_NAME_ {
         }
     }
 
-    inline void DO_LSB_SORT(){
-        DO_LSB_SORT(EXTRACT()-1);
-    }
+    inline void DO_LSB_SORT() { DO_LSB_SORT(EXTRACT() - 1); }
     //////////////////////////////////
     // Main working functions END.} //
     //////////////////////////////////
@@ -347,9 +339,7 @@ class _MACRO_CLASS_NAME_ {
     // Convinence BEGIN:{ //
     ////////////////////////
   public:
-    inline void operator () () {
-        DO_LSB_SORT();
-    }
+    inline void operator()() { DO_LSB_SORT(); }
     //////////////////////
     // Convinence END.} //
     //////////////////////
