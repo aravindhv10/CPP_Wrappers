@@ -50,19 +50,28 @@ class _MACRO_CLASS_NAME_ {
     // Main index to interpret END.} //
     ///////////////////////////////////
 
+    //////////////////////////////////////////
+    // Functions forwarded to child BEGIN:{ //
+    //////////////////////////////////////////
+  public:
+    inline size_t max_index () {
+        // Forward to child:
+        // Return the number of indices in the element.
+        return AS_CHILD().max_index();
+    }
+
+    template <typename TYPE_ELEMENT>
+    inline TYPE_BYTE get_index(TYPE_ELEMENT const &in) {
+        return AS_CHILD().get_index(in);
+    }
+    ////////////////////////////////////////
+    // Functions forwarded to child END.} //
+    ////////////////////////////////////////
+
     ///////////////////////////////////
     // Function to set index BEGIN:{ //
     ///////////////////////////////////
   public:
-    inline bool operator()(TYPE_INT const i) {
-        if (i < AS_CHILD()()) {
-            INDEX = i;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     inline bool set_index (TYPE_INT const i) {
         if (i < AS_CHILD()()) {
             INDEX = i;
@@ -75,23 +84,23 @@ class _MACRO_CLASS_NAME_ {
     // Function to set index END.} //
     /////////////////////////////////
 
-    //////////////////////////////////////////
-    // Functions forwarded to child BEGIN:{ //
-    //////////////////////////////////////////
-  public:
+    /////////////////////////////////
+    // Convinence operator BEGIN:{ //
+    /////////////////////////////////
     inline size_t operator()() {
-        // Forward to child:
-        // Return the number of indices in the element.
-        return AS_CHILD()();
+        return max_index();
     }
-
+    inline bool operator()(TYPE_INT const i) {
+      return this->set_index(i);
+    }
     template <typename TYPE_ELEMENT>
     inline TYPE_BYTE operator[](TYPE_ELEMENT const &in) {
-        return AS_CHILD()[in];
+        return get_index(in);
     }
-    ////////////////////////////////////////
-    // Functions forwarded to child END.} //
-    ////////////////////////////////////////
+    ///////////////////////////////
+    // Convinence operator END.} //
+    ///////////////////////////////
+
 };
 #undef _MACRO_CLASS_NAME_
 //////////////////////////
@@ -107,29 +116,10 @@ class _MACRO_CLASS_NAME_ : public _MACRO_PARENT_NAME_ {
   public:
     using TYPE_INT = typename _MACRO_PARENT_NAME_::TYPE_INT;
 
-    inline TYPE_INT operator () () const {return sizeof(size_t);}
+    inline TYPE_INT max_index () const {return sizeof(size_t);}
 
-    inline TYPE_BYTE operator [] (size_t const & in) const {
-        switch(this->INDEX) {
-          case 0:
-            return (in>>56)&0xFF;
-          case 1:
-            return (in>>48)&0xFF;
-          case 2:
-            return (in>>40)&0xFF;
-          case 3:
-            return (in>>32)&0xFF;
-          case 4:
-            return (in>>24)&0xFF;
-          case 5:
-            return (in>>16)&0xFF;
-          case 6:
-            return (in>>8)&0xFF;
-          case 7:
-            return in&0xFF;
-          default:
-            return 0;
-        }
+    inline TYPE_BYTE get_index (size_t const & in) const {
+        return (in>>(( max_index()-1-this->INDEX)*8))&0xFF ;
     }
 } ;
 #undef _MACRO_PARENT_NAME_
@@ -250,6 +240,10 @@ class _MACRO_CLASS_NAME_ {
 // Main Radix Sort END.} //
 ///////////////////////////
 
+
+/////////////////////////////////////////////////////////
+// Class for least significant byte radix sort BEGIN:{ //
+/////////////////////////////////////////////////////////
 #define _MACRO_CLASS_NAME_ FileRadixSort
 template <typename T_BE, typename T_E, typename TI = CPPFileIO::TYPE_I64>
 class _MACRO_CLASS_NAME_ {
@@ -304,9 +298,7 @@ class _MACRO_CLASS_NAME_ {
         printf("SIZES: %zu %zu\n",in.size() , out.size() );
     }
     inline void DO_PASS(TYPE_INT const index) {
-        EXTRACT.set_index(index);
-        // EXTRACT.INDEX = index;
-        // EXTRACT(static_cast<TYPE_INT const>(index));
+        EXTRACT(index);
         DO_PASS();
     }
     inline void DO_PASS(TYPE_INT const index, std::string const &s1,
@@ -345,7 +337,7 @@ class _MACRO_CLASS_NAME_ {
     }
 
     inline void DO_LSB_SORT(){
-        DO_LSB_SORT(EXTRACT());
+        DO_LSB_SORT(EXTRACT()-1);
     }
     //////////////////////////////////
     // Main working functions END.} //
@@ -375,6 +367,8 @@ class _MACRO_CLASS_NAME_ {
     ////////////////////////////////////
 };
 #undef _MACRO_CLASS_NAME_
-
+///////////////////////////////////////////////////////
+// Class for least significant byte radix sort END.} //
+///////////////////////////////////////////////////////
 
 #endif
