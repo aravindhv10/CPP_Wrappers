@@ -1,6 +1,7 @@
 #ifndef _HEADER_GUARD_CPPFileIO_MyStr_
 #define _HEADER_GUARD_CPPFileIO_MyStr_
 
+#include "../Headers.hh"
 #include "./D1.hh"
 
 #define _MACRO_CLASS_NAME_ MyStr
@@ -49,6 +50,18 @@ template <typename TI = long> class _MACRO_CLASS_NAME_ {
     }
 
   public:
+    inline TYPE_INT search(std::string const pattern) const {
+        auto it = std::search(
+          start(), end(),
+          std::boyer_moore_horspool_searcher(pattern.begin(), pattern.end()));
+
+        if (it != end()) {
+            return it - start();
+        } else {
+            return -1;
+        }
+    }
+
     inline TYPE_BUFFER operator()() {
         TYPE_BUFFER ret(START, LENGTH);
         return ret;

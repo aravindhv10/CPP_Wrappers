@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <math.h>
-#include <string.h>
+#include <string>
 #include <cmath>
 #include <iostream>
 #include <vector>
