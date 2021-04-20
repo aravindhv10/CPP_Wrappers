@@ -1,0 +1,5 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@\.exe@g')"
+'echo' "${OUT}: ./compile ${1}"
+'echo' "	./compile ${1}"
+exit '0'

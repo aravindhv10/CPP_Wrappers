@@ -1,4 +1,4 @@
 #!/bin/bash
 OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g')"
-'g++' '-Ofast' '-mtune=native' '-march=native' '-fopenmp' "${1}" '-o' "${OUT}.exe"
+'g++' '-Ofast' '-mtune=native' '-march=native' '-std=c++17' '-fopenmp' "${1}" '-o' "${OUT}.exe"
 exit '0'
