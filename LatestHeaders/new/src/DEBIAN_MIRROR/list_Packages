@@ -1,0 +1,9 @@
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/non-free/binary-all/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/non-free/binary-i386/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/non-free/binary-amd64/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/contrib/binary-amd64/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/contrib/binary-i386/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/contrib/binary-all/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/main/binary-all/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/main/binary-i386/Packages
+./MIRROR/ftp.debian.org/debian/dists/stable-backports/main/binary-amd64/Packages

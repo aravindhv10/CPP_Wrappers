@@ -1,0 +1,5 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'find' './MIRROR' '-type' 'f' | 'grep' '\.xz$' | 'sed' 's@^@"xz" "-kdf" "@g;s@$@"@g' | '/bin/bash'
+'find' './MIRROR' '-type' 'f' | 'grep' 'Packages$' > './list_Packages'
+exit '0'

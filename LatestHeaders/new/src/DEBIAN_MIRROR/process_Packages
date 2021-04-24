@@ -1,0 +1,3 @@
+#!/bin/bash
+'xz' '-cd' "Packages.xz" | 'grep' '^SHA256: \|^Filename: '
+exit '0'

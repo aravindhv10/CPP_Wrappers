@@ -1,0 +1,6 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+EXE="$('basename' '--' "${0}")"
+'./compile' "./${EXE}.cc"
+exec "./${EXE}.exe"
+exit '0'

@@ -1,0 +1,5 @@
+#!/bin/bash
+HASH="$('sha256sum' "${1}" | 'cut' '-d' ' ' '-f1')"
+OUT="./SHA256/${HASH}"
+'mv' '-v' '--' "${1}" "${OUT}"
+exit '0'

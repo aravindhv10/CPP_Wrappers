@@ -1,0 +1,7 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+FILE="$('basename' '--' "${1}")"
+DIR="$('dirname' '--' "${1}")"
+'mkdir' '-pv' '--' "${DIR}"
+'ln' '-vfs' "${2}" "${1}"
+exit '0'

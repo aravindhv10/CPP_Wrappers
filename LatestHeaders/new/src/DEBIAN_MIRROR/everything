@@ -1,0 +1,9 @@
+#!/bin/bash
+cd "$('dirname' '--' "${0}")"
+'rm' '-rf' './MIRROR'
+'./download_dist'
+'./download_list'
+'./re_hash_deb'
+'./clean_sha'
+'./setup_files'
+exit '0'
