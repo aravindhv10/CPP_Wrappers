@@ -1,0 +1,5 @@
+#!/bin/bash
+OUT="$('echo' "${1}" | 'sed' 's@\.cc$@@g ; s@src/@bin/@g')"
+'mkdir' '-pv' '--' "$( "dirname" "--" "${OUT}" )"
+'clang++-12' "${1}" '-o' "${OUT}" '-Ofast' '-mtune=native' '-march=native' '-std=c++17' '-static'
+exit '0'
