@@ -31,30 +31,37 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     ///////////////////////////////////
     // Main Working Functions BEGIN: //
     ///////////////////////////////////
-  public:
-    inline void Lock() { locker.lock(); }
-    inline void UnLock() { locker.unlock(); }
+  private:
+    inline void LOCK() { locker.lock(); }
+    inline void UN_LOCK() { locker.unlock(); }
 
-    inline TYPE_DATA Increase(TYPE_DATA const value = 1) {
-        Lock();
+    inline TYPE_DATA ADD(TYPE_DATA const value = 1) {
+        LOCK();
         TYPE_DATA const ret = current;
         current += value;
-        UnLock();
+        UN_LOCK();
         return ret;
     }
 
-    inline TYPE_DATA Decrease(TYPE_DATA const value = 1) {
-        Lock();
+    inline TYPE_DATA SUBTRACT(TYPE_DATA const value = 1) {
+        LOCK();
         TYPE_DATA const ret = current;
         current -= value;
-        UnLock();
+        UN_LOCK();
         return ret;
     }
 
-    inline void Assign(TYPE_DATA const value = 0) {
-        Lock();
+    inline void ASSIGN(TYPE_DATA const value = 0) {
+        LOCK();
         current = value;
-        UnLock();
+        UN_LOCK();
+    }
+
+    inline bool CHECK(TYPE_DATA const value) {
+        LOCK();
+        bool const ret = current == value;
+        UN_LOCK();
+        return ret;
     }
     /////////////////////////////////
     // Main Working Functions END. //
@@ -64,10 +71,19 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     // Misc BEGIN: //
     /////////////////
   public:
-    inline TYPE_DATA operator()(TYPE_DATA const val = 1) {
-        return Increase(val);
-    }
+    inline TYPE_DATA operator()() { return current; }
+
     inline void operator=(TYPE_DATA const in) { Assign(in); }
+
+    inline TYPE_DATA operator+=(TYPE_DATA const val) { return ADD(val); }
+
+    inline TYPE_DATA operator-=(TYPE_DATA const val) { return SUBTRACT(val); }
+
+    inline TYPE_DATA operator++() { return ADD(1); }
+
+    inline TYPE_DATA operator--() { return SUBTRACT(1); }
+
+    inline bool operator==(TYPE_DATA const val) { return CHECK(val); }
 
   public:
     _MACRO_CLASS_NAME_() : current(0) {}
