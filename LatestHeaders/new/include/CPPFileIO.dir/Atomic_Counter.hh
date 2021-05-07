@@ -28,69 +28,111 @@ template <typename T = long> class _MACRO_CLASS_NAME_ {
     // Data Elements END. //
     ////////////////////////
 
-    ///////////////////////////////////
-    // Main Working Functions BEGIN: //
-    ///////////////////////////////////
+    ////////////////////////////////
+    // Main lock Functions BEGIN: //
+    ////////////////////////////////
   private:
     inline void LOCK() { locker.lock(); }
     inline void UN_LOCK() { locker.unlock(); }
-
-    inline TYPE_DATA ADD(TYPE_DATA const value = 1) {
-        LOCK();
-        TYPE_DATA const ret = current;
-        current += value;
-        UN_LOCK();
-        return ret;
-    }
-
-    inline TYPE_DATA SUBTRACT(TYPE_DATA const value = 1) {
-        LOCK();
-        TYPE_DATA const ret = current;
-        current -= value;
-        UN_LOCK();
-        return ret;
-    }
-
-    inline void ASSIGN(TYPE_DATA const value = 0) {
-        LOCK();
-        current = value;
-        UN_LOCK();
-    }
-
-    inline bool CHECK(TYPE_DATA const value) {
-        LOCK();
-        bool const ret = current == value;
-        UN_LOCK();
-        return ret;
-    }
-    /////////////////////////////////
-    // Main Working Functions END. //
-    /////////////////////////////////
+    //////////////////////////////
+    // Main lock Functions END. //
+    //////////////////////////////
 
     /////////////////
     // Misc BEGIN: //
     /////////////////
   public:
-    inline TYPE_DATA operator()() { return current; }
+    inline TYPE_DATA operator()() {
+        LOCK();
+        TYPE_DATA ret = current;
+        UN_LOCK();
+        return ret;
+    }
 
-    inline void operator=(TYPE_DATA const in) { Assign(in); }
+#define _MACRO_OPERATOR_(op)                                                   \
+    inline TYPE_DATA operator op(TYPE_DATA const in) {                         \
+        LOCK();                                                                \
+        TYPE_DATA const ret = current;                                         \
+        current op in;                                                         \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }                                                                          \
+    inline TYPE_DATA operator op(TYPE_SELF &in) {                              \
+        LOCK();                                                                \
+        in.LOCK();                                                             \
+        TYPE_DATA const ret = current;                                         \
+        current op in.current;                                                 \
+        in.UN_LOCK();                                                          \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }
 
-    inline TYPE_DATA operator+=(TYPE_DATA const val) { return ADD(val); }
+    _MACRO_OPERATOR_(+=)
+    _MACRO_OPERATOR_(-=)
+    _MACRO_OPERATOR_(=)
 
-    inline TYPE_DATA operator-=(TYPE_DATA const val) { return SUBTRACT(val); }
+#undef _MACRO_OPERATOR_
 
-    inline TYPE_DATA operator++() { return ADD(1); }
+#define _MACRO_OPERATOR_(op)                                                   \
+    inline bool operator op(TYPE_DATA const in) {                              \
+        LOCK();                                                                \
+        bool const ret = (current op in);                                      \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }                                                                          \
+    inline bool operator op(TYPE_SELF &in) {                                   \
+        LOCK();                                                                \
+        in.LOCK();                                                             \
+        bool const ret = (current op in.current);                              \
+        in.UN_LOCK();                                                          \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }
 
-    inline TYPE_DATA operator--() { return SUBTRACT(1); }
+    _MACRO_OPERATOR_(>)
+    _MACRO_OPERATOR_(<)
+    _MACRO_OPERATOR_(==)
+    _MACRO_OPERATOR_(>=)
+    _MACRO_OPERATOR_(<=)
 
-    inline bool operator==(TYPE_DATA const val) { return CHECK(val); }
+#undef _MACRO_OPERATOR_
 
-  public:
-    _MACRO_CLASS_NAME_() : current(0) {}
-    ~_MACRO_CLASS_NAME_() {}
+#define _MACRO_OPERATOR_(op)                                                   \
+    inline TYPE_DATA operator op(int) {                                        \
+        LOCK();                                                                \
+        TYPE_DATA ret = current;                                               \
+        current   op;                                                          \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }                                                                          \
+    inline TYPE_DATA operator op() {                                           \
+        LOCK();                                                                \
+        current   op;                                                          \
+        TYPE_DATA ret = current;                                               \
+        UN_LOCK();                                                             \
+        return ret;                                                            \
+    }
+
+    _MACRO_OPERATOR_(++)
+    _MACRO_OPERATOR_(--)
+
+#undef _MACRO_OPERATOR_
+
     ///////////////
     // Misc END. //
     ///////////////
+
+    //////////////////////////////////////
+    // Constructor & Destructor BEGIN:{ //
+    //////////////////////////////////////
+  public:
+    _MACRO_CLASS_NAME_(TYPE_DATA const &in) : current(in) {}
+    _MACRO_CLASS_NAME_(TYPE_DATA const &&in) : current(in) {}
+    _MACRO_CLASS_NAME_() : current(0) {}
+    ~_MACRO_CLASS_NAME_() {}
+    ////////////////////////////////////
+    // Constructor & Destructor END.} //
+    ////////////////////////////////////
 };
 #undef _MACRO_CLASS_NAME_
 
