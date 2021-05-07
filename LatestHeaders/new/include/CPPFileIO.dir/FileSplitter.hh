@@ -46,7 +46,7 @@ inline void SplitFile(std::string const               infilename,
 
     MainLoop:
 
-        i = counter();
+        i = counter++;
 
         if(i<outnames.size() ) {
             FileWriter <T> writer(outnames[i]);
