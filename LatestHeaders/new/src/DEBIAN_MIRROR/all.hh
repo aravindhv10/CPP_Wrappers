@@ -226,7 +226,7 @@ class _MACRO_CLASS_NAME_ {
         for (int nth = 0; nth < 16; nth++) {
             size_t index;
         MainLoop:
-            index = counter();
+            index = counter++;
             if (index < list_sha.size()) {
                 if (!is_dbg(index)) {
                     WGET(base_url + list_filename[index],
