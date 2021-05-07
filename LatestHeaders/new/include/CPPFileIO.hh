@@ -50,6 +50,7 @@ namespace CPPFileIO {
 	#include "./CPPFileIO.dir/LineReaderSequentialThreaded.hh"
 	#include "./CPPFileIO.dir/BinarySearch.hh"
 	#include "./CPPFileIO.dir/Inner_Join.hh"
+	#include "./CPPFileIO.dir/Left_Join.hh"
 	#include "./CPPFileIO.dir/RadixSort.hh"
 	#include "./CPPFileIO.dir/translate_csv.hh"
 	////////////////////////
