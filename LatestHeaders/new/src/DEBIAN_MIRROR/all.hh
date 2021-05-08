@@ -43,13 +43,27 @@ class _MACRO_CLASS_NAME_ {
     using strs = std::vector<str>;
 
   public:
-    strs base_urls;
+    str  base_urls;
     strs versions;
     strs components;
     strs final_urls;
+    str  prefix;
 
   private:
+    inline void prepare() {
+        base_urls = "http://ftp.debian.org/debian";
+
+        prefix = "ftp.debian.org/debian";
+
+        versions.push_back("stable-backports");
+
+        components.push_back("main");
+        components.push_back("contrib");
+        components.push_back("non-free");
+    }
+
     inline void generate_names() {
+
         final_urls.clear();
         strs final_files;
 
@@ -65,33 +79,24 @@ class _MACRO_CLASS_NAME_ {
         final_files.push_back("binary-i386/Packages");
         final_files.push_back("binary-all/Packages");
 
-        for (size_t i = 0; i < base_urls.size(); i++) {
-            for (size_t j = 0; j < versions.size(); j++) {
-                for (size_t k = 0; k < components.size(); k++) {
-                    for (size_t l = 0; l < final_files.size(); l++) {
-                        str tmp = base_urls[i] + "/dists/" + versions[j] + "/" +
-                                  components[k] + "/" + final_files[l];
-                        final_urls.push_back(tmp);
-                    }
+        for (size_t j = 0; j < versions.size(); j++) {
+            for (size_t k = 0; k < components.size(); k++) {
+                for (size_t l = 0; l < final_files.size(); l++) {
+                    str tmp = base_urls + "/dists/" + versions[j] + "/" +
+                              components[k] + "/" + final_files[l];
+                    final_urls.push_back(tmp);
                 }
             }
         }
     }
 
   public:
-    inline strs &operator()() {
-        generate_names();
-        return final_urls;
-    }
+    inline strs &operator()() { return final_urls; }
 
     _MACRO_CLASS_NAME_() {
-        base_urls.push_back("http://ftp.debian.org/debian");
-
-        versions.push_back("stable-backports");
-
-        components.push_back("main");
-        components.push_back("contrib");
-        components.push_back("non-free");
+        prepare();
+        prefix = "./MIRROR/" + prefix;
+        generate_names();
     }
     ~_MACRO_CLASS_NAME_() {}
 };
@@ -105,73 +110,27 @@ class _MACRO_CLASS_NAME_ {
     using file_buffer = CPPFileIO::Dynamic1DArray<char, long>;
 
   private:
-    static inline std::string const base_mirror_url() {
-        string const base_url("http://ftp.debian.org/debian/");
-        return base_url;
-    }
-
-    static inline std::string const get_prefix() {
-        string const prefix("./MIRROR/ftp.debian.org/debian/");
-        return prefix;
-    }
-
-    static inline void get_link_dists(strings &list) {
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/Contents-amd64.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/Contents-i386.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/Contents-source.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/Contents-amd64.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/Contents-i386.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/Contents-source.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/Contents-amd64.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/Contents-i386.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/Contents-source.gz");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/binary-amd64/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/binary-i386/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "main/binary-all/");
-        list.push_back(
-          "http://ftp.debian.org/debian/dists/stable-backports/main/source/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/binary-amd64/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/binary-i386/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/binary-all/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "contrib/source/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/binary-amd64/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/binary-i386/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/binary-all/");
-        list.push_back("http://ftp.debian.org/debian/dists/stable-backports/"
-                       "non-free/source/");
-    }
+    elements store;
+    config   slave;
 
   private:
-    elements store;
+    inline string const &base_mirror_url() { return slave.base_urls; }
+
+    inline string const &get_prefix() { return slave.prefix; }
+
+    inline strings get_link_dists() { return slave.final_urls; }
 
   private:
     static inline file_buffer get_file(string const in) {
         CPPFileIO::FileArray<char const> reader(in);
         size_t const                     limit = reader();
         file_buffer                      ret(limit + 1);
+
         memcpy(
           /* void *dest = */ static_cast<void *>(&(ret(0))),
           /* const void *src = */ static_cast<const void *>(&(reader(0))),
           /* size_t n = */ static_cast<size_t>(limit));
+
         ret(limit) = 0;
         return ret;
     }
@@ -212,8 +171,8 @@ class _MACRO_CLASS_NAME_ {
         if (in.size() < 9) {
             return false;
         } else {
-            size_t const  buff = 2322228159967217747; // Deadly vodoo !
-            size_t const *inn  = reinterpret_cast<size_t const *>(&(in[0]));
+            size_t constexpr buff = 2322228159967217747; // Deadly vodoo !
+            size_t const *inn     = reinterpret_cast<size_t const *>(&(in[0]));
             return !(inn[0] ^ buff);
         }
     }
@@ -223,8 +182,8 @@ class _MACRO_CLASS_NAME_ {
             return false;
         } else {
             // char const                buf[11] = "Filename: ";
-            size_t const              pos0 = 7308604897068083526;
-            CPPFileIO::TYPE_U16 const pos1 = 8250;
+            size_t constexpr pos0              = 7308604897068083526;
+            CPPFileIO::TYPE_U16 constexpr pos1 = 8250;
             size_t const *part0 = reinterpret_cast<size_t const *>(&(in[0]));
             CPPFileIO::TYPE_U16 const *part1 =
               reinterpret_cast<CPPFileIO::TYPE_U16 const *>(&(in[8]));
@@ -292,9 +251,8 @@ class _MACRO_CLASS_NAME_ {
     }
 
   public:
-    static inline void download_dists() {
-        strings link_dists;
-        get_link_dists(link_dists);
+    inline void download_dists() {
+        auto const &link_dists = get_link_dists();
         mkdir("./MIRROR", 0755);
         chdir("./MIRROR");
 
@@ -351,7 +309,7 @@ class _MACRO_CLASS_NAME_ {
             index = counter++;
             if (index < store.size()) {
                 if (!is_dbg(index)) {
-                    WGET(base_url + store[index].filename,
+                    WGET(base_url + "/" + store[index].filename,
                          out_dir + store[index].sha256);
                 }
                 goto MainLoop;
