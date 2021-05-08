@@ -78,6 +78,9 @@ class _MACRO_CLASS_NAME_ {
         final_files.push_back("binary-amd64/Packages");
         final_files.push_back("binary-i386/Packages");
         final_files.push_back("binary-all/Packages");
+        final_files.push_back("source/Sources.xz");
+        final_files.push_back("source/Sources.gz");
+        final_files.push_back("source/Sources");
 
         for (size_t j = 0; j < versions.size(); j++) {
             for (size_t k = 0; k < components.size(); k++) {
@@ -122,7 +125,7 @@ class _MACRO_CLASS_NAME_ {
 
   private:
     static inline file_buffer get_file(string const in) {
-        CPPFileIO::FileArray<char const> reader(in);
+        CPPFileIO::FullFileReader<char const> reader(in);
         size_t const                     limit = reader();
         file_buffer                      ret(limit + 1);
 
@@ -216,7 +219,6 @@ class _MACRO_CLASS_NAME_ {
 
                 strings lines;
                 get_lines(lines, in[id_in]);
-
                 strings list_sha, list_filename;
                 for (size_t i = 0; i < lines.size(); i++) {
                     if (shamatch(lines[i])) {
