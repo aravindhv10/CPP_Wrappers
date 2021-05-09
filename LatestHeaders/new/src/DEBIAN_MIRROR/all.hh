@@ -1,40 +1,13 @@
 #ifndef _HEADER_GUARD_all_
 #define _HEADER_GUARD_all_
 
+/////////////////////
+// Headers BEGIN:{ //
+/////////////////////
 #include "./include/Read_Show_Functions.hh"
-
-#define _MACRO_CLASS_NAME_ element
-class _MACRO_CLASS_NAME_ {
-  public:
-    using TYPE_SELF = _MACRO_CLASS_NAME_;
-    using str       = std::string;
-
-    str filename, sha256;
-
-    inline bool operator>(TYPE_SELF const &other) const {
-        return sha256 > other.sha256;
-    }
-
-    inline bool operator<(TYPE_SELF const &other) const {
-        return sha256 < other.sha256;
-    }
-
-    inline bool operator==(TYPE_SELF const &other) const {
-        return (sha256 == other.sha256);
-    }
-
-    inline bool operator!=(TYPE_SELF const &other) const {
-        return (sha256 != other.sha256);
-    }
-
-    _MACRO_CLASS_NAME_(str FILENAME, str SHA256)
-      : filename(FILENAME), sha256(SHA256) {}
-
-    _MACRO_CLASS_NAME_() {}
-    ~_MACRO_CLASS_NAME_() {}
-};
-using elements = std::vector<element>;
-#undef _MACRO_CLASS_NAME_
+///////////////////
+// Headers END.} //
+///////////////////
 
 #define _MACRO_CLASS_NAME_ config
 class _MACRO_CLASS_NAME_ {
@@ -103,6 +76,39 @@ class _MACRO_CLASS_NAME_ {
     }
     ~_MACRO_CLASS_NAME_() {}
 };
+#undef _MACRO_CLASS_NAME_
+
+#define _MACRO_CLASS_NAME_ element
+class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_SELF = _MACRO_CLASS_NAME_;
+    using str       = std::string;
+
+    str filename, sha256;
+
+    inline bool operator>(TYPE_SELF const &other) const {
+        return sha256 > other.sha256;
+    }
+
+    inline bool operator<(TYPE_SELF const &other) const {
+        return sha256 < other.sha256;
+    }
+
+    inline bool operator==(TYPE_SELF const &other) const {
+        return (sha256 == other.sha256);
+    }
+
+    inline bool operator!=(TYPE_SELF const &other) const {
+        return (sha256 != other.sha256);
+    }
+
+    _MACRO_CLASS_NAME_(str FILENAME, str SHA256)
+      : filename(FILENAME), sha256(SHA256) {}
+
+    _MACRO_CLASS_NAME_() {}
+    ~_MACRO_CLASS_NAME_() {}
+};
+using elements = std::vector<element>;
 #undef _MACRO_CLASS_NAME_
 
 #define _MACRO_CLASS_NAME_ MainWorker
