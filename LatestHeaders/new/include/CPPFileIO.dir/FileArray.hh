@@ -13,7 +13,6 @@
 //////////////////
 
 #define _MACRO_CLASS_NAME_ FileArray
-
 template <typename T> class _MACRO_CLASS_NAME_ {
     ////////////////////////
     // Definitions BEGIN: //
@@ -50,7 +49,7 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // File Mode BEGIN: //
     //////////////////////
   public:
-    inline void Reset () {
+    inline void Reset() {
         begin      = 0;
         act_begin  = 0;
         end        = 0;
@@ -63,12 +62,15 @@ template <typename T> class _MACRO_CLASS_NAME_ {
                           size_t const      Aoffset   = 0) {
 
         filename = Afilename;
-        offset     = Aoffset;
+        offset   = Aoffset;
         Reset();
         filefd(filename).readfile();
     }
 
-    inline void destroy() {Reset(); filefd.destroy();}
+    inline void destroy() {
+        Reset();
+        filefd.destroy();
+    }
 
     inline void
     reconstruct(std::string const Afilename = std::string("outfile"),
@@ -148,16 +150,20 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     inline TYPE_ELEMENT &operator()(size_t const A_begin,
                                     size_t const A_length = 1) {
         map(A_begin, A_length);
-        TYPE_ELEMENT & ret = mainptr[A_begin - begin];
+        TYPE_ELEMENT &ret = mainptr[A_begin - begin];
         return ret;
     }
 
     template <typename TTI>
-    inline void operator () (size_t const A_begin, Dynamic1DArray <TYPE_ELEMENT, TTI> & in) {
-        TTI const A_length = in(); 
-        TYPE_ELEMENT * dest = in.GET_DATA();
-        TYPE_ELEMENT * src = &(this[0](A_begin, A_length));
-        memcpy(dest, src, A_length*sizeof(TYPE_ELEMENT));
+    inline void operator()(size_t const                       A_begin,
+                           Dynamic1DArray<TYPE_ELEMENT, TTI> &in) {
+        TTI        A_length            = in();
+        auto const filesize            = size();
+        TTI const  A_end               = mymin(A_begin + A_length, filesize);
+        A_length                       = A_end - A_begin;
+        TYPE_ELEMENT *const       dest = in.GET_DATA();
+        TYPE_ELEMENT const *const src  = &(this[0](A_begin, A_length));
+        memcpy(dest, src, A_length * sizeof(TYPE_ELEMENT));
     }
 
     inline off_t operator()() { return size(); }
@@ -185,7 +191,6 @@ template <typename T> class _MACRO_CLASS_NAME_ {
     // Constructor & Destructor END. //
     ///////////////////////////////////
 };
-
 #undef _MACRO_CLASS_NAME_
 
 #endif
