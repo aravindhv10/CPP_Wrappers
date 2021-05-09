@@ -4,7 +4,12 @@
 ////////////////////
 // Headers BEGIN: //
 ////////////////////
-#include "./FasterLineReader.hh"
+#include "./D1.hh"
+#include "./ExternalPrograms.hh"
+#include "./FileArray.hh"
+#include "./FileWriter.hh"
+#include "./Sorter.hh"
+#include "./FileDivider.hh"
 #include "./MyStr.hh"
 //////////////////
 // Headers END. //
