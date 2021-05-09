@@ -5,7 +5,6 @@
 // Includes BEGIN: //
 /////////////////////
 #include "./Basic.hh"
-#include "./FastTXT2BIN.hh"
 #include "./FastTXT2BIN_NEW.hh"
 #include "./FileFD.hh"
 ///////////////////
@@ -514,7 +513,7 @@ class _MACRO_CLASS_NAME_ {
     // Required interfaces BEGIN: //
     ////////////////////////////////
   public:
-    static inline void SORT(TYPE_WORD const in) {}
+    static inline void SORT(TYPE_WORD const) {}
 
     static inline void MERGE(TYPE_WORD const in1, TYPE_WORD const in2,
                              TYPE_WORD const out) {
@@ -568,96 +567,5 @@ class _MACRO_CLASS_NAME_ {
 /////////////////////////////////////////////////
 // Slave for multi threaded analysis new END.} //
 /////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////
-// Slave for multi threaded analysis BEGIN:{ //
-///////////////////////////////////////////////
-#define _MACRO_CLASS_NAME_ AnalyzeSlave
-class _MACRO_CLASS_NAME_ {
-
-    ////////////////////////
-    // Definitions BEGIN: //
-    ////////////////////////
-  public:
-    using TYPE_SELF     = _MACRO_CLASS_NAME_;
-    using TYPE_WORD     = std::string;
-    using TYPE_LINE     = std::vector<std::string>;
-    using TYPE_ANALYZER = AnalyzeLines;
-    //////////////////////
-    // Definitions END. //
-    //////////////////////
-
-    //////////////////////////
-    // Data Elements BEGIN: //
-    //////////////////////////
-  private:
-    TYPE_WORD const FILENAME;
-    TYPE_ANALYZER   ANALYZER;
-    size_t          COUNT;
-    size_t const    INDEX;
-    ////////////////////////
-    // Data Elements END. //
-    ////////////////////////
-
-    ////////////////////////////////
-    // Required interfaces BEGIN: //
-    ////////////////////////////////
-  public:
-    static inline void SORT(TYPE_WORD const in) {}
-
-    static inline void MERGE(TYPE_WORD const in1, TYPE_WORD const in2,
-                             TYPE_WORD const out) {
-
-        TYPE_ANALYZER A1;
-        TYPE_ANALYZER A2;
-        A1 << in1;
-        A2 << in2;
-        A1(A2);
-        A1 >> out;
-    }
-
-    inline void operator()(TYPE_LINE const &in) {
-        bool const outcome = (COUNT == 0) && (INDEX == 0);
-        if (outcome) {
-            ANALYZER.Read_Labels(in);
-        } else {
-            ANALYZER(in);
-        }
-        COUNT++;
-    }
-
-    _MACRO_CLASS_NAME_(std::string const filename, size_t const index)
-      : FILENAME(filename), INDEX(index) {
-        COUNT = 0;
-    }
-
-    ~_MACRO_CLASS_NAME_() { ANALYZER >> FILENAME; }
-    //////////////////////////////
-    // Required interfaces END. //
-    //////////////////////////////
-
-    template <char seperator, char newline>
-    static inline void PrepareFileSchema(std::string const infilename,
-                                         std::string const outfilename,
-                                         size_t const      n_splits  = 16,
-                                         size_t const      n_threads = 4) {
-
-        FastTXT2BIN<TYPE_SELF, seperator, newline>::Do_All(
-          infilename, outfilename, n_splits, n_threads);
-
-        TYPE_ANALYZER analyze;
-        analyze << outfilename;
-        std::string const headername = outfilename + ".hh";
-        FILE *            f          = fopen(headername.c_str(), "w");
-        analyze.show(f);
-        fclose(f);
-    }
-};
-#undef _MACRO_CLASS_NAME_
-/////////////////////////////////////////////
-// Slave for multi threaded analysis END.} //
-/////////////////////////////////////////////
 
 #endif
