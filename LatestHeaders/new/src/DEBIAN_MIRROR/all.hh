@@ -321,7 +321,7 @@ class _MACRO_CLASS_NAME_ {
 
     inline void setup_files() {
         get_list();
-        string const prefix = get_prefix();
+        string const prefix = get_prefix() + "/";
 #pragma omp parallel for
         for (size_t i = 0; i < store.size(); i++) {
             if (!is_dbg(i)) {
