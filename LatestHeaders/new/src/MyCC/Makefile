@@ -1,4 +1,4 @@
-.PHONY all: ./bin/clang-cc ./bin/clang-cxx ./bin/gcc-cc ./bin/gcc-cxx ./bin/clang-omp-cc ./bin/clang-omp-cxx ./bin/gcc-omp-cc ./bin/gcc-omp-cxx
+.PHONY all: ./bin/clang-cc ./bin/clang-cxx ./bin/gcc-cc ./bin/gcc-cxx ./bin/clang-omp-cc ./bin/clang-omp-cxx ./bin/gcc-omp-cc ./bin/gcc-omp-cxx ./bin/fcc
 
 ./bin/clang-cc: ./compile ./src/clang-cc.cc
 	./compile ./src/clang-cc.cc
@@ -23,3 +23,6 @@
 
 ./bin/gcc-omp-cxx: ./compile ./src/gcc-omp-cxx.cc
 	./compile ./src/gcc-omp-cxx.cc
+
+./bin/fcc: ./compile ./src/fcc.cc
+	./compile ./src/fcc.cc
