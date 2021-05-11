@@ -8,7 +8,7 @@ int main(int const argc, char const **argv) {
     args.push_back("-Ofast");
     args.push_back("-mtune=native");
     args.push_back("-march=native");
-    args.push_back("-lopenmp5");
     args.push_back("-fopenmp");
+    args.push_back("-lomp5");
     CPPFileIO::starter_self(args);
 }

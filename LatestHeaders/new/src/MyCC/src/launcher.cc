@@ -1,6 +1,6 @@
 #include "./include/CPPFileIO.hh"
 
-int main (int const argc, char const ** argv) {
+int main(int const argc, char const **argv) {
     std::vector<std::string> args;
     args.push_back("/lib64/ld-linux-x86-64.so.2");
     args.push_back("--library-path");

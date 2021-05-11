@@ -1,6 +1,6 @@
 #include "./include/CPPFileIO.hh"
 
-int main (int const argc, char const ** argv) {
+int main(int const argc, char const **argv) {
     std::vector<std::string> args;
     args.push_back("/usr/bin/clang-12");
     for (int i = 1; i < argc; i++) { args.push_back(argv[i]); }
