@@ -60,208 +60,73 @@ inline void MergeFile(std::string const file1, std::string const file2,
     }
 }
 
-template <typename T>
-inline void MergeFileDeDup(std::string const file1, std::string const file2,
-                           std::string const fileo) {
+#define _MACRO_CLASS_NAME_ MergeFileDeDup
+template <typename TD, typename TI = long> class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_DATA   = TD;
+    using TYPE_INT    = TI;
+    using TYPE_SELF   = _MACRO_CLASS_NAME_<TYPE_DATA, TYPE_INT>;
+    using TYPE_READER = FileArray<TYPE_DATA>;
+    using TYPE_WRITER = FileWriter<TYPE_DATA>;
 
-    FileArray<T>  reader1(file1);
-    FileArray<T>  reader2(file2);
-    FileWriter<T> writer(fileo);
+  private:
+    std::string const F1, F2, F0;
+    TYPE_READER       R1, R2;
+    TYPE_WRITER       W;
+    size_t const      L1, L2;
 
-    size_t const limit1 = reader1.size();
-    size_t const limit2 = reader2.size();
+    TYPE_DATA P;
 
-    size_t i1 = 0;
-    size_t i2 = 0;
-
-    T current1, previous1, current2, previous2;
-
-    if ((i1 < limit1) && (i2 < limit2)) {
-        current1 = reader1(i1);
-        current2 = reader2(i2);
-        i1++;
-        i2++;
-    } else {
-        goto LoopEnd;
-    }
-
-LABEL_CONTINUE : {
-    char const val = (current1 > current2) - (current1 < current2);
-
-    switch (val) {
-        case 1:
-            writer(current2);
-            goto LABEL_GET2;
-
-        case 0:
-            writer(current1);
-            goto LABEL_GETBOTH;
-
-        case -1:
-            writer(current1);
-            goto LABEL_GET1;
-    }
-}
-
-LABEL_GET1:
-    if (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        i1++;
-        if (previous1 != current1) {
-            goto LABEL_CONTINUE;
-        } else {
-            goto LABEL_GET1;
+  private:
+    inline void WRITE(TYPE_DATA const &in) {
+        if (in != P) {
+            W(in);
+            P = in;
         }
-    } else {
-        goto LoopEnd;
     }
 
-LABEL_GET2:
-    if (i2 < limit2) {
-        previous2 = current2;
-        current2  = reader2(i2);
-        i2++;
-        if (previous2 != current2) {
-            goto LABEL_CONTINUE;
-        } else {
-            goto LABEL_GET2;
+    inline void WRITE() {
+        size_t i1 = 0;
+        size_t i2 = 0;
+
+        while ((i1 < L1) && (i2 < L2)) {
+            TYPE_DATA const &V1 = R1(i1);
+            TYPE_DATA const &V2 = R2(i2);
+
+            if (V1 < V2) {
+                WRITE(V1);
+                i1++;
+            } else {
+                WRITE(V2);
+                i2++;
+            }
         }
-    } else {
-        goto LoopEnd;
-    }
 
-LABEL_GETBOTH:
-    if (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        i1++;
-        if (previous1 != current1) {
-            goto LABEL_GET2;
-        } else {
-            goto LABEL_GETBOTH;
+        while (i1 < L1) {
+            WRITE(R1(i1));
+            i1++;
         }
-    } else {
-        goto LoopEnd;
-    }
 
-LoopEnd :
-    while (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        if (previous1 != current1) { writer(current1); }
-        i1++;
-    }
-
-    while (i2 < limit2) {
-        previous2 = current2;
-        current2  = reader2(i2);
-        if (previous2 != current2) { writer(current2); }
-        i2++;
-    }
-
-}
-
-template <typename T, typename T2>
-inline void MergeFileDeDup(std::string const file1, std::string const file2,
-                           std::string const fileo, T2 compare) {
-
-    FileArray<T>  reader1(file1);
-    FileArray<T>  reader2(file2);
-    FileWriter<T> writer(fileo);
-
-    size_t const limit1 = reader1.size();
-    size_t const limit2 = reader2.size();
-
-    size_t i1 = 0;
-    size_t i2 = 0;
-
-    T current1, previous1, current2, previous2;
-
-    if ((i1 < limit1) && (i2 < limit2)) {
-        current1 = reader1(i1);
-        current2 = reader2(i2);
-        i1++;
-        i2++;
-    } else {
-        goto LoopEnd;
-    }
-
-LABEL_CONTINUE : {
-    char const val = compare(current1, current2);
-
-    switch (val) {
-        case 1:
-            writer(current2);
-            goto LABEL_GET2;
-
-        case 0:
-            writer(current1);
-            goto LABEL_GETBOTH;
-
-        case -1:
-            writer(current1);
-            goto LABEL_GET1;
-    }
-}
-
-LABEL_GET1:
-    if (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        i1++;
-        if (previous1 != current1) {
-            goto LABEL_CONTINUE;
-        } else {
-            goto LABEL_GET1;
+        while (i2 < L2) {
+            WRITE(R2(i2));
+            i2++;
         }
-    } else {
-        goto LoopEnd;
     }
 
-LABEL_GET2:
-    if (i2 < limit2) {
-        previous2 = current2;
-        current2  = reader2(i2);
-        i2++;
-        if (previous2 != current2) {
-            goto LABEL_CONTINUE;
-        } else {
-            goto LABEL_GET2;
-        }
-    } else {
-        goto LoopEnd;
-    }
+  private:
+    _MACRO_CLASS_NAME_(std::string const f1, std::string const f2,
+                       std::string const f0)
+      : F1(f1), F2(f2), F0(f0), R1(F1), R2(F2), W(F0), L1(R1()), L2(R2()) {}
 
-LABEL_GETBOTH:
-    if (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        i1++;
-        if (previous1 != current1) {
-            goto LABEL_GET2;
-        } else {
-            goto LABEL_GETBOTH;
-        }
-    } else {
-        goto LoopEnd;
-    }
+    ~_MACRO_CLASS_NAME_() {}
 
-LoopEnd :
-    while (i1 < limit1) {
-        previous1 = current1;
-        current1  = reader1(i1);
-        if (previous1 != current1) { writer(current1); }
-        i1++;
+  public:
+    static inline void WORK(std::string const f1, std::string const f2,
+                            std::string const f0) {
+        TYPE_SELF slave(f1, f2, f0);
+        slave.WRITE();
     }
-
-    while (i2 < limit2) {
-        previous2 = current2;
-        current2  = reader2(i2);
-        if (previous2 != current2) { writer(current2); }
-        i2++;
-    }
-
-}
+};
+#undef _MACRO_CLASS_NAME_
 
 #endif
