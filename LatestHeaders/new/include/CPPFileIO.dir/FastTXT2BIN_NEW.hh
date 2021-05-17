@@ -11,6 +11,7 @@
 #include "./Sorter.hh"
 #include "./FileDivider.hh"
 #include "./MyStr.hh"
+#include "./FullFileReader.hh"
 //////////////////
 // Headers END. //
 //////////////////
@@ -440,5 +441,82 @@ template <typename T, char seperator, char newline> class _MACRO_CLASS_NAME_ {
 //////////////////////
 // Main Class END.} //
 //////////////////////
+
+///////////////////////////////////
+// Example slave to read BEGIN:{ //
+///////////////////////////////////
+#define _MACRO_CLASS_NAME_ SampleSlave
+template <typename sortable, bool dosort = false, bool dodup = true>
+class _MACRO_CLASS_NAME_ {
+  public:
+    using TYPE_ELEMENT     = sortable;
+    using TYPE_LINES       = std::vector<char const *>;
+    using TYPE_STRING      = std::string;
+    using TYPE_SELF        = _MACRO_CLASS_NAME_;
+    using TYPE_READER      = FileArray<TYPE_ELEMENT>;
+    using TYPE_FULL_READER = FullFileReader<TYPE_ELEMENT>;
+    using TYPE_WRITER      = FileWriter<TYPE_ELEMENT, TYPE_U64>;
+    using TYPE_TSV_READER  = FastTXT2BIN_NEW<TYPE_SELF, '\t', '\n'>;
+
+  public:
+    static inline TYPE_STRING const NAME_FILE_TSV() {
+        return TYPE_ELEMENT::NAME_FILE_TSV();
+    }
+
+    static inline TYPE_STRING const NAME_FILE_BIN() {
+        return TYPE_ELEMENT::NAME_FILE_BIN();
+    }
+
+  private:
+    std::string const     OUTFILENAME;
+    size_t const          INDEX;
+    size_t                COUNTS;
+    std::vector<sortable> DATA;
+
+  public:
+    inline void operator()(TYPE_LINES const &in) {
+        bool outcome = (INDEX == 0) && (COUNTS == 0);
+        if (!outcome) {
+            sortable tmp;
+            tmp.Read_All(in);
+            DATA.push_back(tmp);
+        }
+        COUNTS++;
+    }
+
+    static inline void SORT(TYPE_STRING const filename) {
+        if (dosort) { SortFile<TYPE_ELEMENT>(filename); }
+    }
+
+    static inline void MERGE(std::string const a1, std::string const a2,
+                             std::string const out) {
+        if (dodup) {
+            MergeFileDeDup<sortable>::WORK(a1, a2, out);
+        } else {
+            MergeFile<sortable>(a1, a2, out);
+        }
+    }
+
+  public:
+    _MACRO_CLASS_NAME_(std::string const outfilename, size_t const index)
+      : OUTFILENAME(outfilename), INDEX(index), COUNTS(0) {}
+
+    ~_MACRO_CLASS_NAME_() {
+        if (DATA.size() > 0) {
+            std::sort(DATA.begin(), DATA.end());
+            FileWriter<sortable> writer(OUTFILENAME);
+            writer(DATA);
+        }
+    }
+
+  public:
+    static inline void tsv_2_bin() {
+        TYPE_TSV_READER::Do_All(NAME_FILE_TSV(), NAME_FILE_BIN(), 64, 64);
+    }
+};
+#undef _MACRO_CLASS_NAME_
+/////////////////////////////////
+// Example slave to read END.} //
+/////////////////////////////////
 
 #endif
