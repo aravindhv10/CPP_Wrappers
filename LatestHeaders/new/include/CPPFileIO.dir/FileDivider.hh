@@ -47,13 +47,21 @@ template <char endline> class _MACRO_CLASS_NAME_ {
     inline void UNLOCK() { LOCKER.unlock(); }
 
     inline void CRAWL(size_t const i) {
-        if (i < (BOUNDARIES.size() - 1)) {
-            size_t const start = BOUNDARIES[i];
-            size_t const end   = BOUNDARIES[i + 1];
-            for (size_t j = start; j < end; j++) {
-                if (READER(j) == endline) {
-                    BOUNDARIES[i] = j + 1;
-                    return;
+        if ((i > 0) && (i < (BOUNDARIES.size() - 1))) {
+            if (true) {
+                while ((0 < BOUNDARIES[i]) && (BOUNDARIES[i] < LIMIT) &&
+                       (READER(BOUNDARIES[i] - 1) != endline)) {
+                    BOUNDARIES[i]++;
+                }
+                return;
+            } else {
+                size_t const start = BOUNDARIES[i];
+                size_t const end   = BOUNDARIES[i + 1];
+                for (size_t j = start; j < end; j++) {
+                    if (READER(j) == endline) {
+                        BOUNDARIES[i] = j + 1;
+                        return;
+                    }
                 }
             }
         }
@@ -84,7 +92,7 @@ template <char endline> class _MACRO_CLASS_NAME_ {
         if (BOUNDARIES.size() > val + 1) {
             size_t const start  = BOUNDARIES[val];
             size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
-            in.resize(length+1);
+            in.resize(length + 1);
             LOCK();
             char const *buf = &(READER(start, length));
             memcpy(&(in[0]), buf, length);
@@ -98,12 +106,12 @@ template <char endline> class _MACRO_CLASS_NAME_ {
             size_t const start  = BOUNDARIES[val];
             size_t const length = BOUNDARIES[val + 1] - BOUNDARIES[val];
             in.~Dynamic1DArray();
-            new (&in) TYPE_BUFFER(length+1);
+            new (&in) TYPE_BUFFER(length + 1);
             LOCK();
-            char const * buf    = &(READER(start, length));
+            char const *buf = &(READER(start, length));
             memcpy(in.GET_DATA(), buf, length);
             UNLOCK();
-            in(length)=0;
+            in(length) = 0;
         }
     }
 
