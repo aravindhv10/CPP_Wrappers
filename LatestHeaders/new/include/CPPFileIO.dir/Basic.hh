@@ -46,7 +46,7 @@ template <typename T> inline T *get_junk() {
     return reinterpret_cast<T *>(&junk_address);
 }
 
-template <typename T> inline T *get_junk(T *in) { return get_junk<T>(); }
+template <typename T> inline T *get_junk(T *) { return get_junk<T>(); }
 
 template <typename T> inline void set_junked(T *&inptr) {
     inptr = get_junk<T>();
@@ -140,6 +140,38 @@ template <typename T> inline T constexpr LCM(T const a, T const b) {
     T ret = GCD(a, b);
     ret   = a * (b / ret);
     return ret;
+}
+
+inline char to_lower (unsigned char const in) {
+	return in + ((('A' <= in)&&(in <= 'Z'))*('z'-'Z'));
+}
+
+inline char to_upper (unsigned char const in) {
+	return in - ((('a' <= in)&&(in <= 'z'))*('z'-'Z'));
+}
+
+inline void to_lower (char * begin, char * end) {
+	for(char * i = begin; i<end; i++){
+		*i = to_lower(*i);
+	}
+}
+
+inline void to_upper (char * begin, char * end) {
+	for(char * i = begin; i<end; i++){
+		*i = to_upper(*i);
+	}
+}
+
+inline void to_lower (std::string & in) {
+	for(char & i : in){
+		i = to_lower(i);
+	}
+}
+
+inline void to_upper (std::string & in) {
+	for(char & i : in){
+		i = to_upper(i);
+	}
 }
 
 inline void starter_self(std::vector<std::string> &program) {
